@@ -4707,6 +4707,10 @@ function CupGame({
       setPickedCupId(cupId);
       setPhase("result");
 
+      // Bardakların kalkması için phase'i doğrudan ref'e de yaz
+      stateRef.current.phase = "result";
+      stateRef.current.pickedCupId = cupId;
+
       const expectedNextRound = (activeTurn?.questionIndex ?? 0) + 1;
       roundKeyRef.current = `${activeGroup}-${expectedNextRound}`;
       const isCorrect = cupId === targetCupIdRef.current;

@@ -3284,24 +3284,6 @@ button {
   outline: none;
   transition: filter 160ms ease;
   will-change: transform;
-  animation: balloonRise 2.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-}
-
-@keyframes balloonRise {
-  0% {
-    transform: translateY(100vh) scale(0.3);
-    opacity: 0;
-  }
-  30% {
-    opacity: 1;
-  }
-  70% {
-    transform: translateY(-20px) scale(1.05);
-  }
-  100% {
-    transform: translateY(0) scale(1);
-    opacity: 1;
-  }
 }
 
 .floating-balloon:hover {
