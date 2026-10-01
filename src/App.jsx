@@ -4575,6 +4575,7 @@ function CupGame({
   const [statusText, setStatusText] = useState("");
   const targetCupIdRef = useRef(0);
   const timersRef = useRef([]);
+  const [finalRoundPending, setFinalRoundPending] = useState(false);
   const busyRef = useRef(false);
   const roundKeyRef = useRef("");
   const lastIconIndexRef = useRef(-1);
@@ -4612,6 +4613,7 @@ function CupGame({
 
   const startRound = useCallback((roundIndex) => {
     clearRoundTimers();
+    setFinalRoundPending(false);
     busyRef.current = false;
     setPickedCupId(null);
     const iconPool = CUP_ICON_OPTIONS.map((_, index) => index);
@@ -4658,6 +4660,7 @@ function CupGame({
   useEffect(() => {
     if (!isRunning) {
       clearRoundTimers();
+      setFinalRoundPending(false);
       busyRef.current = false;
       roundKeyRef.current = "";
       setPickedCupId(null);
@@ -4668,8 +4671,12 @@ function CupGame({
 
     const roundIndex = activeTurn?.questionIndex ?? 0;
     if (roundIndex >= roundsPerGroup) {
-      setPhase("complete");
-      setStatusText("Tur tamamlandı");
+      // The final answer updates questionIndex before its reveal animation
+      // finishes. Keep the result phase alive until handleCupPick advances the turn.
+      if (phase !== "result") {
+        setPhase("complete");
+        setStatusText("Tur tamamlandı");
+      }
       return;
     }
 
@@ -4685,6 +4692,7 @@ function CupGame({
     activeTurn?.questionIndex,
     clearRoundTimers,
     isRunning,
+    phase,
     roundsPerGroup,
     startRound
   ]);
@@ -4695,6 +4703,23 @@ function CupGame({
   }, []);
 
   const canGuess = phase === "guess" && isRunning && !busyRef.current;
+
+  useEffect(() => {
+    const isFinalResult =
+      isRunning &&
+      phase === "result" &&
+      (finalRoundPending || playedRounds >= roundsPerGroup);
+
+    if (!isFinalResult) {
+      return undefined;
+    }
+
+    const finishTimer = window.setTimeout(() => {
+      void onCompleteTurn();
+    }, 2600);
+
+    return () => window.clearTimeout(finishTimer);
+  }, [finalRoundPending, isRunning, onCompleteTurn, phase, playedRounds, roundsPerGroup]);
 
   const handleCupPick = useCallback(
     async (cupId) => {
@@ -4731,15 +4756,16 @@ function CupGame({
 
       const revealTimer = window.setTimeout(() => {
         try {
-          if (typeof nextRoundCount !== "number" || nextRoundCount >= roundsPerGroup) {
+          if (resolvedRoundNumber >= roundsPerGroup) {
+            setFinalRoundPending(true);
+            setStatusText(`Son bardak bulundu! (+${scoreCorrect})`);
+            return;
+          }
+
+          if (typeof nextRoundCount !== "number") {
             busyRef.current = false;
-            if (typeof nextRoundCount === "number" && nextRoundCount >= roundsPerGroup) {
-              setStatusText(`Tüm bardaklar bulundu! (+${scoreCorrect})`);
-            }
-            const finishTimer = window.setTimeout(() => {
-              void onCompleteTurn();
-            }, 1500);
-            timersRef.current.push(finishTimer);
+            setPhase("guess");
+            setStatusText("Hangi bardakta? Bir bardak seç!");
             return;
           }
           startRound(nextRoundCount);
@@ -4789,16 +4815,18 @@ function CupGame({
           {(phase === "peek-up" || phase === "peek-down" || phase === "result") && hiddenIcon ? (
             <div className="cup-target-banner" aria-label="Hedef Simge">
               <div className="cup-target-banner-3d">
-                <Canvas camera={{ position: [0, 0.6, 1.8], fov: 35 }} style={{ width: 52, height: 52 }}>
+                <Canvas camera={{ position: [0, 0.2, 1.65], fov: 40 }} style={{ width: 38, height: 38 }}>
                   <ambientLight intensity={1.2} />
                   <directionalLight position={[2, 3, 2]} intensity={1.0} />
-                  {hiddenIcon.id === "wifi" ? (
-                    <WifiRouter3D />
-                  ) : hiddenIcon.id === "computer" ? (
-                    <Computer3D />
-                  ) : (
-                    <InternetGlobe3D />
-                  )}
+                  <group position={[0, -0.15, 0]} scale={0.62}>
+                    {hiddenIcon.id === "wifi" ? (
+                      <WifiRouter3D />
+                    ) : hiddenIcon.id === "computer" ? (
+                      <Computer3D />
+                    ) : (
+                      <InternetGlobe3D />
+                    )}
+                  </group>
                 </Canvas>
               </div>
               <div className="cup-target-banner-text">

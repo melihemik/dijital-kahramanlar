@@ -1056,8 +1056,8 @@ button {
 }
 
 .cup-target-banner-3d {
-  width: 42px;
-  height: 42px;
+  width: 38px;
+  height: 38px;
   flex-shrink: 0;
   overflow: hidden;
   border-radius: 6px;
@@ -1065,12 +1065,13 @@ button {
 }
 
 .cup-target-banner-3d canvas {
-  width: 42px !important;
-  height: 42px !important;
+  width: 38px !important;
+  height: 38px !important;
   display: block;
   position: absolute;
   top: 0;
   left: 0;
+  border-radius: inherit;
 }
 
 .cup-target-banner-text {
