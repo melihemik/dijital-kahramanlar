@@ -5475,89 +5475,45 @@ function WormGame({
   );
 }
 
-const ARENA_WIDTH = 800;
-const ARENA_HEIGHT = 500;
-const ARENA_PAD = 26;
-const PACMAN_SPEED = 230;
+const PACMAN_GRID = { cols: 19, rows: 15 };
 
-function generateArenaDots() {
-  const dots = [];
-  for (let x = 65; x <= 735; x += 45) {
-    for (let y = 65; y <= 435; y += 45) {
-      const nearTL = Math.hypot(x - 70, y - 70) < 55;
-      const nearTR = Math.hypot(x - 730, y - 70) < 55;
-      const nearBL = Math.hypot(x - 70, y - 430) < 55;
-      const nearBR = Math.hypot(x - 730, y - 430) < 55;
-      const nearCenter = Math.hypot(x - 400, y - 220) < 70;
-      if (!nearTL && !nearTR && !nearBL && !nearBR && !nearCenter) {
-        dots.push({ id: `dot-${x}-${y}`, x, y });
-      }
-    }
-  }
-  return dots;
-}
-
-const INITIAL_POWER_DISKS = [
-  { id: "disk-tl", x: 70, y: 70 },
-  { id: "disk-tr", x: 730, y: 70 },
-  { id: "disk-bl", x: 70, y: 430 },
-  { id: "disk-br", x: 730, y: 430 }
+const PACMAN_MAP_TEMPLATE = [
+  "1111111111111111111", // 0
+  "1o.......1.......o1", // 1
+  "1.11.111.1.111.11.1", // 2
+  "1.................1", // 3
+  "1.11.1.11111.1.11.1", // 4
+  "1....1...1...1....1", // 5
+  "1111.111   111.1111", // 6
+  "    ...11-11...    ", // 7 (tünel & kapı)
+  "1111.1.1GGG1.1.1111", // 8 (virüs yuvası)
+  "1....1.11111.1....1", // 9
+  "1.11.1.......1.11.1", // 10
+  "1..1...11111...1..1", // 11
+  "11.1.1...1...1.1.11", // 12
+  "1o...111.3.111...o1", // 13 (Pacman başlangıç 3)
+  "1111111111111111111"  // 14
 ];
 
-function createInitialViruses() {
-  return [
-    {
-      id: "trojan",
-      name: "Truva Virüsü",
-      type: "trojan",
-      x: 360,
-      y: 190,
-      personality: "chase",
-      speed: 140,
-      status: "normal",
-      wanderAngle: 0
-    },
-    {
-      id: "spyware",
-      name: "Casus Yazılım",
-      type: "spyware",
-      x: 440,
-      y: 190,
-      personality: "ambush",
-      speed: 130,
-      status: "normal",
-      wanderAngle: Math.PI / 2
-    },
-    {
-      id: "worm",
-      name: "Solucan Virüsü",
-      type: "worm",
-      x: 360,
-      y: 240,
-      personality: "wander",
-      speed: 120,
-      status: "normal",
-      wanderAngle: Math.PI
-    },
-    {
-      id: "ransom",
-      name: "Fidye Virüsü",
-      type: "ransom",
-      x: 440,
-      y: 240,
-      personality: "flank",
-      speed: 135,
-      status: "normal",
-      wanderAngle: Math.PI * 1.5
-    }
-  ];
-}
+const PACMAN_DIRECTIONS = {
+  up: { x: 0, y: -1, angle: 270, name: "up" },
+  down: { x: 0, y: 1, angle: 90, name: "down" },
+  left: { x: -1, y: 0, angle: 180, name: "left" },
+  right: { x: 1, y: 0, angle: 0, name: "right" }
+};
+
+const VIRUS_DEFS = [
+  { id: "trojan", name: "Truva Virüsü", spawnX: 9, spawnY: 8, releaseDelay: 0, personality: "chase" },
+  { id: "spyware", name: "Casus Yazılım", spawnX: 8, spawnY: 8, releaseDelay: 8, personality: "ambush" },
+  { id: "worm", name: "Solucan Virüsü", spawnX: 10, spawnY: 8, releaseDelay: 16, personality: "patrol" },
+  { id: "ransom", name: "Fidye Virüsü", spawnX: 9, spawnY: 7, releaseDelay: 24, personality: "corner" }
+];
 
 function playPacmanWakaSound(stepCount = 0) {
   const audioContext = getFeedbackAudioContext();
   if (!audioContext) return;
   const now = audioContext.currentTime;
-  const freq = stepCount % 2 === 0 ? 340 : 460;
+  const freq = stepCount % 2 === 0 ? 330 : 440;
   playFeedbackTone(audioContext, freq, now, 0.045, "triangle");
 }
 
@@ -5590,28 +5546,124 @@ function playPacmanDeathSound() {
   playFeedbackTone(audioContext, 220, now + 0.21, 0.16, "sawtooth");
 }
 
+function canPacmanMoveTo(x, y) {
+  if (y < 0 || y >= PACMAN_GRID.rows) return false;
+  const wrappedX = (x + PACMAN_GRID.cols) % PACMAN_GRID.cols;
+  const char = PACMAN_MAP_TEMPLATE[y][wrappedX];
+  return char !== "1" && char !== "-" && char !== "G";
+}
+
+function canGhostMoveTo(x, y, isDoorAllowed = false) {
+  if (y < 0 || y >= PACMAN_GRID.rows) return false;
+  const wrappedX = (x + PACMAN_GRID.cols) % PACMAN_GRID.cols;
+  const char = PACMAN_MAP_TEMPLATE[y][wrappedX];
+  if (char === "1") return false;
+  if ((char === "-" || char === "G") && !isDoorAllowed) return false;
+  return true;
+}
+
+function createInitialPacmanDots() {
+  const dots = new Set();
+  const pellets = new Set();
+  for (let y = 0; y < PACMAN_GRID.rows; y += 1) {
+    for (let x = 0; x < PACMAN_GRID.cols; x += 1) {
+      const c = PACMAN_MAP_TEMPLATE[y][x];
+      if (c === ".") {
+        dots.add(`${x}-${y}`);
+      } else if (c === "o") {
+        dots.add(`${x}-${y}`);
+        pellets.add(`${x}-${y}`);
+      }
+    }
+  }
+  return { dots, pellets };
+}
+
+function createInitialViruses() {
+  return VIRUS_DEFS.map((def) => ({
+    id: def.id,
+    name: def.name,
+    personality: def.personality,
+    releaseDelay: def.releaseDelay,
+    x: def.spawnX,
+    y: def.spawnY,
+    prevX: def.spawnX,
+    prevY: def.spawnY,
+    dir: PACMAN_DIRECTIONS.up,
+    status: "normal",
+    inDen: def.spawnY >= 7 && def.spawnY <= 8 && def.spawnX >= 8 && def.spawnX <= 10,
+    ticksAlive: 0
+  }));
+}
+
+/* === PİKSEL KALPLER (TASARIMA UYGUN 8-BIT) === */
+function PixelHeartIcon({ isLost = false }) {
+  const fillColor = isLost ? "#4b5563" : "#d72d2d";
+  const shadowColor = isLost ? "#1f2937" : "#8f171b";
+  const outlineColor = isLost ? "#111827" : "#2b1613";
+
+  return (
+    <svg
+      aria-hidden="true"
+      className={`pacman-pixel-heart ${isLost ? "lost" : "active"}`}
+      height="30"
+      shapeRendering="crispEdges"
+      viewBox="0 0 16 16"
+      width="30"
+    >
+      {/* Çerçeve */}
+      <rect fill={outlineColor} height="1" width="4" x="2" y="1" />
+      <rect fill={outlineColor} height="1" width="4" x="10" y="1" />
+      <rect fill={outlineColor} height="5" width="1" x="1" y="2" />
+      <rect fill={outlineColor} height="1" width="4" x="6" y="2" />
+      <rect fill={outlineColor} height="5" width="1" x="14" y="2" />
+      <rect fill={outlineColor} height="2" width="1" x="2" y="7" />
+      <rect fill={outlineColor} height="2" width="1" x="13" y="7" />
+      <rect fill={outlineColor} height="2" width="1" x="3" y="9" />
+      <rect fill={outlineColor} height="2" width="1" x="12" y="9" />
+      <rect fill={outlineColor} height="1" width="2" x="4" y="11" />
+      <rect fill={outlineColor} height="1" width="2" x="10" y="11" />
+      <rect fill={outlineColor} height="2" width="1" x="6" y="12" />
+      <rect fill={outlineColor} height="2" width="1" x="9" y="12" />
+      <rect fill={outlineColor} height="1" width="2" x="7" y="14" />
+
+      {/* Dolgu */}
+      <rect fill={fillColor} height="5" width="4" x="2" y="2" />
+      <rect fill={fillColor} height="5" width="4" x="10" y="2" />
+      <rect fill={fillColor} height="4" width="4" x="6" y="3" />
+      <rect fill={fillColor} height="2" width="10" x="3" y="7" />
+      <rect fill={fillColor} height="2" width="8" x="4" y="9" />
+      <rect fill={fillColor} height="1" width="4" x="6" y="11" />
+      <rect fill={fillColor} height="2" width="2" x="7" y="12" />
+
+      {/* Parlama Işığı */}
+      {!isLost && (
+        <>
+          <rect fill="#fff3df" height="2" width="2" x="2" y="2" />
+          <rect fill="#fff3df" height="2" width="1" x="10" y="2" />
+        </>
+      )}
+
+      {/* Gölgeler */}
+      <rect fill={shadowColor} height="2" width="2" x="12" y="6" />
+      <rect fill={shadowColor} height="2" width="3" x="10" y="8" />
+      <rect fill={shadowColor} height="2" width="2" x="9" y="10" />
+      <rect fill={shadowColor} height="1" width="1" x="8" y="12" />
+    </svg>
+  );
+}
+
 /* === BİLGİSAYAR VİRÜSÜ İKONLARI === */
 
 function TrojanVirusIcon({ isFlashing, isScared }) {
   const color = isScared ? (isFlashing ? "#ffffff" : "#1d4ed8") : "#ef4444";
   const eyeColor = isScared ? "#38bdf8" : "#fef08a";
   return (
-    <svg className="virus-svg trojan" height="42" viewBox="0 0 44 44" width="42">
-      <circle
-        cx="22"
-        cy="22"
-        fill="rgba(239, 68, 68, 0.18)"
-        r="20"
-        stroke={color}
-        strokeDasharray="4 2"
-        strokeWidth="2"
-      />
+    <svg className="virus-svg trojan" height="100%" viewBox="0 0 44 44" width="100%">
+      <circle cx="22" cy="22" fill="rgba(239, 68, 68, 0.2)" r="20" stroke={color} strokeDasharray="4 2" strokeWidth="2" />
       <polygon fill={color} points="21,11 23,5 26,10" />
       <polygon fill={color} points="17,17 14,12 19,15" />
-      <path
-        d="M 12 34 L 14 26 L 16 18 L 22 10 L 28 14 L 33 16 L 35 22 L 31 24 L 27 22 L 26 28 L 32 34 Z"
-        fill={color}
-      />
+      <path d="M 12 34 L 14 26 L 16 18 L 22 10 L 28 14 L 33 16 L 35 22 L 31 24 L 27 22 L 26 28 L 32 34 Z" fill={color} />
       <circle cx="28" cy="18" fill={eyeColor} r="2.5" />
       {isScared ? (
         <path d="M 18 29 L 21 27 L 24 29 L 27 27" fill="none" stroke="#38bdf8" strokeWidth="2" />
@@ -5626,16 +5678,8 @@ function WormVirusIcon({ isFlashing, isScared }) {
   const color = isScared ? (isFlashing ? "#ffffff" : "#1d4ed8") : "#22c55e";
   const eyeColor = isScared ? "#38bdf8" : "#ffffff";
   return (
-    <svg className="virus-svg worm" height="42" viewBox="0 0 44 44" width="42">
-      <circle
-        cx="22"
-        cy="22"
-        fill="rgba(34, 197, 94, 0.18)"
-        r="20"
-        stroke={color}
-        strokeDasharray="3 3"
-        strokeWidth="2"
-      />
+    <svg className="virus-svg worm" height="100%" viewBox="0 0 44 44" width="100%">
+      <circle cx="22" cy="22" fill="rgba(34, 197, 94, 0.2)" r="20" stroke={color} strokeDasharray="3 3" strokeWidth="2" />
       <line stroke={color} strokeLinecap="round" strokeWidth="2.5" x1="28" x2="33" y1="12" y2="7" />
       <circle cx="34" cy="6" fill={color} r="2" />
       <line stroke={color} strokeLinecap="round" strokeWidth="2.5" x1="24" x2="22" y1="13" y2="7" />
@@ -5658,23 +5702,9 @@ function RansomVirusIcon({ isFlashing, isScared }) {
   const color = isScared ? (isFlashing ? "#ffffff" : "#1d4ed8") : "#f43f5e";
   const eyeColor = isScared ? "#38bdf8" : "#ffffff";
   return (
-    <svg className="virus-svg ransomware" height="42" viewBox="0 0 44 44" width="42">
-      <circle
-        cx="22"
-        cy="22"
-        fill="rgba(244, 63, 94, 0.18)"
-        r="20"
-        stroke={color}
-        strokeDasharray="4 2"
-        strokeWidth="2"
-      />
-      <path
-        d="M 16 20 L 16 14 A 6 6 0 0 1 28 14 L 28 20"
-        fill="none"
-        stroke={color}
-        strokeLinecap="round"
-        strokeWidth="3"
-      />
+    <svg className="virus-svg ransomware" height="100%" viewBox="0 0 44 44" width="100%">
+      <circle cx="22" cy="22" fill="rgba(244, 63, 94, 0.2)" r="20" stroke={color} strokeDasharray="4 2" strokeWidth="2" />
+      <path d="M 16 20 L 16 14 A 6 6 0 0 1 28 14 L 28 20" fill="none" stroke={color} strokeLinecap="round" strokeWidth="3" />
       <rect fill={color} height="16" rx="3" width="20" x="12" y="20" />
       {isScared ? (
         <path d="M 18 30 L 20 28 L 22 30 L 24 28 L 26 30" fill="none" stroke="#38bdf8" strokeWidth="2" />
@@ -5695,16 +5725,8 @@ function SpywareVirusIcon({ isFlashing, isScared }) {
   const color = isScared ? (isFlashing ? "#ffffff" : "#1d4ed8") : "#a855f7";
   const pupilColor = isScared ? "#38bdf8" : "#ef4444";
   return (
-    <svg className="virus-svg spyware" height="42" viewBox="0 0 44 44" width="42">
-      <circle
-        cx="22"
-        cy="22"
-        fill="rgba(168, 85, 247, 0.18)"
-        r="20"
-        stroke={color}
-        strokeDasharray="3 3"
-        strokeWidth="2"
-      />
+    <svg className="virus-svg spyware" height="100%" viewBox="0 0 44 44" width="100%">
+      <circle cx="22" cy="22" fill="rgba(168, 85, 247, 0.2)" r="20" stroke={color} strokeDasharray="3 3" strokeWidth="2" />
       <path d="M 10 22 Q 22 10 34 22 Q 22 34 10 22 Z" fill="#1e1b4b" stroke={color} strokeWidth="2.5" />
       <circle cx="22" cy="22" fill={color} r="6" />
       <circle cx="22" cy="22" fill={pupilColor} r="3" />
@@ -5718,7 +5740,7 @@ function SpywareVirusIcon({ isFlashing, isScared }) {
 
 function ReturningVirusIcon() {
   return (
-    <svg className="virus-svg returning" height="42" viewBox="0 0 44 44" width="42">
+    <svg className="virus-svg returning" height="100%" viewBox="0 0 44 44" width="100%">
       <circle cx="16" cy="22" fill="#ffffff" r="4.5" />
       <circle cx="28" cy="22" fill="#ffffff" r="4.5" />
       <circle cx="16" cy="22" fill="#2563eb" r="2.2" />
@@ -5727,17 +5749,17 @@ function ReturningVirusIcon() {
   );
 }
 
-function AntivirusDiskIcon() {
+function PacmanSvg({ direction = PACMAN_DIRECTIONS.right, isChomping = true }) {
+  const angle = direction?.angle ?? 0;
   return (
-    <svg className="antivirus-disk-svg" height="34" viewBox="0 0 36 36" width="34">
-      <circle cx="18" cy="18" fill="rgba(56, 189, 248, 0.25)" r="16" />
-      <path
-        d="M 18 6 L 27 10 L 27 19 C 27 25 18 30 18 30 C 18 30 9 25 9 19 L 9 10 Z"
-        fill="#0284c7"
-        stroke="#38bdf8"
-        strokeWidth="2"
-      />
-      <path d="M 15 18 L 17 21 L 22 15" fill="none" stroke="#ffffff" strokeLinecap="round" strokeWidth="2.5" />
+    <svg
+      className={`pacman-sprite ${isChomping ? "chomping" : ""}`}
+      style={{ transform: `rotate(${angle}deg)` }}
+      viewBox="0 0 36 36"
+    >
+      <circle cx="18" cy="18" fill="#facc15" r="16" />
+      <polygon className="pacman-mouth" fill="#090d16" points="18,18 36,8 36,28" />
+      <circle cx="18" cy="8" fill="#000000" r="2.2" />
     </svg>
   );
 }
@@ -5756,344 +5778,541 @@ function PacmanGame({
   const pointsPerDot = Number(activeGame?.pointsPerDot) || 1;
   const pointsPerPowerPellet = Number(activeGame?.pointsPerPowerPellet) || 10;
   const pointsPerVirus = Number(activeGame?.pointsPerVirus) || 30;
+  const stepMs = Number(activeGame?.stepMs) || 180;
   const activeKey = `${activeGame?.id}-${activeGroup}`;
 
-  const arenaRef = useRef(null);
-  const pacmanRef = useRef({ x: 400, y: 350, angle: 0, isMoving: false });
-  const targetRef = useRef({ x: 400, y: 350, active: false });
-  const virusesRef = useRef(createInitialViruses());
-  const dotsRef = useRef(generateArenaDots());
-  const powerDisksRef = useRef([...INITIAL_POWER_DISKS]);
-  const livesRef = useRef(3);
-  const antivirusEndTimeRef = useRef(0);
-  const isPausedRef = useRef(false);
-  const wakaStepRef = useRef(0);
-
-  const [dots, setDots] = useState(() => generateArenaDots());
-  const [powerDisks, setPowerDisks] = useState(() => [...INITIAL_POWER_DISKS]);
+  const boardRef = useRef(null);
+  const [initialData] = useState(() => createInitialPacmanDots());
+  const [dots, setDots] = useState(() => new Set(initialData.dots));
+  const [powerPellets] = useState(() => new Set(initialData.pellets));
+  const [pacmanPos, setPacmanPos] = useState({ x: 9, y: 13 });
+  const [pacmanDir, setPacmanDir] = useState(PACMAN_DIRECTIONS.right);
+  const [requestedDir, setRequestedDir] = useState(PACMAN_DIRECTIONS.right);
+  const [viruses, setViruses] = useState(() => createInitialViruses());
   const [lives, setLives] = useState(3);
   const [antivirusMsRemaining, setAntivirusMsRemaining] = useState(0);
   const [burst, setBurst] = useState(null);
-  const [entities, setEntities] = useState(() => ({
-    pacman: { x: 400, y: 350, angle: 0, isMoving: false },
-    viruses: createInitialViruses()
-  }));
+  const [isPaused, setIsPaused] = useState(false);
+  const [stepCounter, setStepCounter] = useState(0);
 
-  // Reset state on group or game change
+  const dotsRef = useRef(dots);
+  const pacmanPosRef = useRef(pacmanPos);
+  const pacmanDirRef = useRef(pacmanDir);
+  const requestedDirRef = useRef(requestedDir);
+  const virusesRef = useRef(viruses);
+  const livesRef = useRef(lives);
+  const isPausedRef = useRef(isPaused);
+  const dragRef = useRef({ active: false, pointerId: null, startX: 0, startY: 0 });
+  const stepCounterRef = useRef(0);
+  const antivirusEndTimeRef = useRef(0);
+
   useEffect(() => {
-    pacmanRef.current = { x: 400, y: 350, angle: 0, isMoving: false };
-    targetRef.current = { x: 400, y: 350, active: false };
+    const fresh = createInitialPacmanDots();
+    setDots(new Set(fresh.dots));
+    dotsRef.current = new Set(fresh.dots);
+    setPacmanPos({ x: 9, y: 13 });
+    pacmanPosRef.current = { x: 9, y: 13 };
+    setPacmanDir(PACMAN_DIRECTIONS.right);
+    pacmanDirRef.current = PACMAN_DIRECTIONS.right;
+    setRequestedDir(PACMAN_DIRECTIONS.right);
+    requestedDirRef.current = PACMAN_DIRECTIONS.right;
     const freshViruses = createInitialViruses();
+    setViruses(freshViruses);
     virusesRef.current = freshViruses;
-    const freshDots = generateArenaDots();
-    dotsRef.current = freshDots;
-    setDots(freshDots);
-    powerDisksRef.current = [...INITIAL_POWER_DISKS];
-    setPowerDisks([...INITIAL_POWER_DISKS]);
-    livesRef.current = 3;
     setLives(3);
-    antivirusEndTimeRef.current = 0;
+    livesRef.current = 3;
     setAntivirusMsRemaining(0);
+    antivirusEndTimeRef.current = 0;
+    setIsPaused(false);
     isPausedRef.current = false;
-    wakaStepRef.current = 0;
     setBurst(null);
-    setEntities({
-      pacman: { x: 400, y: 350, angle: 0, isMoving: false },
-      viruses: freshViruses
-    });
+    stepCounterRef.current = 0;
+    setStepCounter(0);
   }, [activeKey]);
 
-  // Pointer / mouse tracker relative to arena coordinates
-  const updatePointerTarget = useCallback(
-    (clientX, clientY) => {
-      if (!isRunning || isPausedRef.current || !arenaRef.current) return;
-      const rect = arenaRef.current.getBoundingClientRect();
-      const x = Math.max(
-        ARENA_PAD,
-        Math.min(ARENA_WIDTH - ARENA_PAD, (clientX - rect.left) * (ARENA_WIDTH / rect.width))
-      );
-      const y = Math.max(
-        ARENA_PAD,
-        Math.min(ARENA_HEIGHT - ARENA_PAD, (clientY - rect.top) * (ARENA_HEIGHT / rect.height))
-      );
-      targetRef.current = { x, y, active: true };
-    },
-    [isRunning]
-  );
+  useEffect(() => { dotsRef.current = dots; }, [dots]);
+  useEffect(() => { pacmanPosRef.current = pacmanPos; }, [pacmanPos]);
+  useEffect(() => { pacmanDirRef.current = pacmanDir; }, [pacmanDir]);
+  useEffect(() => { requestedDirRef.current = requestedDir; }, [requestedDir]);
+  useEffect(() => { virusesRef.current = viruses; }, [viruses]);
+  useEffect(() => { livesRef.current = lives; }, [lives]);
+  useEffect(() => { isPausedRef.current = isPaused; }, [isPaused]);
 
-  const handlePointerDown = useCallback(
-    (e) => {
-      updatePointerTarget(e.clientX, e.clientY);
-    },
-    [updatePointerTarget]
-  );
+  const requestDirection = useCallback((nextDir) => {
+    if (!isRunning || !nextDir) return;
+    setRequestedDir(nextDir);
+    requestedDirRef.current = nextDir;
+    if (canPacmanMoveTo(pacmanPosRef.current.x + nextDir.x, pacmanPosRef.current.y + nextDir.y)) {
+      setPacmanDir(nextDir);
+      pacmanDirRef.current = nextDir;
+    }
+  }, [isRunning]);
 
-  const handlePointerMove = useCallback(
-    (e) => {
-      updatePointerTarget(e.clientX, e.clientY);
-    },
-    [updatePointerTarget]
-  );
-
-  // Global window pointer listener while running to handle dragging smoothly
+  // Klavye ok tuşları ve WASD
   useEffect(() => {
     if (!isRunning) return undefined;
-
-    const handleWindowPointerMove = (e) => {
-      updatePointerTarget(e.clientX, e.clientY);
+    const handleKey = (e) => {
+      const keyMap = {
+        ArrowUp: PACMAN_DIRECTIONS.up,
+        ArrowDown: PACMAN_DIRECTIONS.down,
+        ArrowLeft: PACMAN_DIRECTIONS.left,
+        ArrowRight: PACMAN_DIRECTIONS.right,
+        w: PACMAN_DIRECTIONS.up,
+        W: PACMAN_DIRECTIONS.up,
+        s: PACMAN_DIRECTIONS.down,
+        S: PACMAN_DIRECTIONS.down,
+        a: PACMAN_DIRECTIONS.left,
+        A: PACMAN_DIRECTIONS.left,
+        d: PACMAN_DIRECTIONS.right,
+        D: PACMAN_DIRECTIONS.right
+      };
+      const dir = keyMap[e.key];
+      if (dir) {
+        e.preventDefault();
+        requestDirection(dir);
+      }
     };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [isRunning, requestDirection]);
 
-    window.addEventListener("pointermove", handleWindowPointerMove);
-    return () => window.removeEventListener("pointermove", handleWindowPointerMove);
-  }, [isRunning, updatePointerTarget]);
+  // Fare ve dokunma pozisyonundan yön belirleme
+  const updateDirectionFromPointer = useCallback(
+    (clientX, clientY) => {
+      if (!boardRef.current || !isRunning || isPausedRef.current) return;
+      const rect = boardRef.current.getBoundingClientRect();
+      const cellW = rect.width / PACMAN_GRID.cols;
+      const cellH = rect.height / PACMAN_GRID.rows;
+      const pacmanPixelX = rect.left + (pacmanPosRef.current.x + 0.5) * cellW;
+      const pacmanPixelY = rect.top + (pacmanPosRef.current.y + 0.5) * cellH;
 
-  // Main 60fps game animation frame loop
+      const dx = clientX - pacmanPixelX;
+      const dy = clientY - pacmanPixelY;
+
+      if (Math.abs(dx) > cellW * 0.45 || Math.abs(dy) > cellH * 0.45) {
+        if (Math.abs(dx) > Math.abs(dy)) {
+          requestDirection(dx > 0 ? PACMAN_DIRECTIONS.right : PACMAN_DIRECTIONS.left);
+        } else {
+          requestDirection(dy > 0 ? PACMAN_DIRECTIONS.down : PACMAN_DIRECTIONS.up);
+        }
+      }
+    },
+    [isRunning, requestDirection]
+  );
+
+  const onBoardPointerDown = useCallback(
+    (e) => {
+      dragRef.current = {
+        active: true,
+        pointerId: e.pointerId,
+        startX: e.clientX,
+        startY: e.clientY
+      };
+      if (e.currentTarget.setPointerCapture) {
+        try { e.currentTarget.setPointerCapture(e.pointerId); } catch (_) {}
+      }
+      updateDirectionFromPointer(e.clientX, e.clientY);
+    },
+    [updateDirectionFromPointer]
+  );
+
+  const onBoardPointerMove = useCallback(
+    (e) => {
+      const drag = dragRef.current;
+      if (!drag.active || drag.pointerId !== e.pointerId) {
+        // Fareyle tahta üzerinde gezinirken de yönlendir
+        updateDirectionFromPointer(e.clientX, e.clientY);
+        return;
+      }
+      updateDirectionFromPointer(e.clientX, e.clientY);
+    },
+    [updateDirectionFromPointer]
+  );
+
+  const onBoardPointerEnd = useCallback((e) => {
+    const drag = dragRef.current;
+    if (!drag.active || drag.pointerId !== e.pointerId) return;
+    if (e.currentTarget.hasPointerCapture && e.currentTarget.hasPointerCapture(e.pointerId)) {
+      try { e.currentTarget.releasePointerCapture(e.pointerId); } catch (_) {}
+    }
+    dragRef.current = { active: false, pointerId: null, startX: 0, startY: 0 };
+  }, []);
+
+  // Oyun Döngüsü
   useEffect(() => {
     if (!isRunning) return undefined;
 
-    let lastTime = performance.now();
-    let rafId;
+    const timerId = window.setInterval(() => {
+      if (isPausedRef.current || livesRef.current <= 0) return;
 
-    const loop = (currentTime) => {
-      const dt = Math.min(0.045, (currentTime - lastTime) / 1000);
-      lastTime = currentTime;
+      const now = Date.now();
+      const currentAntivirusEnd = antivirusEndTimeRef.current;
+      const isAntivirusActive = now < currentAntivirusEnd;
+      const msLeft = Math.max(0, currentAntivirusEnd - now);
+      setAntivirusMsRemaining(msLeft);
 
-      if (!isPausedRef.current && livesRef.current > 0) {
-        const now = Date.now();
-        const isAntivirus = now < antivirusEndTimeRef.current;
-        const msLeft = Math.max(0, antivirusEndTimeRef.current - now);
-        setAntivirusMsRemaining(msLeft);
+      stepCounterRef.current += 1;
+      const step = stepCounterRef.current;
+      setStepCounter(step);
 
-        // 1. Move Pacman towards mouse target position
-        const target = targetRef.current;
-        const p = pacmanRef.current;
-        if (target.active) {
-          const dx = target.x - p.x;
-          const dy = target.y - p.y;
-          const dist = Math.hypot(dx, dy);
-          if (dist > 8) {
-            const angleRad = Math.atan2(dy, dx);
-            const moveDist = Math.min(dist, PACMAN_SPEED * dt);
-            p.x = Math.max(ARENA_PAD, Math.min(ARENA_WIDTH - ARENA_PAD, p.x + Math.cos(angleRad) * moveDist));
-            p.y = Math.max(ARENA_PAD, Math.min(ARENA_HEIGHT - ARENA_PAD, p.y + Math.sin(angleRad) * moveDist));
-            p.angle = angleRad * (180 / Math.PI);
-            p.isMoving = true;
-          } else {
-            p.isMoving = false;
-          }
-        }
+      // --- PACMAN HAREKETİ ---
+      const currPos = pacmanPosRef.current;
+      const reqDir = requestedDirRef.current;
+      let currDir = pacmanDirRef.current;
 
-        // 2. Check Dot Eating Collisions
-        const currentDots = dotsRef.current;
-        let ateDot = false;
-        const remainingDots = currentDots.filter((d) => {
-          if (Math.hypot(d.x - p.x, d.y - p.y) < 22) {
-            ateDot = true;
-            return false;
-          }
-          return true;
-        });
+      const reqTargetX = (currPos.x + reqDir.x + PACMAN_GRID.cols) % PACMAN_GRID.cols;
+      const reqTargetY = currPos.y + reqDir.y;
+      if (canPacmanMoveTo(reqTargetX, reqTargetY)) {
+        currDir = reqDir;
+        setPacmanDir(reqDir);
+        pacmanDirRef.current = reqDir;
+      }
 
-        if (ateDot) {
-          dotsRef.current = remainingDots;
-          setDots(remainingDots);
-          void onAddScore(pointsPerDot, false);
-          wakaStepRef.current += 1;
-          playPacmanWakaSound(wakaStepRef.current);
+      const targetX = (currPos.x + currDir.x + PACMAN_GRID.cols) % PACMAN_GRID.cols;
+      const targetY = currPos.y + currDir.y;
+      let nextPos = currPos;
+      if (canPacmanMoveTo(targetX, targetY)) {
+        nextPos = { x: targetX, y: targetY };
+        setPacmanPos(nextPos);
+        pacmanPosRef.current = nextPos;
+      }
 
-          if (remainingDots.length === 0) {
-            void onAddScore(50, true);
-            setBurst({
-              id: `clear-${now}`,
-              text: "+50 TÜM VERİLER TOPLANDI!",
-              x: 50,
-              y: 50
-            });
-            const newDots = generateArenaDots();
-            dotsRef.current = newDots;
-            setDots(newDots);
-          }
-        }
+      // Yem yeme kontrolü
+      const cellKey = `${nextPos.x}-${nextPos.y}`;
+      const currentDots = dotsRef.current;
+      if (currentDots.has(cellKey)) {
+        currentDots.delete(cellKey);
+        setDots(new Set(currentDots));
 
-        // 3. Check Antivirus Power Disk Collisions
-        const currentDisks = powerDisksRef.current;
-        let ateDisk = false;
-        const remainingDisks = currentDisks.filter((d) => {
-          if (Math.hypot(d.x - p.x, d.y - p.y) < 28) {
-            ateDisk = true;
-            return false;
-          }
-          return true;
-        });
-
-        if (ateDisk) {
-          powerDisksRef.current = remainingDisks;
-          setPowerDisks(remainingDisks);
+        if (powerPellets.has(cellKey)) {
           void onAddScore(pointsPerPowerPellet, false);
           playPacmanPowerSound();
-          antivirusEndTimeRef.current = now + 8000;
-          setAntivirusMsRemaining(8000);
+          const newEndTime = now + 7500;
+          antivirusEndTimeRef.current = newEndTime;
+          setAntivirusMsRemaining(7500);
 
           virusesRef.current = virusesRef.current.map((v) => ({
             ...v,
-            status: v.status === "returning" ? "returning" : "scared"
+            status: v.status === "returning" ? "returning" : "scared",
+            dir: { x: -v.dir.x, y: -v.dir.y }
           }));
+          setViruses([...virusesRef.current]);
 
           setBurst({
             id: `power-${now}`,
-            text: `+${pointsPerPowerPellet} ANTİVİRÜS KALKANI!`,
+            text: `+${pointsPerPowerPellet} ANTİVİRÜS!`,
             x: 50,
             y: 40
           });
+        } else {
+          void onAddScore(pointsPerDot, false);
+          playPacmanWakaSound(step);
         }
 
-        // Revert scared viruses when antivirus ends
-        if (!isAntivirus) {
-          virusesRef.current = virusesRef.current.map((v) => {
-            if (v.status === "scared") {
-              return { ...v, status: "normal" };
-            }
-            return v;
+        if (currentDots.size === 0) {
+          void onAddScore(50, true);
+          setBurst({
+            id: `clear-${now}`,
+            text: "+50 BÖLÜM GEÇİLDİ!",
+            x: 50,
+            y: 50
           });
+          const fresh = createInitialPacmanDots();
+          dotsRef.current = new Set(fresh.dots);
+          setDots(new Set(fresh.dots));
         }
+      }
 
-        // 4. Move Viruses
+      if (!isAntivirusActive) {
+        let changed = false;
         virusesRef.current = virusesRef.current.map((v) => {
-          let { personality, speed, status, wanderAngle, x, y } = v;
-
-          if (status === "returning") {
-            const dx = 400 - x;
-            const dy = 220 - y;
-            const dist = Math.hypot(dx, dy);
-            if (dist < 20) {
-              return { ...v, x: 400, y: 220, status: "normal" };
-            }
-            const angle = Math.atan2(dy, dx);
-            x += Math.cos(angle) * 220 * dt;
-            y += Math.sin(angle) * 220 * dt;
-            return { ...v, x, y };
-          }
-
-          if (status === "scared") {
-            const dx = x - p.x;
-            const dy = y - p.y;
-            const angle = Math.atan2(dy, dx);
-            const scaredSpeed = 75;
-            x += Math.cos(angle) * scaredSpeed * dt;
-            y += Math.sin(angle) * scaredSpeed * dt;
-            x = Math.max(ARENA_PAD, Math.min(ARENA_WIDTH - ARENA_PAD, x));
-            y = Math.max(ARENA_PAD, Math.min(ARENA_HEIGHT - ARENA_PAD, y));
-            return { ...v, x, y };
-          }
-
-          let targetX = p.x;
-          let targetY = p.y;
-
-          if (personality === "ambush") {
-            const rad = (p.angle * Math.PI) / 180;
-            targetX = p.x + Math.cos(rad) * 110;
-            targetY = p.y + Math.sin(rad) * 110;
-          } else if (personality === "wander") {
-            wanderAngle += (Math.random() - 0.5) * 0.5;
-            targetX = x + Math.cos(wanderAngle) * 90;
-            targetY = y + Math.sin(wanderAngle) * 90;
-          } else if (personality === "flank") {
-            const dist = Math.hypot(x - p.x, y - p.y);
-            if (dist > 150) {
-              targetX = p.x;
-              targetY = p.y;
-            } else {
-              const angle = Math.atan2(y - p.y, x - p.x) + 0.6;
-              targetX = p.x + Math.cos(angle) * 120;
-              targetY = p.y + Math.sin(angle) * 120;
-            }
-          }
-
-          const dx = targetX - x;
-          const dy = targetY - y;
-          const dist = Math.hypot(dx, dy) || 1;
-          x += (dx / dist) * speed * dt;
-          y += (dy / dist) * speed * dt;
-          x = Math.max(ARENA_PAD, Math.min(ARENA_WIDTH - ARENA_PAD, x));
-          y = Math.max(ARENA_PAD, Math.min(ARENA_HEIGHT - ARENA_PAD, y));
-
-          return { ...v, wanderAngle, x, y };
-        });
-
-        // 5. Check Virus Collisions
-        let pacmanHit = false;
-        virusesRef.current = virusesRef.current.map((v) => {
-          const dist = Math.hypot(v.x - p.x, v.y - p.y);
-          if (dist < 32) {
-            if (v.status === "scared") {
-              void onAddScore(pointsPerVirus, false);
-              playPacmanEatGhostSound();
-              setBurst({
-                id: `eat-virus-${now}-${v.id}`,
-                text: `+${pointsPerVirus} ${v.name} TEMİZLENDİ!`,
-                x: 50,
-                y: 45
-              });
-              return { ...v, status: "returning" };
-            }
-            if (v.status === "normal") {
-              pacmanHit = true;
-            }
+          if (v.status === "scared") {
+            changed = true;
+            return { ...v, status: "normal" };
           }
           return v;
         });
+        if (changed) {
+          setViruses([...virusesRef.current]);
+        }
+      }
 
-        if (pacmanHit) {
-          playPacmanDeathSound();
-          const nextLives = livesRef.current - 1;
-          livesRef.current = nextLives;
-          setLives(nextLives);
+      // --- VİRÜS HAREKETLERİ ---
+      const allDirs = [
+        PACMAN_DIRECTIONS.up,
+        PACMAN_DIRECTIONS.down,
+        PACMAN_DIRECTIONS.left,
+        PACMAN_DIRECTIONS.right
+      ];
 
-          if (nextLives <= 0) {
-            isPausedRef.current = true;
-            setBurst({
-              id: `gameover-${now}`,
-              text: "CANLAR BİTTİ!",
-              x: 50,
-              y: 50
-            });
-            window.setTimeout(() => {
-              onCompleteTurn();
-            }, 1200);
+      const updatedViruses = virusesRef.current.map((virus) => {
+        let { dir, inDen, releaseDelay, status, ticksAlive, x, y } = virus;
+        const prevX = x;
+        const prevY = y;
+        ticksAlive += 1;
+
+        if (inDen) {
+          if (ticksAlive >= releaseDelay) {
+            if (x !== 9) {
+              x += x < 9 ? 1 : -1;
+            } else if (y > 6) {
+              y -= 1;
+            }
+            if (y <= 6) {
+              inDen = false;
+              dir = PACMAN_DIRECTIONS.left;
+            }
+          }
+          return { ...virus, dir, inDen, prevX, prevY, status, ticksAlive, x, y };
+        }
+
+        if (status === "returning") {
+          if (x === 9 && y === 8) {
+            return {
+              ...virus,
+              inDen: true,
+              prevX,
+              prevY,
+              releaseDelay: 4,
+              status: "normal",
+              ticksAlive: 0,
+              x: 9,
+              y: 8
+            };
+          }
+
+          const target = y < 7 ? { x: 9, y: 6 } : { x: 9, y: 8 };
+          const validMoves = allDirs
+            .map((d) => ({
+              dir: d,
+              x: (x + d.x + PACMAN_GRID.cols) % PACMAN_GRID.cols,
+              y: y + d.y
+            }))
+            .filter((m) => canGhostMoveTo(m.x, m.y, true));
+
+          validMoves.sort((a, b) => {
+            const da = Math.hypot(a.x - target.x, a.y - target.y);
+            const db = Math.hypot(b.x - target.x, b.y - target.y);
+            return da - db;
+          });
+
+          if (validMoves.length > 0) {
+            x = validMoves[0].x;
+            y = validMoves[0].y;
+            dir = validMoves[0].dir;
+          }
+          return { ...virus, dir, inDen, prevX, prevY, status, ticksAlive, x, y };
+        }
+
+        if (status === "scared" && step % 2 !== 0) {
+          return { ...virus, prevX, prevY };
+        }
+
+        const validMoves = allDirs
+          .map((d) => ({
+            dir: d,
+            x: (x + d.x + PACMAN_GRID.cols) % PACMAN_GRID.cols,
+            y: y + d.y
+          }))
+          .filter((m) => canGhostMoveTo(m.x, m.y, false));
+
+        if (validMoves.length === 0) {
+          return { ...virus, prevX, prevY };
+        }
+
+        const nonReverse = validMoves.filter((m) => !(m.dir.x === -dir.x && m.dir.y === -dir.y));
+        const candidates = nonReverse.length > 0 ? nonReverse : validMoves;
+
+        let chosenMove = candidates[0];
+
+        if (status === "scared") {
+          candidates.sort((a, b) => {
+            const da = Math.hypot(a.x - nextPos.x, a.y - nextPos.y);
+            const db = Math.hypot(b.x - nextPos.x, b.y - nextPos.y);
+            return db - da;
+          });
+          chosenMove = candidates[0];
+        } else if (virus.personality === "chase") {
+          candidates.sort((a, b) => {
+            const da = Math.hypot(a.x - nextPos.x, a.y - nextPos.y);
+            const db = Math.hypot(b.x - nextPos.x, b.y - nextPos.y);
+            return da - db;
+          });
+          chosenMove = candidates[0];
+        } else if (virus.personality === "ambush") {
+          const target = {
+            x: (nextPos.x + currDir.x * 3 + PACMAN_GRID.cols) % PACMAN_GRID.cols,
+            y: Math.max(0, Math.min(PACMAN_GRID.rows - 1, nextPos.y + currDir.y * 3))
+          };
+          candidates.sort((a, b) => {
+            const da = Math.hypot(a.x - target.x, a.y - target.y);
+            const db = Math.hypot(b.x - target.x, b.y - target.y);
+            return da - db;
+          });
+          chosenMove = candidates[0];
+        } else if (virus.personality === "corner") {
+          const dist = Math.hypot(x - nextPos.x, y - nextPos.y);
+          const target = dist > 5 ? nextPos : { x: 17, y: 1 };
+          candidates.sort((a, b) => {
+            const da = Math.hypot(a.x - target.x, a.y - target.y);
+            const db = Math.hypot(b.x - target.x, b.y - target.y);
+            return da - db;
+          });
+          chosenMove = candidates[0];
+        } else {
+          const straight = candidates.find((m) => m.dir.x === dir.x && m.dir.y === dir.y);
+          if (straight && Math.random() < 0.65) {
+            chosenMove = straight;
           } else {
-            isPausedRef.current = true;
-            setBurst({
-              id: `hit-${now}`,
-              text: "DİKKAT! VİRÜSE YAKALANDIN!",
-              x: 50,
-              y: 50
-            });
-
-            window.setTimeout(() => {
-              pacmanRef.current = { x: 400, y: 350, angle: 0, isMoving: false };
-              targetRef.current = { x: 400, y: 350, active: false };
-              virusesRef.current = createInitialViruses();
-              isPausedRef.current = false;
-            }, 900);
+            chosenMove = candidates[Math.floor(Math.random() * candidates.length)];
           }
         }
 
-        setEntities({
-          pacman: { ...p },
-          viruses: [...virusesRef.current]
-        });
+        return {
+          ...virus,
+          dir: chosenMove.dir,
+          inDen,
+          prevX,
+          prevY,
+          status,
+          ticksAlive,
+          x: chosenMove.x,
+          y: chosenMove.y
+        };
+      });
+
+      virusesRef.current = updatedViruses;
+      setViruses(updatedViruses);
+
+      // Çarpışma kontrolü
+      let pacmanHit = false;
+      const postCollisionViruses = updatedViruses.map((v) => {
+        const isOverlap = v.x === nextPos.x && v.y === nextPos.y;
+        const isSwap =
+          v.prevX === nextPos.x &&
+          v.prevY === nextPos.y &&
+          v.x === currPos.x &&
+          v.y === currPos.y;
+
+        if (isOverlap || isSwap) {
+          if (v.status === "scared") {
+            void onAddScore(pointsPerVirus, false);
+            playPacmanEatGhostSound();
+            setBurst({
+              id: `eat-virus-${now}-${v.id}`,
+              text: `+${pointsPerVirus} ${v.name} TEMİZLENDİ!`,
+              x: 50,
+              y: 45
+            });
+            return { ...v, status: "returning" };
+          }
+          if (v.status === "normal") {
+            pacmanHit = true;
+          }
+        }
+        return v;
+      });
+
+      virusesRef.current = postCollisionViruses;
+      setViruses(postCollisionViruses);
+
+      if (pacmanHit) {
+        playPacmanDeathSound();
+        const nextLives = livesRef.current - 1;
+        livesRef.current = nextLives;
+        setLives(nextLives);
+
+        if (nextLives <= 0) {
+          isPausedRef.current = true;
+          setIsPaused(true);
+          setBurst({
+            id: `gameover-${now}`,
+            text: "CANLAR BİTTİ!",
+            x: 50,
+            y: 50
+          });
+          window.setTimeout(() => {
+            onCompleteTurn();
+          }, 1200);
+        } else {
+          isPausedRef.current = true;
+          setIsPaused(true);
+          setBurst({
+            id: `hit-${now}`,
+            text: "DİKKAT! VİRÜSE YAKALANDIN!",
+            x: 50,
+            y: 50
+          });
+
+          window.setTimeout(() => {
+            setPacmanPos({ x: 9, y: 13 });
+            pacmanPosRef.current = { x: 9, y: 13 };
+            setPacmanDir(PACMAN_DIRECTIONS.right);
+            pacmanDirRef.current = PACMAN_DIRECTIONS.right;
+            setRequestedDir(PACMAN_DIRECTIONS.right);
+            requestedDirRef.current = PACMAN_DIRECTIONS.right;
+            const resetViruses = createInitialViruses();
+            virusesRef.current = resetViruses;
+            setViruses(resetViruses);
+            isPausedRef.current = false;
+            setIsPaused(false);
+          }, 900);
+        }
       }
+    }, stepMs);
 
-      rafId = requestAnimationFrame(loop);
-    };
-
-    rafId = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(rafId);
-  }, [isRunning, onAddScore, onCompleteTurn, pointsPerDot, pointsPerPowerPellet, pointsPerVirus]);
+    return () => window.clearInterval(timerId);
+  }, [
+    isRunning,
+    onAddScore,
+    onCompleteTurn,
+    pointsPerDot,
+    pointsPerPowerPellet,
+    pointsPerVirus,
+    powerPellets,
+    stepMs
+  ]);
 
   const isFlashing = antivirusMsRemaining > 0 && antivirusMsRemaining < 2500;
   const isAntivirusActive = antivirusMsRemaining > 0;
-  const pacman = entities.pacman;
+
+  // Izgara hücreleri (Duvarlar, kapı, yemler)
+  const gridCells = useMemo(() => {
+    const cells = [];
+    for (let y = 0; y < PACMAN_GRID.rows; y += 1) {
+      for (let x = 0; x < PACMAN_GRID.cols; x += 1) {
+        const key = `${x}-${y}`;
+        const char = PACMAN_MAP_TEMPLATE[y][x];
+        const classNames = ["pacman-cell"];
+
+        if (char === "1") {
+          classNames.push("wall");
+        } else if (char === "-") {
+          classNames.push("door");
+        } else if (char === "G") {
+          classNames.push("den");
+        } else if (dots.has(key)) {
+          if (powerPellets.has(key)) {
+            classNames.push("power");
+          } else {
+            classNames.push("dot");
+          }
+        } else {
+          classNames.push("empty");
+        }
+
+        cells.push(<div className={classNames.join(" ")} key={key} />);
+      }
+    }
+    return cells;
+  }, [dots, powerPellets]);
+
+  const pacmanStyle = {
+    left: `${(pacmanPos.x / PACMAN_GRID.cols) * 100}%`,
+    top: `${(pacmanPos.y / PACMAN_GRID.rows) * 100}%`,
+    width: `${(1 / PACMAN_GRID.cols) * 100}%`,
+    height: `${(1 / PACMAN_GRID.rows) * 100}%`
+  };
 
   return (
     <main className="app-screen game-screen pacman-screen">
@@ -6119,122 +6338,110 @@ function PacmanGame({
               className="small-button reset-button pacman-reset-button"
               onClick={onReset}
             />
-            <div aria-label="Kalan Canlar" className="pacman-lives-box">
+            <div aria-label="Canlar" className="pacman-lives-box">
               {Array.from({ length: 3 }).map((_, i) => (
-                <span
-                  className={`pacman-life-heart ${i < lives ? "active" : "lost"}`}
-                  key={i}
-                >
-                  {i < lives ? "❤️" : "🖤"}
-                </span>
+                <PixelHeartIcon isLost={i >= lives} key={i} />
               ))}
             </div>
-            <div className={`pacman-status-chip ${isAntivirusActive ? "antivirus-active" : ""}`}>
-              {isAntivirusActive ? (
-                <span>⚡ ANTİVİRÜS AKTİF! {Math.ceil(antivirusMsRemaining / 1000)}s</span>
-              ) : (
-                <span>Kalan Veri: {dots.length}</span>
-              )}
-            </div>
+            {isAntivirusActive && (
+              <div className="pacman-antivirus-chip">
+                ⚡ ANTİVİRÜS AKTİF! ({Math.ceil(antivirusMsRemaining / 1000)}s)
+              </div>
+            )}
           </div>
 
-          <div className="pacman-arena-wrap">
-            <div className={`pacman-arena-card ${isAntivirusActive ? "antivirus-active" : ""}`}>
-              <svg
-                className="pacman-arena-svg"
-                onPointerDown={handlePointerDown}
-                onPointerMove={handlePointerMove}
-                ref={arenaRef}
-                viewBox="0 0 800 500"
+          <div className="pacman-play-area">
+            <div
+              className={`pacman-board ${isAntivirusActive ? "antivirus-active" : ""}`}
+              onPointerCancel={onBoardPointerEnd}
+              onPointerDown={onBoardPointerDown}
+              onPointerMove={onBoardPointerMove}
+              onPointerUp={onBoardPointerEnd}
+              ref={boardRef}
+            >
+              {gridCells}
+
+              <div className="pacman-entity" style={pacmanStyle}>
+                <PacmanSvg direction={pacmanDir} isChomping={isRunning && !isPaused} />
+              </div>
+
+              {viruses.map((v) => {
+                const virusStyle = {
+                  left: `${(v.x / PACMAN_GRID.cols) * 100}%`,
+                  top: `${(v.y / PACMAN_GRID.rows) * 100}%`,
+                  width: `${(1 / PACMAN_GRID.cols) * 100}%`,
+                  height: `${(1 / PACMAN_GRID.rows) * 100}%`
+                };
+                const isScared = v.status === "scared";
+                const isReturning = v.status === "returning";
+
+                return (
+                  <div className="virus-entity" key={v.id} style={virusStyle}>
+                    {isReturning ? (
+                      <ReturningVirusIcon />
+                    ) : v.id === "trojan" ? (
+                      <TrojanVirusIcon isFlashing={isFlashing} isScared={isScared} />
+                    ) : v.id === "worm" ? (
+                      <WormVirusIcon isFlashing={isFlashing} isScared={isScared} />
+                    ) : v.id === "ransom" ? (
+                      <RansomVirusIcon isFlashing={isFlashing} isScared={isScared} />
+                    ) : (
+                      <SpywareVirusIcon isFlashing={isFlashing} isScared={isScared} />
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Akıllı Tahta & Sanal Yön Butonları */}
+            <div aria-label="Yön Kontrolleri" className="pacman-dpad-panel">
+              <button
+                aria-label="Yukarı"
+                className="pixel-button pacman-dpad-btn up"
+                onPointerDown={(e) => {
+                  e.preventDefault();
+                  requestDirection(PACMAN_DIRECTIONS.up);
+                }}
+                type="button"
               >
-                <defs>
-                  <pattern height="40" id="cyberGrid" patternUnits="userSpaceOnUse" width="40">
-                    <path
-                      d="M 40 0 L 0 0 0 40"
-                      fill="none"
-                      stroke="rgba(56, 189, 248, 0.08)"
-                      strokeWidth="1"
-                    />
-                  </pattern>
-                  <radialGradient cx="50%" cy="50%" id="arenaGlow" r="50%">
-                    <stop offset="0%" stopColor="rgba(30, 58, 138, 0.22)" />
-                    <stop offset="100%" stopColor="rgba(9, 14, 26, 0.96)" />
-                  </radialGradient>
-                </defs>
-
-                <rect fill="#090e1a" height="500" width="800" />
-                <rect fill="url(#cyberGrid)" height="500" width="800" />
-                <rect fill="url(#arenaGlow)" height="500" width="800" />
-
-                <circle
-                  cx="400"
-                  cy="215"
-                  fill="rgba(15, 23, 42, 0.6)"
-                  r="45"
-                  stroke="rgba(56, 189, 248, 0.2)"
-                  strokeDasharray="6 3"
-                  strokeWidth="2"
-                />
-
-                <rect
-                  className="arena-border-rect"
-                  fill="none"
-                  height="490"
-                  rx="10"
-                  stroke={isAntivirusActive ? "#38bdf8" : "#2563eb"}
-                  strokeWidth="5"
-                  width="790"
-                  x="5"
-                  y="5"
-                />
-
-                {dots.map((d) => (
-                  <circle
-                    className="cyber-dot"
-                    cx={d.x}
-                    cy={d.y}
-                    fill="#facc15"
-                    key={d.id}
-                    r="4.2"
-                  />
-                ))}
-
-                {powerDisks.map((d) => (
-                  <g key={d.id} transform={`translate(${d.x - 17}, ${d.y - 17})`}>
-                    <AntivirusDiskIcon />
-                  </g>
-                ))}
-
-                {entities.viruses.map((v) => {
-                  const isScared = v.status === "scared";
-                  const isReturning = v.status === "returning";
-                  return (
-                    <g key={v.id} transform={`translate(${v.x - 21}, ${v.y - 21})`}>
-                      {isReturning ? (
-                        <ReturningVirusIcon />
-                      ) : v.type === "trojan" ? (
-                        <TrojanVirusIcon isFlashing={isFlashing} isScared={isScared} />
-                      ) : v.type === "worm" ? (
-                        <WormVirusIcon isFlashing={isFlashing} isScared={isScared} />
-                      ) : v.type === "ransom" ? (
-                        <RansomVirusIcon isFlashing={isFlashing} isScared={isScared} />
-                      ) : (
-                        <SpywareVirusIcon isFlashing={isFlashing} isScared={isScared} />
-                      )}
-                    </g>
-                  );
-                })}
-
-                <g transform={`translate(${pacman.x}, ${pacman.y}) rotate(${pacman.angle})`}>
-                  <circle cx="0" cy="0" fill="#facc15" r="19" />
-                  <polygon
-                    className={`pacman-svg-mouth ${pacman.isMoving ? "chomping" : ""}`}
-                    fill="#090e1a"
-                    points="0,0 20,-11 20,11"
-                  />
-                  <circle cx="3" cy="-10" fill="#000000" r="2.5" />
-                </g>
-              </svg>
+                ▲
+              </button>
+              <div className="pacman-dpad-middle">
+                <button
+                  aria-label="Sol"
+                  className="pixel-button pacman-dpad-btn left"
+                  onPointerDown={(e) => {
+                    e.preventDefault();
+                    requestDirection(PACMAN_DIRECTIONS.left);
+                  }}
+                  type="button"
+                >
+                  ◀
+                </button>
+                <div className="pacman-dpad-core">🕹️</div>
+                <button
+                  aria-label="Sağ"
+                  className="pixel-button pacman-dpad-btn right"
+                  onPointerDown={(e) => {
+                    e.preventDefault();
+                    requestDirection(PACMAN_DIRECTIONS.right);
+                  }}
+                  type="button"
+                >
+                  ▶
+                </button>
+              </div>
+              <button
+                aria-label="Aşağı"
+                className="pixel-button pacman-dpad-btn down"
+                onPointerDown={(e) => {
+                  e.preventDefault();
+                  requestDirection(PACMAN_DIRECTIONS.down);
+                }}
+                type="button"
+              >
+                ▼
+              </button>
             </div>
           </div>
 
