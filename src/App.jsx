@@ -3587,41 +3587,57 @@ function FlagModel({ position = [0, 0, 0], scale = [1, 1, 1] }) {
 }
 
 function BeachIsland({ position, rotation = [0, 0, 0], hasFlag = false }) {
+  const islandGeo = useMemo(() => {
+    const geo = new THREE.CylinderGeometry(2.5, 3.0, 0.4, 8, 1);
+    const pos = geo.attributes.position;
+    for (let i = 0; i < pos.count; i++) {
+      const x = pos.getX(i);
+      const y = pos.getY(i);
+      const z = pos.getZ(i);
+      if (y > 0) {
+        const noise = 0.85 + Math.random() * 0.3;
+        pos.setX(i, x * noise);
+        pos.setZ(i, z * noise);
+      }
+    }
+    geo.computeVertexNormals();
+    return geo;
+  }, []);
+
   return (
     <group position={position} rotation={rotation}>
-      {/* Kum tabanı - geniş yassı silindir */}
-      <mesh position={[0, -0.15, 0]} receiveShadow castShadow>
-        <cylinderGeometry args={[2.8, 3.2, 0.35, 24]} />
-        <meshStandardMaterial color="#e8c97a" roughness={0.95} />
+      {/* Low-poly kumsal taban */}
+      <mesh geometry={islandGeo} position={[0, -0.1, 0]} receiveShadow castShadow>
+        <meshStandardMaterial color="#d4b96a" roughness={0.95} />
       </mesh>
-      {/* Kum üst katman */}
-      <mesh position={[0, 0.02, 0]} receiveShadow>
-        <cylinderGeometry args={[2.6, 2.8, 0.12, 24]} />
-        <meshStandardMaterial color="#f0d98a" roughness={0.9} />
+      {/* Kum üst katman - daha düzensiz */}
+      <mesh position={[0, 0.05, 0]} receiveShadow>
+        <cylinderGeometry args={[2.2, 2.5, 0.15, 7]} />
+        <meshStandardMaterial color="#e8d08a" roughness={0.9} />
       </mesh>
-      {/* Kum kenar detayları */}
-      <mesh position={[0, -0.28, 0]} receiveShadow>
-        <cylinderGeometry args={[3.0, 3.4, 0.15, 24]} />
-        <meshStandardMaterial color="#c9a84c" roughness={0.95} />
+      {/* Kum kenarı - suya doğru eğim */}
+      <mesh position={[0, -0.2, 0]} receiveShadow>
+        <cylinderGeometry args={[2.7, 3.2, 0.1, 8]} />
+        <meshStandardMaterial color="#b89a52" roughness={0.95} />
       </mesh>
-      {/* Küçük kum tepeleri */}
-      <mesh position={[0.8, 0.08, 0.5]} receiveShadow>
-        <sphereGeometry args={[0.35, 8, 6]} />
-        <meshStandardMaterial color="#f0d98a" roughness={0.9} />
+      {/* Küçük kum tepeleri - düzensiz */}
+      <mesh position={[0.9, 0.1, 0.6]} receiveShadow>
+        <dodecahedronGeometry args={[0.3, 0]} />
+        <meshStandardMaterial color="#e8d08a" roughness={0.9} />
       </mesh>
-      <mesh position={[-0.6, 0.06, -0.4]} receiveShadow>
-        <sphereGeometry args={[0.25, 8, 6]} />
-        <meshStandardMaterial color="#e8c97a" roughness={0.9} />
+      <mesh position={[-0.7, 0.08, -0.5]} receiveShadow>
+        <dodecahedronGeometry args={[0.25, 0]} />
+        <meshStandardMaterial color="#d4b96a" roughness={0.9} />
       </mesh>
       {/* Bayrak */}
       {hasFlag ? (
-        <group position={[0.8, 0.45, 0.5]}>
+        <group position={[0.9, 0.5, 0.6]}>
           <mesh castShadow>
-            <cylinderGeometry args={[0.03, 0.03, 0.7, 8]} />
-            <meshStandardMaterial color="#888" metalness={0.6} />
+            <cylinderGeometry args={[0.02, 0.02, 0.6, 6]} />
+            <meshStandardMaterial color="#666" metalness={0.6} />
           </mesh>
-          <mesh position={[0.12, 0.2, 0]} castShadow>
-            <boxGeometry args={[0.25, 0.18, 0.02]} />
+          <mesh position={[0.1, 0.18, 0]} castShadow>
+            <boxGeometry args={[0.2, 0.15, 0.01]} />
             <meshStandardMaterial color="#e63946" />
           </mesh>
         </group>
@@ -3631,42 +3647,47 @@ function BeachIsland({ position, rotation = [0, 0, 0], hasFlag = false }) {
 }
 
 function Rock3D({ position, scale = 1, isCurrent, isPassed }) {
-  const rockShape = useMemo(() => {
-    const geo = new THREE.DodecahedronGeometry(0.55, 1);
+  const rockGeo = useMemo(() => {
+    const geo = new THREE.DodecahedronGeometry(0.5, 0);
     const pos = geo.attributes.position;
     for (let i = 0; i < pos.count; i++) {
       const x = pos.getX(i);
       const y = pos.getY(i);
       const z = pos.getZ(i);
-      const noise = 0.85 + Math.random() * 0.3;
-      pos.setXYZ(i, x * noise, y * 0.6 * noise, z * noise);
+      const noise = 0.8 + Math.random() * 0.4;
+      pos.setXYZ(i, x * noise, y * 0.7 * noise, z * noise);
     }
     geo.computeVertexNormals();
     return geo;
   }, []);
 
-  const rockColor = isPassed ? "#6b8f71" : isCurrent ? "#8fa87a" : "#7a7a7a";
+  const rockColor = isPassed ? "#5a6b5c" : isCurrent ? "#6b7d6e" : "#4a4a4a";
 
   return (
     <group position={position} scale={scale}>
-      <mesh geometry={rockShape} position={[0, 0.25, 0]} receiveShadow castShadow>
-        <meshStandardMaterial color={rockColor} roughness={0.85} />
+      {/* Ana kaya */}
+      <mesh geometry={rockGeo} position={[0, 0.3, 0]} receiveShadow castShadow>
+        <meshStandardMaterial color={rockColor} roughness={0.9} />
       </mesh>
-      {/* Taş alt kısmı - suya batan kısım */}
-      <mesh position={[0, 0.05, 0]} receiveShadow>
-        <cylinderGeometry args={[0.45, 0.55, 0.15, 12]} />
-        <meshStandardMaterial color="#5a5a5a" roughness={0.9} />
+      {/* Küçük kaya parçaları */}
+      <mesh position={[0.2, 0.15, 0.15]} receiveShadow>
+        <dodecahedronGeometry args={[0.2, 0]} />
+        <meshStandardMaterial color={rockColor} roughness={0.9} />
       </mesh>
-      {/* Yeşil yosun detayı */}
-      <mesh position={[0.1, 0.35, 0.15]}>
-        <sphereGeometry args={[0.12, 6, 6]} />
-        <meshStandardMaterial color="#4a7a3a" roughness={0.9} />
+      <mesh position={[-0.15, 0.12, -0.1]} receiveShadow>
+        <dodecahedronGeometry args={[0.15, 0]} />
+        <meshStandardMaterial color="#3a3a3a" roughness={0.9} />
+      </mesh>
+      {/* Yosun detayı */}
+      <mesh position={[0.15, 0.35, 0.2]}>
+        <sphereGeometry args={[0.08, 6, 6]} />
+        <meshStandardMaterial color="#3a5a2a" roughness={0.9} />
       </mesh>
       {/* Mevcut taş vurgu halkası */}
       {isCurrent ? (
         <mesh position={[0, 0.02, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-          <ringGeometry args={[0.65, 0.82, 32]} />
-          <meshBasicMaterial color="#38a169" transparent opacity={0.8} />
+          <ringGeometry args={[0.6, 0.75, 24]} />
+          <meshBasicMaterial color="#4ade80" transparent opacity={0.9} />
         </mesh>
       ) : null}
     </group>
@@ -3774,7 +3795,7 @@ function AnimatedRobot({ targetPos, isJumping, isWrong }) {
 
   return (
     <group ref={groupRef} position={targetPos}>
-      <primitive object={scene} scale={[0.42, 0.42, 0.42]} rotation={[0, Math.PI / 2, 0]} />
+      <primitive object={scene} scale={[0.3, 0.3, 0.3]} rotation={[0, Math.PI / 2, 0]} />
     </group>
   );
 }
