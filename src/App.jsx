@@ -4066,6 +4066,13 @@ function HollowCupMesh({ color = "#d90429", accentColor = "#ffd166" }) {
   );
 }
 
+const CUP_SLOT_X = [-2.4, 0, 2.4];
+const CUP_LIFT_Y = 1.5;
+
+function easeInOutCubic(x) {
+  return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+}
+
 function CupToken({ hiddenIconUrl }) {
   const iconTexture = useMemo(() => {
     if (!hiddenIconUrl) return null;
@@ -4074,22 +4081,22 @@ function CupToken({ hiddenIconUrl }) {
 
   return (
     <group position={[0, 0, 0]}>
-      {/* Token base */}
-      <mesh position={[0, 0.02, 0]} receiveShadow castShadow>
-        <cylinderGeometry args={[0.48, 0.50, 0.04, 36]} />
-        <meshStandardMaterial color="#ffffff" roughness={0.2} metalness={0.1} />
+      {/* Heavy gold/white token pedestal */}
+      <mesh position={[0, 0.035, 0]} receiveShadow castShadow>
+        <cylinderGeometry args={[0.52, 0.54, 0.07, 36]} />
+        <meshStandardMaterial color="#ffffff" roughness={0.2} metalness={0.15} />
       </mesh>
 
-      {/* Token outer ring */}
-      <mesh position={[0, 0.038, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <ringGeometry args={[0.40, 0.48, 36]} />
-        <meshStandardMaterial color="#ffd166" roughness={0.25} metalness={0.6} />
+      {/* Gold outer rim */}
+      <mesh position={[0, 0.07, 0]} rotation={[Math.PI / 2, 0, 0]}>
+        <torusGeometry args={[0.51, 0.03, 16, 36]} />
+        <meshStandardMaterial color="#ffd166" roughness={0.2} metalness={0.7} />
       </mesh>
 
-      {/* Icon face */}
+      {/* Icon face tilted towards camera */}
       {iconTexture ? (
-        <mesh position={[0, 0.042, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-          <circleGeometry args={[0.36, 36]} />
+        <mesh position={[0, 0.075, 0]} rotation={[-Math.PI / 2 + 0.35, 0, 0]}>
+          <circleGeometry args={[0.42, 36]} />
           <meshBasicMaterial map={iconTexture} transparent />
         </mesh>
       ) : null}
@@ -4097,53 +4104,218 @@ function CupToken({ hiddenIconUrl }) {
   );
 }
 
-function Cup3DItem({
-  slot,
-  isLifted,
-  isTarget,
-  hiddenIconUrl,
-  onClick,
+function CupGameScene({
+  phase,
+  targetCupId,
+  pickedCupId,
+  hiddenIcon,
+  shuffleCount,
+  onShuffleComplete,
+  onCupPick,
   canGuess
 }) {
-  const groupRef = useRef();
-  const cupMeshRef = useRef();
+  const cup0Ref = useRef();
+  const cup1Ref = useRef();
+  const cup2Ref = useRef();
+  const tokenRef = useRef();
 
-  const slotX = (slot - 1) * 2.4;
-  const targetY = isLifted ? 1.6 : 0;
+  const stateRef = useRef({
+    cups: [
+      { x: CUP_SLOT_X[0], y: 0, z: 0, slot: 0 },
+      { x: CUP_SLOT_X[1], y: 0, z: 0, slot: 1 },
+      { x: CUP_SLOT_X[2], y: 0, z: 0, slot: 2 }
+    ],
+    slots: [0, 1, 2],
+    activeSwap: null,
+    shuffleQueue: [],
+    phase: "idle",
+    targetCupId: 0,
+    pickedCupId: null
+  });
+
+  useEffect(() => {
+    stateRef.current.phase = phase;
+    stateRef.current.targetCupId = targetCupId;
+    stateRef.current.pickedCupId = pickedCupId;
+  }, [phase, targetCupId, pickedCupId]);
+
+  const shuffleActiveRef = useRef(false);
+  useEffect(() => {
+    if (phase === "shuffle" && !shuffleActiveRef.current) {
+      shuffleActiveRef.current = true;
+      const s = stateRef.current;
+
+      const plan = [];
+      const possiblePairs = [
+        [0, 1],
+        [1, 2],
+        [0, 2]
+      ];
+      for (let i = 0; i < shuffleCount; i++) {
+        const pair = possiblePairs[Math.floor(Math.random() * possiblePairs.length)];
+        plan.push(pair);
+      }
+      s.shuffleQueue = plan;
+
+      const [slotA, slotB] = s.shuffleQueue.shift();
+      const cupA = s.slots[slotA];
+      const cupB = s.slots[slotB];
+
+      const fromXA = CUP_SLOT_X[slotA];
+      const toXA = CUP_SLOT_X[slotB];
+      const fromXB = CUP_SLOT_X[slotB];
+      const toXB = CUP_SLOT_X[slotA];
+
+      s.slots[slotA] = cupB;
+      s.slots[slotB] = cupA;
+      s.cups[cupA].slot = slotB;
+      s.cups[cupB].slot = slotA;
+
+      s.activeSwap = {
+        cupA,
+        cupB,
+        fromXA,
+        toXA,
+        fromXB,
+        toXB,
+        startTime: performance.now(),
+        duration: 480,
+        arcSign: Math.random() > 0.5 ? 1 : -1
+      };
+    } else if (phase !== "shuffle") {
+      shuffleActiveRef.current = false;
+      stateRef.current.activeSwap = null;
+      stateRef.current.shuffleQueue = [];
+    }
+  }, [phase, shuffleCount]);
+
+  useEffect(() => {
+    if (phase === "peek-up") {
+      const s = stateRef.current;
+      s.slots = [0, 1, 2];
+      for (let i = 0; i < 3; i++) {
+        s.cups[i].x = CUP_SLOT_X[i];
+        s.cups[i].z = 0;
+        s.cups[i].slot = i;
+      }
+    }
+  }, [phase]);
 
   useFrame((_, delta) => {
-    if (groupRef.current) {
-      groupRef.current.position.x = THREE.MathUtils.lerp(groupRef.current.position.x, slotX, delta * 10);
+    const s = stateRef.current;
+    const now = performance.now();
+
+    // 1. Process active shuffle swap
+    if (s.activeSwap) {
+      const swap = s.activeSwap;
+      const elapsed = now - swap.startTime;
+      const progress = THREE.MathUtils.clamp(elapsed / swap.duration, 0, 1);
+      const p = easeInOutCubic(progress);
+
+      s.cups[swap.cupA].x = THREE.MathUtils.lerp(swap.fromXA, swap.toXA, p);
+      s.cups[swap.cupA].z = Math.sin(p * Math.PI) * 0.95 * swap.arcSign;
+
+      s.cups[swap.cupB].x = THREE.MathUtils.lerp(swap.fromXB, swap.toXB, p);
+      s.cups[swap.cupB].z = -Math.sin(p * Math.PI) * 0.95 * swap.arcSign;
+
+      if (progress >= 1) {
+        s.cups[swap.cupA].x = swap.toXA;
+        s.cups[swap.cupA].z = 0;
+        s.cups[swap.cupB].x = swap.toXB;
+        s.cups[swap.cupB].z = 0;
+        s.activeSwap = null;
+
+        if (s.shuffleQueue.length > 0) {
+          const [nextSlotA, nextSlotB] = s.shuffleQueue.shift();
+          const nextCupA = s.slots[nextSlotA];
+          const nextCupB = s.slots[nextSlotB];
+
+          const nFromXA = CUP_SLOT_X[nextSlotA];
+          const nToXA = CUP_SLOT_X[nextSlotB];
+          const nFromXB = CUP_SLOT_X[nextSlotB];
+          const nToXB = CUP_SLOT_X[nextSlotA];
+
+          s.slots[nextSlotA] = nextCupB;
+          s.slots[nextSlotB] = nextCupA;
+          s.cups[nextCupA].slot = nextSlotB;
+          s.cups[nextCupB].slot = nextSlotA;
+
+          s.activeSwap = {
+            cupA: nextCupA,
+            cupB: nextCupB,
+            fromXA: nFromXA,
+            toXA: nToXA,
+            fromXB: nFromXB,
+            toXB: nToXB,
+            startTime: now,
+            duration: 480,
+            arcSign: Math.random() > 0.5 ? 1 : -1
+          };
+        } else {
+          shuffleActiveRef.current = false;
+          onShuffleComplete?.();
+        }
+      }
     }
-    if (cupMeshRef.current) {
-      cupMeshRef.current.position.y = THREE.MathUtils.lerp(cupMeshRef.current.position.y, targetY, delta * 9);
+
+    // 2. Process vertical lifting
+    for (let i = 0; i < 3; i++) {
+      const isLifted =
+        (s.phase === "peek-up" && i === s.targetCupId) ||
+        (s.phase === "result" && (i === s.targetCupId || i === s.pickedCupId));
+      const targetY = isLifted ? CUP_LIFT_Y : 0;
+      s.cups[i].y = THREE.MathUtils.lerp(s.cups[i].y, targetY, Math.min(1, delta * 8));
+    }
+
+    // 3. Update Three.js mesh transforms
+    const refs = [cup0Ref, cup1Ref, cup2Ref];
+    for (let i = 0; i < 3; i++) {
+      if (refs[i].current) {
+        refs[i].current.position.set(s.cups[i].x, s.cups[i].y, s.cups[i].z);
+      }
+    }
+
+    // 4. Update Token position
+    if (tokenRef.current) {
+      const targetCup = s.cups[s.targetCupId];
+      tokenRef.current.position.set(targetCup.x, 0, targetCup.z);
     }
   });
 
-  return (
-    <group ref={groupRef} position={[slotX, 0, 0]}>
-      {/* Target Token rests on the table under this cup */}
-      {isTarget ? <CupToken hiddenIconUrl={hiddenIconUrl} /> : null}
+  const cupRefs = [cup0Ref, cup1Ref, cup2Ref];
 
-      {/* The 3D Cup lifts up or stays down */}
-      <group
-        ref={cupMeshRef}
-        position={[0, targetY, 0]}
-        onClick={(e) => {
-          e.stopPropagation();
-          if (canGuess) {
-            onClick?.();
-          }
-        }}
-        onPointerOver={() => {
-          if (canGuess) document.body.style.cursor = "pointer";
-        }}
-        onPointerOut={() => {
-          document.body.style.cursor = "default";
-        }}
-      >
-        <HollowCupMesh />
+  return (
+    <group position={[0, -0.4, 0]}>
+      {/* 3D Ahşap Masa */}
+      <Table3D />
+
+      {/* Hedef Jetonu */}
+      <group ref={tokenRef} position={[CUP_SLOT_X[targetCupId], 0, 0]}>
+        <CupToken hiddenIconUrl={hiddenIcon?.imageUrl} />
       </group>
+
+      {/* 3 Adet Bardak */}
+      {[0, 1, 2].map((cupId) => (
+        <group
+          key={cupId}
+          ref={cupRefs[cupId]}
+          position={[CUP_SLOT_X[cupId], 0, 0]}
+          onClick={(e) => {
+            e.stopPropagation();
+            if (canGuess) {
+              onCupPick?.(cupId);
+            }
+          }}
+          onPointerOver={() => {
+            if (canGuess) document.body.style.cursor = "pointer";
+          }}
+          onPointerOut={() => {
+            document.body.style.cursor = "default";
+          }}
+        >
+          <HollowCupMesh />
+        </group>
+      ))}
     </group>
   );
 }
@@ -4160,13 +4332,11 @@ function CupGame({
   onStartTurn,
   timeLeft
 }) {
-  const [cupSlots, setCupSlots] = useState([0, 1, 2]);
   const [targetCupId, setTargetCupId] = useState(0);
   const [pickedCupId, setPickedCupId] = useState(null);
   const [iconIndex, setIconIndex] = useState(0);
   const [phase, setPhase] = useState("idle");
   const [statusText, setStatusText] = useState("");
-  const cupSlotsRef = useRef([0, 1, 2]);
   const targetCupIdRef = useRef(0);
   const timersRef = useRef([]);
   const busyRef = useRef(false);
@@ -4208,9 +4378,6 @@ function CupGame({
     clearRoundTimers();
     busyRef.current = false;
     setPickedCupId(null);
-    const initialCupSlots = [0, 1, 2];
-    cupSlotsRef.current = initialCupSlots;
-    setCupSlots(initialCupSlots);
     const iconPool = CUP_ICON_OPTIONS.map((_, index) => index);
     const availableIcons = iconPool.filter((index) => index !== lastIconIndexRef.current);
     const nextIconIndex = randomFromList(
@@ -4229,44 +4396,22 @@ function CupGame({
     setIconIndex(nextIconIndex);
     setTargetCupId(nextTargetCupId);
     setPhase("peek-up");
-    setStatusText(`Tur ${roundIndex + 1}/${roundsPerGroup}`);
+    setStatusText(`Tur ${roundIndex + 1}/${roundsPerGroup} - Dikkatle İzle!`);
 
+    // Peek up for 2000ms so students can clearly see the icon and name
     const peekDownTimer = window.setTimeout(() => {
       setPhase("peek-down");
-    }, 700);
+      setStatusText("Bardak Kapatılıyor...");
+    }, 2000);
 
+    // After cup lowers (600ms), start the 3D shuffle
     const shuffleStartTimer = window.setTimeout(() => {
       setPhase("shuffle");
       setStatusText("Karıştırılıyor...");
-      const shufflePlan = createCupShufflePlan(shuffleCount);
-      let swapIndex = 0;
-
-      const runNextSwap = () => {
-        const [firstSlot, secondSlot] = shufflePlan[swapIndex];
-        const nextSlots = swapCupSlots(cupSlotsRef.current, firstSlot, secondSlot);
-        cupSlotsRef.current = nextSlots;
-        setCupSlots(nextSlots);
-        swapIndex += 1;
-
-        if (swapIndex >= shufflePlan.length) {
-          const guessTimer = window.setTimeout(() => {
-            setPhase("guess");
-            setStatusText("Hangi bardakta?");
-          }, CUP_SHUFFLE_STEP_MS);
-          timersRef.current.push(guessTimer);
-          return;
-        }
-
-        const nextSwapTimer = window.setTimeout(runNextSwap, CUP_SHUFFLE_STEP_MS);
-        timersRef.current.push(nextSwapTimer);
-      };
-
-      const firstSwapTimer = window.setTimeout(runNextSwap, CUP_SHUFFLE_PREP_MS);
-      timersRef.current.push(firstSwapTimer);
-    }, 1350);
+    }, 2600);
 
     timersRef.current.push(peekDownTimer, shuffleStartTimer);
-  }, [clearRoundTimers, roundsPerGroup, shuffleCount]);
+  }, [clearRoundTimers, roundsPerGroup]);
 
   useEffect(() => {
     return () => {
@@ -4308,18 +4453,12 @@ function CupGame({
     startRound
   ]);
 
-  const slotByCup = useMemo(() => {
-    const map = [0, 1, 2];
-    cupSlots.forEach((cupId, slot) => {
-      map[cupId] = slot;
-    });
-    return map;
-  }, [cupSlots]);
+  const handleShuffleComplete = useCallback(() => {
+    setPhase("guess");
+    setStatusText("Hangi bardakta? Bir bardak seç!");
+  }, []);
 
-  const revealIcon =
-    phase === "peek-up" || phase === "peek-down" || phase === "result";
   const canGuess = phase === "guess" && isRunning && !busyRef.current;
-  const targetSlot = slotByCup[targetCupId] ?? 0;
 
   const handleCupPick = useCallback(
     async (cupId) => {
@@ -4359,7 +4498,7 @@ function CupGame({
           return;
         }
         startRound(nextRoundCount);
-      }, 2000);
+      }, 2200);
       timersRef.current.push(revealTimer);
     },
     [
@@ -4395,43 +4534,43 @@ function CupGame({
       ) : (
         <section className="cup-stage">
           <IconActionButton actionType="reset" className="small-button reset-button" onClick={onReset} />
-          
+
+          {/* Prominent Target Banner during Peek & Result */}
+          {(phase === "peek-up" || phase === "peek-down" || phase === "result") && hiddenIcon ? (
+            <div className="cup-target-banner" aria-label="Hedef Simge">
+              <img src={hiddenIcon.imageUrl} alt="" className="cup-target-banner-img" />
+              <div className="cup-target-banner-text">
+                <span className="cup-target-banner-sub">HEDEF NESNE</span>
+                <span className="cup-target-banner-title">{hiddenIcon.label}</span>
+              </div>
+            </div>
+          ) : (
+            <div className="cup-target-banner-spacer" />
+          )}
+
           <div className="cup-3d-canvas-wrap" aria-label="3D Bardak Oyunu">
-            <Canvas camera={{ position: [0, 2.8, 6.4], fov: 40 }} shadows>
-              <ambientLight color="#fff8ee" intensity={0.9} />
+            <Canvas camera={{ position: [0, 4.3, 7.0], fov: 43 }} shadows>
+              <ambientLight color="#fff8ee" intensity={1.0} />
               <directionalLight
-                position={[4, 9, 5]}
+                position={[4, 11, 5]}
                 intensity={1.6}
                 castShadow
                 shadow-mapSize={[2048, 2048]}
                 shadow-bias={-0.0003}
               />
-              <directionalLight position={[-5, 4, 3]} intensity={0.45} color="#bad7f2" />
+              <directionalLight position={[-5, 5, 4]} intensity={0.5} color="#bad7f2" />
+              <directionalLight position={[0, 4, 6]} intensity={0.4} color="#ffffff" />
 
-              {/* Gerçekçi 3D Ahşap Masa */}
-              <Table3D />
-
-              {/* 3 Adet Gerçekçi 3D Bardak */}
-              {[0, 1, 2].map((cupId) => {
-                const slot = slotByCup[cupId];
-                const isTarget = targetCupId === cupId;
-                const isPicked = pickedCupId === cupId;
-                const isLifted =
-                  (phase === "peek-up" && isTarget) ||
-                  (phase === "result" && (isTarget || isPicked));
-
-                return (
-                  <Cup3DItem
-                    key={cupId}
-                    slot={slot}
-                    isLifted={isLifted}
-                    isTarget={isTarget}
-                    hiddenIconUrl={hiddenIcon.imageUrl}
-                    onClick={() => void handleCupPick(cupId)}
-                    canGuess={canGuess}
-                  />
-                );
-              })}
+              <CupGameScene
+                phase={phase}
+                targetCupId={targetCupId}
+                pickedCupId={pickedCupId}
+                hiddenIcon={hiddenIcon}
+                shuffleCount={shuffleCount}
+                onShuffleComplete={handleShuffleComplete}
+                onCupPick={handleCupPick}
+                canGuess={canGuess}
+              />
             </Canvas>
           </div>
 

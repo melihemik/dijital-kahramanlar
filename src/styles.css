@@ -1006,6 +1006,79 @@ button {
   overflow: hidden;
 }
 
+.cup-token-label-chip {
+  background: rgba(18, 18, 28, 0.92);
+  border: 2px solid #ffd166;
+  border-radius: 999px;
+  color: #fff;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 4px 12px;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  letter-spacing: 0.5px;
+  text-align: center;
+}
+
+.cup-target-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(24, 16, 14, 0.94);
+  border: 3px solid #ffd166;
+  border-radius: 12px;
+  padding: 4px 18px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+  z-index: 10;
+  pointer-events: none;
+  animation: bannerPopIn 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+  height: 52px;
+  box-sizing: border-box;
+}
+
+.cup-target-banner-spacer {
+  height: 52px;
+}
+
+.cup-target-banner-img {
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.5));
+}
+
+.cup-target-banner-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.cup-target-banner-sub {
+  font-size: 10px;
+  color: #ffd166;
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+
+.cup-target-banner-title {
+  font-size: 19px;
+  color: #ffffff;
+  font-weight: 900;
+  line-height: 1.1;
+}
+
+@keyframes bannerPopIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 .cup-board {
   position: relative;
   width: min(74vw, 940px);
