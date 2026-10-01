@@ -6392,57 +6392,6 @@ function PacmanGame({
                 );
               })}
             </div>
-
-            {/* Akıllı Tahta & Sanal Yön Butonları */}
-            <div aria-label="Yön Kontrolleri" className="pacman-dpad-panel">
-              <button
-                aria-label="Yukarı"
-                className="pixel-button pacman-dpad-btn up"
-                onPointerDown={(e) => {
-                  e.preventDefault();
-                  requestDirection(PACMAN_DIRECTIONS.up);
-                }}
-                type="button"
-              >
-                ▲
-              </button>
-              <div className="pacman-dpad-middle">
-                <button
-                  aria-label="Sol"
-                  className="pixel-button pacman-dpad-btn left"
-                  onPointerDown={(e) => {
-                    e.preventDefault();
-                    requestDirection(PACMAN_DIRECTIONS.left);
-                  }}
-                  type="button"
-                >
-                  ◀
-                </button>
-                <div className="pacman-dpad-core">🕹️</div>
-                <button
-                  aria-label="Sağ"
-                  className="pixel-button pacman-dpad-btn right"
-                  onPointerDown={(e) => {
-                    e.preventDefault();
-                    requestDirection(PACMAN_DIRECTIONS.right);
-                  }}
-                  type="button"
-                >
-                  ▶
-                </button>
-              </div>
-              <button
-                aria-label="Aşağı"
-                className="pixel-button pacman-dpad-btn down"
-                onPointerDown={(e) => {
-                  e.preventDefault();
-                  requestDirection(PACMAN_DIRECTIONS.down);
-                }}
-                type="button"
-              >
-                ▼
-              </button>
-            </div>
           </div>
 
           <CelebrationBurst burst={burst} />

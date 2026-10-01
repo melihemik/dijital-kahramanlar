@@ -3534,14 +3534,9 @@ button {
   80% { transform: translateX(calc(-50% + 7px)); }
 }
 
-/* ===== Pacman Oyunu (Labirent & Akıllı Tahta D-Pad & Fare Kontrollü) ===== */
+/* ===== Pacman Oyunu (Labirent & Fare / Dokunma Kontrollü) ===== */
 .pacman-screen {
   position: relative;
-}
-
-.pacman-screen .game-header {
-  width: min(94vw, 1280px);
-  margin: 0 auto 12px auto;
 }
 
 .pacman-stage {
@@ -3550,16 +3545,16 @@ button {
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  width: min(94vw, 1280px);
+  width: 100%;
   margin: 0 auto;
-  gap: 10px;
+  gap: 12px;
 }
 
 .pacman-topbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  width: min(72vw, 684px);
+  width: min(84vw, 760px);
   gap: 16px;
 }
 
@@ -3612,10 +3607,8 @@ button {
 
 .pacman-play-area {
   display: flex;
-  flex-direction: row;
   align-items: center;
   justify-content: center;
-  gap: 24px;
   width: 100%;
 }
 
@@ -3624,7 +3617,7 @@ button {
   display: grid;
   grid-template-columns: repeat(19, 1fr);
   grid-template-rows: repeat(15, 1fr);
-  width: min(72vw, 684px);
+  width: min(84vw, 760px);
   aspect-ratio: 19 / 15;
   background: #080d1a;
   border: 5px solid var(--ink);
@@ -3748,51 +3741,6 @@ button {
   filter: drop-shadow(0 0 8px #38bdf8);
 }
 
-/* Akıllı Tahta & Sanal D-Pad */
-.pacman-dpad-panel {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  background: var(--fg);
-  border: 4px solid var(--ink);
-  padding: 16px;
-  box-shadow: 6px 6px 0 rgba(43, 22, 19, 0.25);
-  user-select: none;
-}
-
-.pacman-dpad-middle {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-}
-
-.pacman-dpad-core {
-  width: 56px;
-  height: 56px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.8rem;
-  background: #e2e8f0;
-  border: 4px solid var(--ink);
-}
-
-.pacman-dpad-btn {
-  width: 58px;
-  height: 58px;
-  min-width: 58px;
-  min-height: 58px;
-  padding: 0;
-  font-size: 1.6rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  touch-action: manipulation;
-}
-
 @keyframes antivirusPulsing {
   0% {
     box-shadow: 0 0 6px rgba(56, 189, 248, 0.4);
@@ -3803,27 +3751,11 @@ button {
 }
 
 @media (max-width: 960px) {
-  .pacman-play-area {
-    flex-direction: column;
-    gap: 14px;
-  }
   .pacman-board {
     width: min(94vw, 540px);
   }
   .pacman-topbar {
     width: min(94vw, 540px);
-  }
-  .pacman-dpad-btn {
-    width: 48px;
-    height: 48px;
-    min-width: 48px;
-    min-height: 48px;
-    font-size: 1.3rem;
-  }
-  .pacman-dpad-core {
-    width: 48px;
-    height: 48px;
-    font-size: 1.4rem;
   }
 }
 
