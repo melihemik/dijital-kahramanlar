@@ -1041,6 +1041,7 @@ button {
   animation: bannerPopIn 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
   height: 52px;
   box-sizing: border-box;
+  overflow: hidden;
 }
 
 .cup-target-banner-spacer {
@@ -1055,17 +1056,21 @@ button {
 }
 
 .cup-target-banner-3d {
-  width: 48px;
-  height: 48px;
+  width: 42px;
+  height: 42px;
   flex-shrink: 0;
   overflow: hidden;
-  border-radius: 8px;
+  border-radius: 6px;
+  position: relative;
 }
 
 .cup-target-banner-3d canvas {
-  width: 48px !important;
-  height: 48px !important;
+  width: 42px !important;
+  height: 42px !important;
   display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
 }
 
 .cup-target-banner-text {

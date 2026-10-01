@@ -4707,41 +4707,47 @@ function CupGame({
       setPickedCupId(cupId);
       setPhase("result");
 
-      // Bardakların kalkması için phase'i doğrudan ref'e de yaz
-      stateRef.current.phase = "result";
-      stateRef.current.pickedCupId = cupId;
-
       const expectedNextRound = (activeTurn?.questionIndex ?? 0) + 1;
       roundKeyRef.current = `${activeGroup}-${expectedNextRound}`;
       const isCorrect = cupId === targetCupIdRef.current;
-      const nextRoundCount = await onGuess(isCorrect);
+
+      let nextRoundCount;
+      try {
+        nextRoundCount = await onGuess(isCorrect);
+      } catch (e) {
+        console.error("Cup guess error:", e);
+        nextRoundCount = expectedNextRound;
+      }
+
       const resolvedRoundNumber =
         typeof nextRoundCount === "number"
           ? nextRoundCount
-          : (activeTurn?.questionIndex ?? 0) + 1;
+          : expectedNextRound;
       setStatusText(
         isCorrect
           ? `${resolvedRoundNumber}. bulundu (+${scoreCorrect})`
           : `${resolvedRoundNumber}. bulunamadı (${scoreWrong})`
       );
 
-      const revealTimer = window.setTimeout(async () => {
-        if (typeof nextRoundCount !== "number") {
+      const revealTimer = window.setTimeout(() => {
+        try {
+          if (typeof nextRoundCount !== "number" || nextRoundCount >= roundsPerGroup) {
+            busyRef.current = false;
+            if (typeof nextRoundCount === "number" && nextRoundCount >= roundsPerGroup) {
+              setStatusText(`Tüm bardaklar bulundu! (+${scoreCorrect})`);
+            }
+            const finishTimer = window.setTimeout(() => {
+              void onCompleteTurn();
+            }, 1500);
+            timersRef.current.push(finishTimer);
+            return;
+          }
+          startRound(nextRoundCount);
+        } catch (e) {
+          console.error("Cup reveal error:", e);
           busyRef.current = false;
-          roundKeyRef.current = `${activeGroup}-${activeTurn?.questionIndex ?? 0}`;
-          return;
+          setPhase("guess");
         }
-
-        if (nextRoundCount >= roundsPerGroup) {
-          busyRef.current = false;
-          setStatusText(`Tüm bardaklar bulundu! (+${scoreCorrect})`);
-          const finishTimer = window.setTimeout(async () => {
-            await onCompleteTurn();
-          }, 1500);
-          timersRef.current.push(finishTimer);
-          return;
-        }
-        startRound(nextRoundCount);
       }, 1800);
       timersRef.current.push(revealTimer);
     },
