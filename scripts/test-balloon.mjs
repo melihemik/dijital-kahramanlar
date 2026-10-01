@@ -44,14 +44,20 @@ async function run() {
     await startBtns[0].click();
   }
 
-  await new Promise(r => setTimeout(r, 1000));
-  await page.screenshot({ path: "/tmp/balloon_t1.png" });
+  // 1. Initial fast entrance: 800ms after start, balloons are surging up from bottom
+  await new Promise(r => setTimeout(r, 800));
+  await page.screenshot({ path: "/tmp/balloon_enter.png" });
+  console.log("Saved /tmp/balloon_enter.png");
 
-  await new Promise(r => setTimeout(r, 2000));
-  await page.screenshot({ path: "/tmp/balloon_t2.png" });
+  // 2. Settling phase: 2000ms after start (entrance boost finishes)
+  await new Promise(r => setTimeout(r, 1200));
+  await page.screenshot({ path: "/tmp/balloon_settled.png" });
+  console.log("Saved /tmp/balloon_settled.png");
 
-  await new Promise(r => setTimeout(r, 3000));
-  await page.screenshot({ path: "/tmp/balloon_t3.png" });
+  // 3. Variable float: 4500ms after start
+  await new Promise(r => setTimeout(r, 2500));
+  await page.screenshot({ path: "/tmp/balloon_mid.png" });
+  console.log("Saved /tmp/balloon_mid.png");
 
   await browser.close();
   console.log("Screenshots captured!");

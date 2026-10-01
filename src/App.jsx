@@ -3213,26 +3213,29 @@ function BalloonGame({
   }, [visibleQuestion, activeGroup]);
 
   const balloonElementsRef = useRef([]);
+  const entranceStartTimeRef = useRef(0);
   const physicsRef = useRef([
-    { baseX: 80, y: 520, speed: 18, swayAmp: 18, swayFreq: 0.5, swayPhase: 0.2, tiltAmp: 2.5, swayTime: 0 },
-    { baseX: 280, y: 640, speed: 16, swayAmp: 20, swayFreq: 0.6, swayPhase: 1.5, tiltAmp: 3.0, swayTime: 0 },
-    { baseX: 500, y: 760, speed: 19, swayAmp: 16, swayFreq: 0.45, swayPhase: 2.8, tiltAmp: 2.2, swayTime: 0 },
-    { baseX: 740, y: 880, speed: 17, swayAmp: 21, swayFreq: 0.55, swayPhase: 4.1, tiltAmp: 3.2, swayTime: 0 },
-    { baseX: 980, y: 990, speed: 18, swayAmp: 19, swayFreq: 0.65, swayPhase: 5.3, tiltAmp: 2.8, swayTime: 0 }
+    { baseX: 80, y: 800, baseSpeed: 18, speedWaveFreq: 0.6, speedWaveAmp: 9, speedWavePhase: 0.2, swayAmp: 16, swayFreq: 0.5, swayPhase: 0.2, tiltAmp: 2.5, swayTime: 0 },
+    { baseX: 280, y: 880, baseSpeed: 16, speedWaveFreq: 0.5, speedWaveAmp: 8, speedWavePhase: 1.5, swayAmp: 18, swayFreq: 0.6, swayPhase: 1.5, tiltAmp: 3.0, swayTime: 0 },
+    { baseX: 500, y: 960, baseSpeed: 19, speedWaveFreq: 0.7, speedWaveAmp: 10, speedWavePhase: 2.8, swayAmp: 15, swayFreq: 0.45, swayPhase: 2.8, tiltAmp: 2.2, swayTime: 0 },
+    { baseX: 740, y: 1040, baseSpeed: 17, speedWaveFreq: 0.55, speedWaveAmp: 9, speedWavePhase: 4.1, swayAmp: 19, swayFreq: 0.55, swayPhase: 4.1, tiltAmp: 3.2, swayTime: 0 },
+    { baseX: 980, y: 1120, baseSpeed: 18, speedWaveFreq: 0.65, speedWaveAmp: 9, speedWavePhase: 5.3, swayAmp: 17, swayFreq: 0.65, swayPhase: 5.3, tiltAmp: 2.8, swayTime: 0 }
   ]);
 
   const resetBalloonPositions = useCallback(() => {
+    entranceStartTimeRef.current = performance.now();
     const W = typeof window !== "undefined" ? window.innerWidth : 1200;
     const H = typeof window !== "undefined" ? window.innerHeight : 800;
     const usableWidth = Math.max(400, W - 220);
     const bandWidth = usableWidth / 5;
 
+    // Start all 5 balloons staggered right below the bottom of the screen
     const verticalSlots = shuffle([
-      H * 0.52,
-      H * 0.68,
-      H * 0.84,
-      H * 1.00,
-      H * 1.16
+      H * 0.92,
+      H * 1.02,
+      H * 1.12,
+      H * 1.22,
+      H * 1.32
     ]);
     const laneSlots = shuffle([0, 1, 2, 3, 4]);
 
@@ -3240,8 +3243,11 @@ function BalloonGame({
       const laneIndex = laneSlots[i];
       const slotX = 25 + laneIndex * bandWidth + Math.random() * Math.max(10, bandWidth - 180);
       b.baseX = Math.max(20, Math.min(W - 195, slotX));
-      b.y = verticalSlots[i] + (Math.random() * 24 - 12);
-      b.speed = 15 + Math.random() * 7;
+      b.y = verticalSlots[i] + (Math.random() * 20 - 10);
+      b.baseSpeed = 16 + Math.random() * 8;
+      b.speedWaveFreq = 0.45 + Math.random() * 0.35;
+      b.speedWaveAmp = 8 + Math.random() * 6;
+      b.speedWavePhase = Math.random() * Math.PI * 2;
       b.swayAmp = 14 + Math.random() * 8;
       b.swayFreq = 0.45 + Math.random() * 0.3;
       b.swayPhase = Math.random() * Math.PI * 2;
@@ -3271,17 +3277,35 @@ function BalloonGame({
       const W = typeof window !== "undefined" ? window.innerWidth : 1200;
       const H = typeof window !== "undefined" ? window.innerHeight : 800;
 
+      // Fast initial entrance boost: during the first 1.8 seconds, balloons rush up from bottom
+      const entranceElapsed = (currentTime - entranceStartTimeRef.current) / 1000;
+      let entranceBoost = 0;
+      if (entranceElapsed < 2.0) {
+        const p = 1 - entranceElapsed / 2.0;
+        entranceBoost = p * p * 200;
+      }
+
+      // Atmospheric thermal / wind pulse across the scene
+      const globalGust = Math.sin(currentTime / 2400) * 5;
+
       physicsRef.current.forEach((b, i) => {
-        b.y -= b.speed * dt;
+        // Natural speed variation: sometimes faster, sometimes slower
+        const speedWave = Math.sin(b.swayTime * b.speedWaveFreq + b.speedWavePhase) * b.speedWaveAmp;
+        const currentSpeed = Math.max(8, b.baseSpeed + speedWave + globalGust + entranceBoost);
+
+        b.y -= currentSpeed * dt;
         b.swayTime += dt;
         const sway = Math.sin(b.swayTime * b.swayFreq + b.swayPhase) * b.swayAmp;
         const tilt = Math.sin(b.swayTime * b.swayFreq + b.swayPhase) * b.tiltAmp;
         const curX = Math.max(16, Math.min(W - 195, b.baseX + sway));
 
         if (b.y < -260) {
-          b.y = H + 40 + Math.random() * 70;
+          b.y = H + 30 + Math.random() * 70;
           b.baseX = 20 + Math.random() * (W - 200);
-          b.speed = 15 + Math.random() * 7;
+          b.baseSpeed = 16 + Math.random() * 8;
+          b.speedWaveFreq = 0.45 + Math.random() * 0.35;
+          b.speedWaveAmp = 8 + Math.random() * 6;
+          b.speedWavePhase = Math.random() * Math.PI * 2;
           b.swayFreq = 0.45 + Math.random() * 0.3;
           b.swayPhase = Math.random() * Math.PI * 2;
           b.swayAmp = 14 + Math.random() * 8;
@@ -4073,33 +4097,219 @@ function easeInOutCubic(x) {
   return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
 }
 
-function CupToken({ hiddenIconUrl }) {
-  const iconTexture = useMemo(() => {
-    if (!hiddenIconUrl) return null;
-    return new THREE.TextureLoader().load(hiddenIconUrl);
-  }, [hiddenIconUrl]);
+function Computer3D() {
+  return (
+    <group position={[0, 0.08, 0]}>
+      {/* Monitor tilted slightly back to face camera angle directly */}
+      <group position={[0, 0.38, 0]} rotation={[-0.22, 0, 0]}>
+        {/* Monitor chassis (retro desktop monitor) */}
+        <mesh castShadow receiveShadow>
+          <boxGeometry args={[0.58, 0.46, 0.30]} />
+          <meshStandardMaterial color="#e2dfd7" roughness={0.38} />
+        </mesh>
+        {/* Dark screen border bezel */}
+        <mesh position={[0, 0, 0.152]}>
+          <planeGeometry args={[0.46, 0.36]} />
+          <meshBasicMaterial color="#001833" />
+        </mesh>
+        {/* Glowing cyan pixel display */}
+        <mesh position={[0, 0, 0.154]}>
+          <planeGeometry args={[0.42, 0.32]} />
+          <meshBasicMaterial color="#00f5d4" />
+        </mesh>
+        {/* Pixel terminal smile & eyes on screen */}
+        <mesh position={[-0.09, 0.04, 0.156]}>
+          <boxGeometry args={[0.045, 0.045, 0.01]} />
+          <meshBasicMaterial color="#001833" />
+        </mesh>
+        <mesh position={[0.09, 0.04, 0.156]}>
+          <boxGeometry args={[0.045, 0.045, 0.01]} />
+          <meshBasicMaterial color="#001833" />
+        </mesh>
+        <mesh position={[0, -0.05, 0.156]}>
+          <boxGeometry args={[0.14, 0.035, 0.01]} />
+          <meshBasicMaterial color="#001833" />
+        </mesh>
+      </group>
 
+      {/* Monitor stand neck */}
+      <mesh position={[0, 0.14, -0.02]} castShadow>
+        <cylinderGeometry args={[0.06, 0.08, 0.12, 16]} />
+        <meshStandardMaterial color="#8d99ae" roughness={0.3} metalness={0.5} />
+      </mesh>
+      {/* Monitor stand base */}
+      <mesh position={[0, 0.07, 0.02]} castShadow receiveShadow>
+        <boxGeometry args={[0.34, 0.03, 0.28]} />
+        <meshStandardMaterial color="#c8c6be" roughness={0.4} />
+      </mesh>
+      {/* Keyboard */}
+      <mesh position={[0, 0.03, 0.25]} rotation={[-0.18, 0, 0]} castShadow>
+        <boxGeometry args={[0.50, 0.03, 0.16]} />
+        <meshStandardMaterial color="#d4d2cb" roughness={0.5} />
+      </mesh>
+      {/* Keyboard keys plate */}
+      <mesh position={[0, 0.048, 0.25]} rotation={[-0.18, 0, 0]}>
+        <boxGeometry args={[0.46, 0.015, 0.13]} />
+        <meshStandardMaterial color="#3d405b" roughness={0.6} />
+      </mesh>
+      {/* Mouse */}
+      <mesh position={[0.32, 0.025, 0.25]} castShadow>
+        <boxGeometry args={[0.06, 0.03, 0.09]} />
+        <meshStandardMaterial color="#e0ded8" roughness={0.4} />
+      </mesh>
+    </group>
+  );
+}
+
+function WifiRouter3D() {
+  return (
+    <group position={[0, 0.08, 0]}>
+      {/* Main router box (sleek modern tech unit) */}
+      <mesh position={[0, 0.10, 0]} castShadow receiveShadow>
+        <boxGeometry args={[0.62, 0.13, 0.36]} />
+        <meshStandardMaterial color="#1e1e24" roughness={0.3} metalness={0.25} />
+      </mesh>
+      {/* Accent top plate */}
+      <mesh position={[0, 0.17, 0]}>
+        <boxGeometry args={[0.54, 0.015, 0.28]} />
+        <meshStandardMaterial color="#2b2d42" roughness={0.4} />
+      </mesh>
+      {/* Status LED lights on front */}
+      {[-0.18, -0.09, 0, 0.09, 0.18].map((x, idx) => (
+        <mesh key={idx} position={[x, 0.10, 0.185]}>
+          <sphereGeometry args={[0.018, 12, 12]} />
+          <meshBasicMaterial color={idx === 2 ? "#00f5d4" : "#48cae4"} />
+        </mesh>
+      ))}
+      {/* Left antenna */}
+      <group position={[-0.24, 0.16, -0.12]} rotation={[0.1, 0, 0.22]}>
+        <mesh position={[0, 0.26, 0]} castShadow>
+          <cylinderGeometry args={[0.02, 0.025, 0.52, 12]} />
+          <meshStandardMaterial color="#111115" roughness={0.3} />
+        </mesh>
+        <mesh position={[0, 0.52, 0]}>
+          <sphereGeometry args={[0.028, 12, 12]} />
+          <meshStandardMaterial color="#ffd166" roughness={0.2} metalness={0.6} />
+        </mesh>
+      </group>
+      {/* Right antenna */}
+      <group position={[0.24, 0.16, -0.12]} rotation={[0.1, 0, -0.22]}>
+        <mesh position={[0, 0.26, 0]} castShadow>
+          <cylinderGeometry args={[0.02, 0.025, 0.52, 12]} />
+          <meshStandardMaterial color="#111115" roughness={0.3} />
+        </mesh>
+        <mesh position={[0, 0.52, 0]}>
+          <sphereGeometry args={[0.028, 12, 12]} />
+          <meshStandardMaterial color="#ffd166" roughness={0.2} metalness={0.6} />
+        </mesh>
+      </group>
+      {/* Wi-Fi Signal Arcs standing upright facing camera */}
+      <group position={[0, 0.22, 0.04]}>
+        <mesh rotation={[0, 0, Math.PI * 0.2]}>
+          <torusGeometry args={[0.12, 0.016, 12, 32, Math.PI * 0.6]} />
+          <meshBasicMaterial color="#00f5d4" />
+        </mesh>
+        <mesh rotation={[0, 0, Math.PI * 0.2]}>
+          <torusGeometry args={[0.20, 0.016, 12, 32, Math.PI * 0.6]} />
+          <meshBasicMaterial color="#48cae4" />
+        </mesh>
+        <mesh rotation={[0, 0, Math.PI * 0.2]}>
+          <torusGeometry args={[0.28, 0.016, 12, 32, Math.PI * 0.6]} />
+          <meshBasicMaterial color="#90e0ef" />
+        </mesh>
+      </group>
+    </group>
+  );
+}
+
+function InternetGlobe3D() {
+  const globeRef = useRef();
+
+  useFrame((_, delta) => {
+    if (globeRef.current) {
+      globeRef.current.rotation.y += delta * 0.8;
+    }
+  });
+
+  return (
+    <group position={[0, 0.08, 0]}>
+      {/* Stand base (gold brass finish) */}
+      <mesh position={[0, 0.03, 0]} castShadow receiveShadow>
+        <cylinderGeometry args={[0.28, 0.32, 0.06, 28]} />
+        <meshStandardMaterial color="#d4a373" roughness={0.25} metalness={0.65} />
+      </mesh>
+      {/* Stand stem */}
+      <mesh position={[0, 0.16, 0]} castShadow>
+        <cylinderGeometry args={[0.04, 0.05, 0.22, 16]} />
+        <meshStandardMaterial color="#d4a373" roughness={0.25} metalness={0.65} />
+      </mesh>
+      {/* Stand meridian half-ring arc */}
+      <mesh position={[0, 0.44, 0]} rotation={[0, 0, -Math.PI * 0.35]}>
+        <torusGeometry args={[0.35, 0.026, 16, 36, Math.PI * 1.05]} />
+        <meshStandardMaterial color="#d4a373" roughness={0.25} metalness={0.65} />
+      </mesh>
+      {/* Rotating 3D Globe with Earth continents / latitude lines */}
+      <group ref={globeRef} position={[0, 0.44, 0]} rotation={[0.35, 0, 0.2]}>
+        {/* Oceans sphere */}
+        <mesh castShadow>
+          <sphereGeometry args={[0.28, 32, 32]} />
+          <meshStandardMaterial color="#0077b6" roughness={0.35} metalness={0.1} />
+        </mesh>
+        {/* Latitude and Longitude wireframe / grid lines for cyber internet aesthetic */}
+        <mesh>
+          <sphereGeometry args={[0.284, 16, 12]} />
+          <meshBasicMaterial color="#90e0ef" wireframe transparent opacity={0.35} />
+        </mesh>
+        {/* Stylized continent patches (green landmasses) */}
+        <mesh position={[0.14, 0.12, 0.18]}>
+          <sphereGeometry args={[0.11, 12, 12]} />
+          <meshStandardMaterial color="#38b000" roughness={0.6} />
+        </mesh>
+        <mesh position={[-0.15, 0.05, 0.18]}>
+          <sphereGeometry args={[0.10, 12, 12]} />
+          <meshStandardMaterial color="#38b000" roughness={0.6} />
+        </mesh>
+        <mesh position={[0.02, -0.14, 0.20]}>
+          <sphereGeometry args={[0.09, 12, 12]} />
+          <meshStandardMaterial color="#70e000" roughness={0.6} />
+        </mesh>
+        <mesh position={[-0.16, 0.14, -0.14]}>
+          <sphereGeometry args={[0.12, 12, 12]} />
+          <meshStandardMaterial color="#38b000" roughness={0.6} />
+        </mesh>
+        {/* Glowing orbital internet ring */}
+        <mesh rotation={[Math.PI / 2.8, 0, 0]}>
+          <torusGeometry args={[0.40, 0.018, 12, 48]} />
+          <meshBasicMaterial color="#ffd166" />
+        </mesh>
+      </group>
+    </group>
+  );
+}
+
+function CupToken({ targetId }) {
   return (
     <group position={[0, 0, 0]}>
       {/* Heavy gold/white token pedestal */}
       <mesh position={[0, 0.035, 0]} receiveShadow castShadow>
-        <cylinderGeometry args={[0.52, 0.54, 0.07, 36]} />
+        <cylinderGeometry args={[0.54, 0.58, 0.07, 36]} />
         <meshStandardMaterial color="#ffffff" roughness={0.2} metalness={0.15} />
       </mesh>
 
       {/* Gold outer rim */}
       <mesh position={[0, 0.07, 0]} rotation={[Math.PI / 2, 0, 0]}>
-        <torusGeometry args={[0.51, 0.03, 16, 36]} />
+        <torusGeometry args={[0.53, 0.03, 16, 36]} />
         <meshStandardMaterial color="#ffd166" roughness={0.2} metalness={0.7} />
       </mesh>
 
-      {/* Icon face tilted towards camera */}
-      {iconTexture ? (
-        <mesh position={[0, 0.075, 0]} rotation={[-Math.PI / 2 + 0.35, 0, 0]}>
-          <circleGeometry args={[0.42, 36]} />
-          <meshBasicMaterial map={iconTexture} transparent />
-        </mesh>
-      ) : null}
+      {/* 3D Model according to targetId */}
+      {targetId === "wifi" ? (
+        <WifiRouter3D />
+      ) : targetId === "computer" ? (
+        <Computer3D />
+      ) : (
+        <InternetGlobe3D />
+      )}
     </group>
   );
 }
@@ -4291,7 +4501,7 @@ function CupGameScene({
 
       {/* Hedef Jetonu */}
       <group ref={tokenRef} position={[CUP_SLOT_X[targetCupId], 0, 0]}>
-        <CupToken hiddenIconUrl={hiddenIcon?.imageUrl} />
+        <CupToken targetId={hiddenIcon?.id} />
       </group>
 
       {/* 3 Adet Bardak */}
