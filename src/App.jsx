@@ -1176,8 +1176,9 @@ function playAnswerFeedbackSound(isCorrect) {
     return;
   }
 
-  playFeedbackTone(audioContext, 220, now, 0.16, "sawtooth");
-  playFeedbackTone(audioContext, 146.83, now + 0.14, 0.22, "sawtooth");
+  // Distinct low raspy buzzer for wrong answers
+  playFeedbackTone(audioContext, 150, now, 0.18, "sawtooth");
+  playFeedbackTone(audioContext, 95, now + 0.15, 0.26, "sawtooth");
 }
 
 function isSameCell(cellA, cellB) {
@@ -3169,6 +3170,9 @@ function BalloonGame({
   timeLeft
 }) {
   const [burst, setBurst] = useState(null);
+  const [shakingIndex, setShakingIndex] = useState(null);
+  const [questionAnimKey, setQuestionAnimKey] = useState(0);
+
   const fallbackQuestion = normalizeQuestion(
     getFallbackQuestions("balloon", activeGroup)[0],
     0,
@@ -3212,33 +3216,33 @@ function BalloonGame({
 
   const balloonElementsRef = useRef([]);
   const physicsRef = useRef([
-    { baseX: 100, y: 150, speed: 44, swayAmp: 22, swayFreq: 1.0, swayPhase: 0.2, tiltAmp: 3.5, swayTime: 0 },
-    { baseX: 300, y: 320, speed: 40, swayAmp: 26, swayFreq: 1.2, swayPhase: 1.5, tiltAmp: 4.0, swayTime: 0 },
-    { baseX: 550, y: 480, speed: 48, swayAmp: 20, swayFreq: 0.9, swayPhase: 2.8, tiltAmp: 3.2, swayTime: 0 },
-    { baseX: 800, y: 640, speed: 42, swayAmp: 25, swayFreq: 1.1, swayPhase: 4.1, tiltAmp: 4.2, swayTime: 0 },
-    { baseX: 1050, y: 800, speed: 46, swayAmp: 24, swayFreq: 1.3, swayPhase: 5.3, tiltAmp: 3.8, swayTime: 0 }
+    { baseX: 80, y: 140, speed: 44, swayAmp: 22, swayFreq: 1.0, swayPhase: 0.2, tiltAmp: 3.5, swayTime: 0 },
+    { baseX: 280, y: 300, speed: 40, swayAmp: 26, swayFreq: 1.2, swayPhase: 1.5, tiltAmp: 4.0, swayTime: 0 },
+    { baseX: 500, y: 460, speed: 48, swayAmp: 20, swayFreq: 0.9, swayPhase: 2.8, tiltAmp: 3.2, swayTime: 0 },
+    { baseX: 740, y: 620, speed: 42, swayAmp: 25, swayFreq: 1.1, swayPhase: 4.1, tiltAmp: 4.2, swayTime: 0 },
+    { baseX: 980, y: 780, speed: 46, swayAmp: 24, swayFreq: 1.3, swayPhase: 5.3, tiltAmp: 3.8, swayTime: 0 }
   ]);
 
-  useEffect(() => {
-    if (!isRunning) return;
-
+  const resetBalloonPositions = useCallback(() => {
     const W = typeof window !== "undefined" ? window.innerWidth : 1200;
     const H = typeof window !== "undefined" ? window.innerHeight : 800;
-    const usableWidth = Math.max(400, W - 180);
+    const usableWidth = Math.max(400, W - 220);
     const bandWidth = usableWidth / 5;
 
     const verticalSlots = shuffle([
-      H * 0.12,
+      H * 0.14,
       H * 0.32,
-      H * 0.52,
-      H * 0.72,
-      H * 0.90
+      H * 0.50,
+      H * 0.68,
+      H * 0.86
     ]);
+    const laneSlots = shuffle([0, 1, 2, 3, 4]);
 
     physicsRef.current.forEach((b, i) => {
-      const slotX = 30 + i * bandWidth + Math.random() * Math.max(10, bandWidth - 140);
-      b.baseX = Math.max(20, Math.min(W - 160, slotX));
-      b.y = verticalSlots[i] + (Math.random() * 40 - 20);
+      const laneIndex = laneSlots[i];
+      const slotX = 25 + laneIndex * bandWidth + Math.random() * Math.max(10, bandWidth - 180);
+      b.baseX = Math.max(20, Math.min(W - 195, slotX));
+      b.y = verticalSlots[i] + (Math.random() * 30 - 15);
       b.speed = 36 + Math.random() * 20;
       b.swayAmp = 18 + Math.random() * 16;
       b.swayFreq = 0.85 + Math.random() * 0.55;
@@ -3246,8 +3250,16 @@ function BalloonGame({
       b.tiltAmp = 2.5 + Math.random() * 3.5;
       b.swayTime = Math.random() * 10;
     });
-  }, [isRunning]);
+  }, []);
 
+  // When round starts or when a new question arrives, scatter balloons across fresh random positions
+  useEffect(() => {
+    if (!isRunning) return;
+    resetBalloonPositions();
+    setQuestionAnimKey((k) => k + 1);
+  }, [visibleQuestion?.id, isRunning, resetBalloonPositions]);
+
+  // Continuous RAF physics loop
   useEffect(() => {
     if (!isRunning) return;
 
@@ -3266,11 +3278,11 @@ function BalloonGame({
         b.swayTime += dt;
         const sway = Math.sin(b.swayTime * b.swayFreq + b.swayPhase) * b.swayAmp;
         const tilt = Math.sin(b.swayTime * b.swayFreq + b.swayPhase) * b.tiltAmp;
-        const curX = Math.max(16, Math.min(W - 160, b.baseX + sway));
+        const curX = Math.max(16, Math.min(W - 195, b.baseX + sway));
 
-        if (b.y < -260) {
+        if (b.y < -280) {
           b.y = H + 60 + Math.random() * 90;
-          b.baseX = 20 + Math.random() * (W - 180);
+          b.baseX = 20 + Math.random() * (W - 200);
           b.speed = 36 + Math.random() * 20;
           b.swayFreq = 0.85 + Math.random() * 0.55;
           b.swayPhase = Math.random() * Math.PI * 2;
@@ -3292,19 +3304,21 @@ function BalloonGame({
 
   const handleBalloonClick = useCallback(
     (choice, index) => {
-      const popAudio = new Audio(balloonPopSfx);
-      popAudio.currentTime = 0;
-      popAudio.play().catch(() => {});
-
       if (choice?.isCorrect) {
+        // ONLY play pop sound on correct answer!
+        const popAudio = new Audio(balloonPopSfx);
+        popAudio.currentTime = 0;
+        popAudio.volume = 0.95;
+        popAudio.play().catch(() => {});
+
         setBurst((p) => nextBurstState(p));
-        const b = physicsRef.current[index];
-        if (b) {
-          b.y = (typeof window !== "undefined" ? window.innerHeight : 800) + 80;
-          b.baseX = 20 + Math.random() * ((typeof window !== "undefined" ? window.innerWidth : 1200) - 180);
-        }
         onAnswer(true);
       } else {
+        // Wrong answer: DO NOT play balloonPopSfx!
+        setShakingIndex(index);
+        setTimeout(() => {
+          setShakingIndex((curr) => (curr === index ? null : curr));
+        }, 500);
         onAnswer(false);
       }
     },
@@ -3344,7 +3358,8 @@ function BalloonGame({
           {choices.map((choice, i) => {
             const palette = BALLOON_PALETTES[i % BALLOON_PALETTES.length];
             const textLen = choice?.text?.length ?? 0;
-            const labelFontSize = textLen > 24 ? "0.74rem" : textLen > 14 ? "0.82rem" : "0.92rem";
+            const labelFontSize = textLen > 24 ? "0.95rem" : textLen > 14 ? "1.08rem" : "1.22rem";
+            const isShaking = shakingIndex === i;
 
             return (
               <button
@@ -3352,7 +3367,7 @@ function BalloonGame({
                 ref={(el) => {
                   balloonElementsRef.current[i] = el;
                 }}
-                className="floating-balloon"
+                className={`floating-balloon ${isShaking ? "wrong-shake" : ""}`}
                 style={{
                   "--balloon-color": palette.main,
                   "--balloon-light": palette.light,
@@ -3361,7 +3376,10 @@ function BalloonGame({
                 onClick={() => handleBalloonClick(choice, i)}
                 type="button"
               >
-                <div className="balloon-body">
+                <div
+                  className="balloon-body spawn-in"
+                  key={`balloon-body-${questionAnimKey}-${i}`}
+                >
                   <div className="balloon-shine-main" />
                   <div className="balloon-shine-sec" />
                   <span
@@ -3372,8 +3390,8 @@ function BalloonGame({
                   </span>
                 </div>
                 <div className="balloon-knot" />
-                <svg className="balloon-string-svg" viewBox="0 0 20 70">
-                  <path d="M10,0 Q3,20 13,40 T10,70" stroke="#2b1613" strokeWidth="2.5" fill="none" />
+                <svg className="balloon-string-svg" viewBox="0 0 24 85">
+                  <path d="M12,0 Q4,25 16,50 T12,85" stroke="#2b1613" strokeWidth="3" fill="none" />
                 </svg>
               </button>
             );
