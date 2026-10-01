@@ -2974,12 +2974,15 @@ function BalloonGame({
     "balloon"
   );
   const visibleQuestion = question ?? fallbackQuestion;
-  const choices = getAnswerChoices(visibleQuestion);
 
   useEffect(() => {
-    if (!isRunning || !visibleQuestion) return;
-    const correctChoice = choices.find((c) => c.isCorrect);
-    let wrongChoices = choices.filter((c) => !c.isCorrect);
+    if (!isRunning) {
+      setBalloons([]);
+      return;
+    }
+    const currentChoices = getAnswerChoices(visibleQuestion);
+    const correctChoice = currentChoices.find((c) => c?.isCorrect);
+    let wrongChoices = currentChoices.filter((c) => !c?.isCorrect);
     const decoys = [
       { text: "sadece isim", isCorrect: false },
       { text: "1111", isCorrect: false },
@@ -3001,9 +3004,11 @@ function BalloonGame({
 
     setBalloons(
       allOptions.slice(0, 5).map((opt, i) => {
-        // Biraz daha yavaş ve belirgin rastgele hız
+        const pal =
+          shuffledPalettes[i % shuffledPalettes.length] ||
+          BALLOON_PALETTES[i % BALLOON_PALETTES.length] ||
+          BALLOON_PALETTES[0];
         const riseDuration = 18.0 + Math.random() * 4.2 + (i * 0.7);
-        // Her balon farklı yükseklikten başlasın ve döngüde rastgele akış sağlansın
         const riseDelay = -1 * (Math.random() * riseDuration);
         const xPos = Math.max(6, Math.min(92, baseLanes[i % baseLanes.length] + (Math.random() * 7 - 3.5)));
         const swayDuration = 2.8 + Math.random() * 2.6;
@@ -3012,9 +3017,9 @@ function BalloonGame({
         const tilt = 2.0 + Math.random() * 3.5;
 
         return {
-          id: `balloon-${visibleQuestion.id}-${i}-${opt.text}`,
-          text: opt.text,
-          isCorrect: opt.isCorrect,
+          id: `balloon-${visibleQuestion?.id || "q"}-${i}-${opt?.text || i}`,
+          text: opt?.text || "Cevap",
+          isCorrect: Boolean(opt?.isCorrect),
           x: Number(xPos.toFixed(1)),
           riseDuration: Number(riseDuration.toFixed(2)),
           riseDelay: Number(riseDelay.toFixed(2)),
@@ -3022,18 +3027,18 @@ function BalloonGame({
           swayDelay: Number(swayDelay.toFixed(2)),
           sway: Number(swayAmp.toFixed(1)),
           tilt: Number(tilt.toFixed(1)),
-          palette: shuffledPalettes[i % shuffledPalettes.length]
+          palette: pal
         };
       })
     );
-  }, [isRunning, visibleQuestion?.id, activeGroup]);
+  }, [isRunning, visibleQuestion?.id, activeGroup, question]);
 
   const handleBalloonClick = useCallback(
     (balloon) => {
-      if (balloon.isCorrect) {
+      if (balloon?.isCorrect) {
         setBurst((p) => nextBurstState(p));
       }
-      onAnswer(balloon.isCorrect);
+      onAnswer(Boolean(balloon?.isCorrect));
     },
     [onAnswer]
   );
@@ -3059,7 +3064,7 @@ function BalloonGame({
           <IconActionButton actionType="reset" className="small-button reset-button balloon-reset-btn" onClick={onReset} />
           <div className="balloon-question-panel">
             <span className="balloon-chapter-label">KAPI 1</span>
-            <h2 className="balloon-question-text">{visibleQuestion.question}</h2>
+            <h2 className="balloon-question-text">{visibleQuestion?.question || "Soru yükleniyor..."}</h2>
             <p className="balloon-subtitle">Doğru cevabı taşıyan balonu patlat.</p>
           </div>
           <CelebrationBurst burst={burst} />
@@ -3076,9 +3081,9 @@ function BalloonGame({
                 left: `${b.x}%`,
                 animationDuration: `${b.riseDuration}s, ${b.swayDuration}s`,
                 animationDelay: `${b.riseDelay}s, ${b.swayDelay}s`,
-                "--balloon-color": b.palette.main,
-                "--balloon-light": b.palette.light,
-                "--balloon-dark": b.palette.dark,
+                "--balloon-color": b.palette?.main || "#ff598f",
+                "--balloon-light": b.palette?.light || "#ff9ebb",
+                "--balloon-dark": b.palette?.dark || "#c9184a",
                 "--sway": `${b.sway}px`,
                 "--tilt": `${b.tilt}deg`
               }}
