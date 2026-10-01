@@ -179,8 +179,124 @@ const FALLBACK_BRIDGE_QUESTION_BANK = {
     }
   ]
 };
+const FALLBACK_BALLOON_QUESTION_BANK = {
+  A: [
+    {
+      question: "Hangisi güçlü ve güvenli bir şifredir?",
+      hint: "Harf, rakam ve sembol içeren karmaşık şifreleri düşünün.",
+      answerOptions: [
+        { text: "k7!mP9x#", rationale: "", isCorrect: true },
+        { text: "123456", rationale: "", isCorrect: false },
+        { text: "advesoyad", rationale: "", isCorrect: false },
+        { text: "000000", rationale: "", isCorrect: false },
+        { text: "dogumyili", rationale: "", isCorrect: false }
+      ]
+    },
+    {
+      question: "Hesap şifreni kiminle paylaşabilirsin?",
+      hint: "Şifrelerin gizliliğini düşünün.",
+      answerOptions: [
+        { text: "Yalnızca ailemle", rationale: "", isCorrect: true },
+        { text: "Tüm arkadaşlarımla", rationale: "", isCorrect: false },
+        { text: "Oyundaki yabancılarla", rationale: "", isCorrect: false },
+        { text: "Sosyal medyada", rationale: "", isCorrect: false },
+        { text: "Sınıf grubunda", rationale: "", isCorrect: false }
+      ]
+    },
+    {
+      question: "Tanımadığın birinden gelen şüpheli linke ne yapmalısın?",
+      hint: "Bilinmeyen bağlantılara tıklamak tehlikelidir.",
+      answerOptions: [
+        { text: "Tıklamayıp aileme gösteririm", rationale: "", isCorrect: true },
+        { text: "Hemen tıklarım", rationale: "", isCorrect: false },
+        { text: "Şifremi girerim", rationale: "", isCorrect: false },
+        { text: "Arkadaşlarıma yollarım", rationale: "", isCorrect: false },
+        { text: "Merak edip açarım", rationale: "", isCorrect: false }
+      ]
+    },
+    {
+      question: "Hangisi internette asla paylaşılmaması gereken kişisel bilgidir?",
+      hint: "Kişisel güvenliğinizi tehlikeye atacak bilgileri düşünün.",
+      answerOptions: [
+        { text: "Ev adresi ve TC kimlik no", rationale: "", isCorrect: true },
+        { text: "En sevdiğin renk", rationale: "", isCorrect: false },
+        { text: "Tuttuğun futbol takımı", rationale: "", isCorrect: false },
+        { text: "En sevdiğin yemek", rationale: "", isCorrect: false },
+        { text: "Dinlediğin müzik türü", rationale: "", isCorrect: false }
+      ]
+    },
+    {
+      question: "Ortak bilgisayarda işin bitince ilk ne yapmalısın?",
+      hint: "Başkalarının hesabına erişmesini önlemek gerekir.",
+      answerOptions: [
+        { text: "Hesaptan güvenli çıkış yaparım", rationale: "", isCorrect: true },
+        { text: "Şifremi tarayıcıya kaydederim", rationale: "", isCorrect: false },
+        { text: "Hesabı açık bırakırım", rationale: "", isCorrect: false },
+        { text: "Ekranı kapatıp giderim", rationale: "", isCorrect: false },
+        { text: "Geçmişi silmeden ayrılırım", rationale: "", isCorrect: false }
+      ]
+    }
+  ],
+  B: [
+    {
+      question: "Sosyal medyada tanımadığın birinin arkadaşlık isteğine ne yapmalısın?",
+      hint: "Yabancılarla bağlantı kurmanın risklerini düşünün.",
+      answerOptions: [
+        { text: "İsteği reddedip aileme haber veririm", rationale: "", isCorrect: true },
+        { text: "Hemen kabul edip mesaj atarım", rationale: "", isCorrect: false },
+        { text: "Evimin konumunu gönderirim", rationale: "", isCorrect: false },
+        { text: "Okul saatlerimi anlatırım", rationale: "", isCorrect: false },
+        { text: "Ailemin telefonunu yazarım", rationale: "", isCorrect: false }
+      ]
+    },
+    {
+      question: "Hangisi güçlü bir şifre oluştururken tavsiye edilir?",
+      hint: "Karmaşık ve tahmin edilemez kombinasyonlar.",
+      answerOptions: [
+        { text: "Harf, sayı ve özel sembol", rationale: "", isCorrect: true },
+        { text: "Doğum tarihi ve yılı", rationale: "", isCorrect: false },
+        { text: "Evcil hayvanının adı", rationale: "", isCorrect: false },
+        { text: "12345678 dizilimi", rationale: "", isCorrect: false },
+        { text: "Sadece kendi adın", rationale: "", isCorrect: false }
+      ]
+    },
+    {
+      question: "İnternette tanımadığın biri hediye veya oyun parası teklif ederse ne yapmalısın?",
+      hint: "Tuzak ve dolandırıcılık ihtimalini düşünün.",
+      answerOptions: [
+        { text: "İnanmayıp aileme söylerim", rationale: "", isCorrect: true },
+        { text: "Hemen kabul ederim", rationale: "", isCorrect: false },
+        { text: "Şifremi ona veririm", rationale: "", isCorrect: false },
+        { text: "Ev adresimi yazarım", rationale: "", isCorrect: false },
+        { text: "Kredi kartı bilgisi ararım", rationale: "", isCorrect: false }
+      ]
+    },
+    {
+      question: "İnternette birisi seni rahatsız eden kaba mesajlar atarsa ne yapmalısın?",
+      hint: "Siber zorbalık durumlarında doğru adım.",
+      answerOptions: [
+        { text: "Engeller, aileme veya öğretmenime söylerim", rationale: "", isCorrect: true },
+        { text: "Ben de ona hakaret ederim", rationale: "", isCorrect: false },
+        { text: "Korkup kimseye bir şey demem", rationale: "", isCorrect: false },
+        { text: "Şifremi ona gönderirim", rationale: "", isCorrect: false },
+        { text: "Tartışmayı sürdürürüm", rationale: "", isCorrect: false }
+      ]
+    },
+    {
+      question: "Hangi web sitesi güvenli bir bağlantı kullanıyor olabilir?",
+      hint: "Adres çubuğundaki güvenlik kilit ve protokol göstergesi.",
+      answerOptions: [
+        { text: "Adresinde https:// ve kilit simgesi olan", rationale: "", isCorrect: true },
+        { text: "Rengarenk reklamlarla dolu olan", rationale: "", isCorrect: false },
+        { text: "Bedava telefon dağıttığını iddia eden", rationale: "", isCorrect: false },
+        { text: "Hemen tıkla uyarısı veren", rationale: "", isCorrect: false },
+        { text: "Şifreni herkese açık soran", rationale: "", isCorrect: false }
+      ]
+    }
+  ]
+};
 const FALLBACK_QUESTION_BANK = {
-  balloon: FALLBACK_TRUE_FALSE_QUESTION_BANK,
+  balloon: FALLBACK_BALLOON_QUESTION_BANK,
   worm: FALLBACK_TRUE_FALSE_QUESTION_BANK,
   bridge: FALLBACK_BRIDGE_QUESTION_BANK
 };
@@ -1450,7 +1566,59 @@ function App() {
       const customQuestionId = `custom-${safeGameId}-${safeGroupKey}-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
       let normalizedQuestion;
 
-      if (safeGameId === "bridge") {
+      if (safeGameId === "balloon") {
+        const safeCorrectOptionText = String(correctOptionText ?? "").trim();
+        let safeWrongOptions = Array.isArray(wrongOptionTexts)
+          ? wrongOptionTexts
+            .map((option) => String(option ?? "").trim())
+            .filter(Boolean)
+          : [];
+
+        if (!safeCorrectOptionText) {
+          return false;
+        }
+
+        if (safeWrongOptions.length < 4) {
+          const fallbackPool = getFallbackQuestions("balloon", safeGroupKey);
+          const poolWrongs = [];
+          for (const q of fallbackPool) {
+            for (const opt of getAnswerChoices(q)) {
+              if (
+                !opt.isCorrect &&
+                opt.text &&
+                opt.text !== safeCorrectOptionText &&
+                !safeWrongOptions.includes(opt.text) &&
+                !poolWrongs.includes(opt.text)
+              ) {
+                poolWrongs.push(opt.text);
+              }
+            }
+          }
+          const needed = 4 - safeWrongOptions.length;
+          safeWrongOptions = [...safeWrongOptions, ...poolWrongs.slice(0, needed)];
+        }
+
+        const answerOptions = [
+          { text: safeCorrectOptionText, isCorrect: true, rationale: "" },
+          ...safeWrongOptions.slice(0, 4).map((text) => ({ text, isCorrect: false, rationale: "" }))
+        ];
+
+        const baseQuestion = {
+          id: customQuestionId,
+          questionNumber: nextIndex + 1,
+          question: safeQuestionText,
+          imageUrl: "",
+          hint: "",
+          answerOptions
+        };
+
+        normalizedQuestion = normalizeQuestion(
+          baseQuestion,
+          nextIndex,
+          safeGroupKey,
+          "balloon"
+        );
+      } else if (safeGameId === "bridge") {
         const safeCorrectOptionText = String(correctOptionText ?? "").trim();
         const safeWrongOptions = Array.isArray(wrongOptionTexts)
           ? wrongOptionTexts
@@ -2622,9 +2790,9 @@ function FillBlankQuestionAdder({
   );
 }
 
-function MultipleChoiceQuestionAdder({
+function BalloonQuestionAdder({
   count,
-  gameId,
+  gameId = "balloon",
   groupKey,
   label,
   allQuestions,
@@ -2633,25 +2801,32 @@ function MultipleChoiceQuestionAdder({
 }) {
   const [questionText, setQuestionText] = useState("");
   const [correctOptionText, setCorrectOptionText] = useState("");
-  const [wrongOptionsText, setWrongOptionsText] = useState("");
+  const [wrongOption1, setWrongOption1] = useState("");
+  const [wrongOption2, setWrongOption2] = useState("");
+  const [wrongOption3, setWrongOption3] = useState("");
+  const [wrongOption4, setWrongOption4] = useState("");
   const [statusText, setStatusText] = useState("");
 
   const submitForm = useCallback(async (event) => {
     event.preventDefault();
     const safeQuestionText = String(questionText ?? "").trim();
     const safeCorrectOptionText = String(correctOptionText ?? "").trim();
-    const safeWrongOptions = String(wrongOptionsText ?? "")
-      .split(",")
-      .map((item) => item.trim())
+    const safeWrongOptions = [wrongOption1, wrongOption2, wrongOption3, wrongOption4]
+      .map((item) => String(item ?? "").trim())
       .filter(Boolean);
 
-    if (!safeQuestionText || !safeCorrectOptionText || safeWrongOptions.length < 2) {
-      setStatusText("Soru, doğru seçenek ve en az 2 yanlış seçenek gerekli.");
+    if (!safeQuestionText || !safeCorrectOptionText) {
+      setStatusText("Soru metni ve doğru seçenek zorunludur.");
+      return;
+    }
+
+    if (safeWrongOptions.length < 1) {
+      setStatusText("En az bir yanlış seçenek giriniz (önerilen: 4 seçenek).");
       return;
     }
 
     const saved = await onAddQuestion({
-      gameId,
+      gameId: "balloon",
       groupKey,
       questionText: safeQuestionText,
       correctOptionText: safeCorrectOptionText,
@@ -2661,56 +2836,83 @@ function MultipleChoiceQuestionAdder({
     if (saved) {
       setQuestionText("");
       setCorrectOptionText("");
-      setWrongOptionsText("");
-      setStatusText("Soru eklendi.");
+      setWrongOption1("");
+      setWrongOption2("");
+      setWrongOption3("");
+      setWrongOption4("");
+      setStatusText("Balon sorusu başarıyla eklendi.");
       return;
     }
 
     setStatusText("Soru eklenemedi.");
   }, [
     correctOptionText,
-    gameId,
     groupKey,
     onAddQuestion,
     questionText,
-    wrongOptionsText
+    wrongOption1,
+    wrongOption2,
+    wrongOption3,
+    wrongOption4
   ]);
 
   const removeQuestion = useCallback(async (questionId) => {
-    const removed = await onRemoveQuestion({ gameId, groupKey, questionId });
+    const removed = await onRemoveQuestion({ gameId: "balloon", groupKey, questionId });
     setStatusText(removed ? "Soru silindi." : "Soru silinemedi.");
-  }, [gameId, groupKey, onRemoveQuestion]);
+  }, [groupKey, onRemoveQuestion]);
 
   return (
     <form className="settings-form-card" onSubmit={submitForm}>
       <h4>{label}</h4>
-      <small>{count} özel soru</small>
+      <small>{count} özel balon sorusu</small>
       <textarea
         onChange={(event) => setQuestionText(event.target.value)}
-        placeholder="Soru metni"
-        rows={3}
+        placeholder="Soru metni (ör: Hangisi güçlü bir şifredir?)"
+        rows={2}
         value={questionText}
       />
-      <label>
-        Doğru Seçenek
-        <input
-          onChange={(event) => setCorrectOptionText(event.target.value)}
-          placeholder="Örn: Güvendiğim bir büyüğe haber veririm"
-          type="text"
-          value={correctOptionText}
-        />
-      </label>
-      <label>
-        Yanlış Seçenekler (virgülle)
-        <input
-          onChange={(event) => setWrongOptionsText(event.target.value)}
-          placeholder="Örn: Hemen paylaşırım, Şifremi veririm"
-          type="text"
-          value={wrongOptionsText}
-        />
-      </label>
+      <div className="settings-field-group">
+        <label>
+          Doğru Balon Seçeneği
+          <input
+            onChange={(event) => setCorrectOptionText(event.target.value)}
+            placeholder="Doğru cevap (ör: k7!mP9x#)"
+            type="text"
+            value={correctOptionText}
+          />
+        </label>
+      </div>
+      <div className="settings-field-group">
+        <label>Yanlış Balon Seçenekleri (4 Adet)</label>
+        <div className="settings-wrong-options-grid">
+          <input
+            onChange={(event) => setWrongOption1(event.target.value)}
+            placeholder="Yanlış 1 (ör: 123456)"
+            type="text"
+            value={wrongOption1}
+          />
+          <input
+            onChange={(event) => setWrongOption2(event.target.value)}
+            placeholder="Yanlış 2 (ör: advesoyad)"
+            type="text"
+            value={wrongOption2}
+          />
+          <input
+            onChange={(event) => setWrongOption3(event.target.value)}
+            placeholder="Yanlış 3 (ör: 000000)"
+            type="text"
+            value={wrongOption3}
+          />
+          <input
+            onChange={(event) => setWrongOption4(event.target.value)}
+            placeholder="Yanlış 4 (ör: dogumyili)"
+            type="text"
+            value={wrongOption4}
+          />
+        </div>
+      </div>
       <button className="pixel-button small-button" type="submit">
-        Soru Ekle
+        Balon Sorusu Ekle
       </button>
       {statusText ? <p className="settings-status">{statusText}</p> : null}
       <div className="saved-list">
@@ -2719,19 +2921,20 @@ function MultipleChoiceQuestionAdder({
         ) : (
           allQuestions.map((question) => {
             const isCustomQuestion = String(question.id || "").startsWith("custom-");
-            const correctChoice = getCorrectAnswerChoice(question);
-            const optionsText = getAnswerChoices(question)
-              .map((choice) => choice.text)
-              .join(" | ");
+            const choices = getAnswerChoices(question);
+            const correctChoice = choices.find((c) => c?.isCorrect);
+            const wrongChoices = choices.filter((c) => !c?.isCorrect);
 
             return (
               <div className="saved-item" key={question.id}>
                 <div className="saved-item-content">
                   <strong>{question.question}</strong>
                   <small>
-                    Kaynak: {isCustomQuestion ? "Özel" : "Hazır"} | Doğru: {correctChoice?.text ?? "-"}
+                    Kaynak: {isCustomQuestion ? "Özel" : "Hazır"} | Doğru: <strong>{correctChoice?.text ?? "-"}</strong>
                   </small>
-                  <small>Şıklar: {optionsText}</small>
+                  {wrongChoices.length > 0 && (
+                    <small>Yanlışlar: {wrongChoices.map((w) => w.text).join(", ")}</small>
+                  )}
                 </div>
                 {isCustomQuestion ? (
                   <button
@@ -2808,7 +3011,7 @@ function SettingsScreen({
 
         <h3>Balon Oyunu Soruları</h3>
         <div className="settings-grid two-col">
-          <QuestionAdder
+          <BalloonQuestionAdder
             count={customQuestionCounts.balloon.A}
             gameId="balloon"
             groupKey="A"
@@ -2817,7 +3020,7 @@ function SettingsScreen({
             onAddQuestion={onAddQuestion}
             onRemoveQuestion={onRemoveQuestion}
           />
-          <QuestionAdder
+          <BalloonQuestionAdder
             count={customQuestionCounts.balloon.B}
             gameId="balloon"
             groupKey="B"
@@ -2966,7 +3169,6 @@ function BalloonGame({
   timeLeft
 }) {
   const [burst, setBurst] = useState(null);
-  const [balloons, setBalloons] = useState([]);
   const fallbackQuestion = normalizeQuestion(
     getFallbackQuestions("balloon", activeGroup)[0],
     0,
@@ -2975,70 +3177,136 @@ function BalloonGame({
   );
   const visibleQuestion = question ?? fallbackQuestion;
 
-  useEffect(() => {
-    if (!isRunning) {
-      setBalloons([]);
-      return;
-    }
-    const currentChoices = getAnswerChoices(visibleQuestion);
-    const correctChoice = currentChoices.find((c) => c?.isCorrect);
-    let wrongChoices = currentChoices.filter((c) => !c?.isCorrect);
-    const decoys = [
-      { text: "sadece isim", isCorrect: false },
-      { text: "1111", isCorrect: false },
-      { text: "adın + yaş", isCorrect: false },
-      { text: "telefon no", isCorrect: false },
-      { text: "000000", isCorrect: false },
-      { text: "abc", isCorrect: false }
-    ];
+  const choices = useMemo(() => {
+    const rawChoices = getAnswerChoices(visibleQuestion);
+    let correct = rawChoices.find((c) => c?.isCorrect);
+    let wrongs = rawChoices.filter((c) => !c?.isCorrect);
 
-    let allWrong = shuffle([...wrongChoices, ...decoys]);
-    let selectedWrong = allWrong.slice(0, 4);
-    const allOptions = shuffle([
-      correctChoice || { text: "Doğru", isCorrect: true },
-      ...selectedWrong
+    if (!correct) {
+      correct = { text: "Doğru Seçenek", isCorrect: true };
+    }
+
+    if (wrongs.length < 4) {
+      const fallbackBank = getFallbackQuestions("balloon", activeGroup);
+      const poolWrongs = [];
+      for (const q of fallbackBank) {
+        if (q.id === visibleQuestion?.id) continue;
+        for (const opt of getAnswerChoices(q)) {
+          if (
+            !opt.isCorrect &&
+            opt.text &&
+            opt.text !== correct.text &&
+            !wrongs.some((w) => w.text === opt.text) &&
+            !poolWrongs.some((w) => w.text === opt.text)
+          ) {
+            poolWrongs.push(opt);
+          }
+        }
+      }
+      wrongs = [...wrongs, ...shuffle(poolWrongs).slice(0, 4 - wrongs.length)];
+    }
+
+    const selectedWrongs = shuffle(wrongs).slice(0, 4);
+    return shuffle([correct, ...selectedWrongs]);
+  }, [visibleQuestion, activeGroup]);
+
+  const balloonElementsRef = useRef([]);
+  const physicsRef = useRef([
+    { baseX: 100, y: 150, speed: 44, swayAmp: 22, swayFreq: 1.0, swayPhase: 0.2, tiltAmp: 3.5, swayTime: 0 },
+    { baseX: 300, y: 320, speed: 40, swayAmp: 26, swayFreq: 1.2, swayPhase: 1.5, tiltAmp: 4.0, swayTime: 0 },
+    { baseX: 550, y: 480, speed: 48, swayAmp: 20, swayFreq: 0.9, swayPhase: 2.8, tiltAmp: 3.2, swayTime: 0 },
+    { baseX: 800, y: 640, speed: 42, swayAmp: 25, swayFreq: 1.1, swayPhase: 4.1, tiltAmp: 4.2, swayTime: 0 },
+    { baseX: 1050, y: 800, speed: 46, swayAmp: 24, swayFreq: 1.3, swayPhase: 5.3, tiltAmp: 3.8, swayTime: 0 }
+  ]);
+
+  useEffect(() => {
+    if (!isRunning) return;
+
+    const W = typeof window !== "undefined" ? window.innerWidth : 1200;
+    const H = typeof window !== "undefined" ? window.innerHeight : 800;
+    const usableWidth = Math.max(400, W - 180);
+    const bandWidth = usableWidth / 5;
+
+    const verticalSlots = shuffle([
+      H * 0.12,
+      H * 0.32,
+      H * 0.52,
+      H * 0.72,
+      H * 0.90
     ]);
 
-    const baseLanes = [10, 29, 49, 69, 88];
-    const shuffledPalettes = shuffle([...BALLOON_PALETTES]);
+    physicsRef.current.forEach((b, i) => {
+      const slotX = 30 + i * bandWidth + Math.random() * Math.max(10, bandWidth - 140);
+      b.baseX = Math.max(20, Math.min(W - 160, slotX));
+      b.y = verticalSlots[i] + (Math.random() * 40 - 20);
+      b.speed = 36 + Math.random() * 20;
+      b.swayAmp = 18 + Math.random() * 16;
+      b.swayFreq = 0.85 + Math.random() * 0.55;
+      b.swayPhase = Math.random() * Math.PI * 2;
+      b.tiltAmp = 2.5 + Math.random() * 3.5;
+      b.swayTime = Math.random() * 10;
+    });
+  }, [isRunning]);
 
-    setBalloons(
-      allOptions.slice(0, 5).map((opt, i) => {
-        const pal =
-          shuffledPalettes[i % shuffledPalettes.length] ||
-          BALLOON_PALETTES[i % BALLOON_PALETTES.length] ||
-          BALLOON_PALETTES[0];
-        const riseDuration = 18.0 + Math.random() * 4.2 + (i * 0.7);
-        const riseDelay = -1 * (Math.random() * riseDuration);
-        const xPos = Math.max(6, Math.min(92, baseLanes[i % baseLanes.length] + (Math.random() * 7 - 3.5)));
-        const swayDuration = 2.8 + Math.random() * 2.6;
-        const swayDelay = -1 * Math.random() * 3.5;
-        const swayAmp = 14 + Math.random() * 20;
-        const tilt = 2.0 + Math.random() * 3.5;
+  useEffect(() => {
+    if (!isRunning) return;
 
-        return {
-          id: `balloon-${visibleQuestion?.id || "q"}-${i}-${opt?.text || i}`,
-          text: opt?.text || "Cevap",
-          isCorrect: Boolean(opt?.isCorrect),
-          x: Number(xPos.toFixed(1)),
-          riseDuration: Number(riseDuration.toFixed(2)),
-          riseDelay: Number(riseDelay.toFixed(2)),
-          swayDuration: Number(swayDuration.toFixed(2)),
-          swayDelay: Number(swayDelay.toFixed(2)),
-          sway: Number(swayAmp.toFixed(1)),
-          tilt: Number(tilt.toFixed(1)),
-          palette: pal
-        };
-      })
-    );
-  }, [isRunning, visibleQuestion?.id, activeGroup, question]);
+    let animId;
+    let lastTime = performance.now();
+
+    const loop = (currentTime) => {
+      const dt = Math.min((currentTime - lastTime) / 1000, 0.08);
+      lastTime = currentTime;
+
+      const W = typeof window !== "undefined" ? window.innerWidth : 1200;
+      const H = typeof window !== "undefined" ? window.innerHeight : 800;
+
+      physicsRef.current.forEach((b, i) => {
+        b.y -= b.speed * dt;
+        b.swayTime += dt;
+        const sway = Math.sin(b.swayTime * b.swayFreq + b.swayPhase) * b.swayAmp;
+        const tilt = Math.sin(b.swayTime * b.swayFreq + b.swayPhase) * b.tiltAmp;
+        const curX = Math.max(16, Math.min(W - 160, b.baseX + sway));
+
+        if (b.y < -260) {
+          b.y = H + 60 + Math.random() * 90;
+          b.baseX = 20 + Math.random() * (W - 180);
+          b.speed = 36 + Math.random() * 20;
+          b.swayFreq = 0.85 + Math.random() * 0.55;
+          b.swayPhase = Math.random() * Math.PI * 2;
+          b.swayAmp = 18 + Math.random() * 16;
+        }
+
+        const el = balloonElementsRef.current[i];
+        if (el) {
+          el.style.transform = `translate3d(${curX}px, ${b.y}px, 0) rotate(${tilt}deg)`;
+        }
+      });
+
+      animId = requestAnimationFrame(loop);
+    };
+
+    animId = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(animId);
+  }, [isRunning]);
 
   const handleBalloonClick = useCallback(
-    (balloon) => {
-      if (balloon?.isCorrect) {
+    (choice, index) => {
+      const popAudio = new Audio(balloonPopSfx);
+      popAudio.currentTime = 0;
+      popAudio.play().catch(() => {});
+
+      if (choice?.isCorrect) {
         setBurst((p) => nextBurstState(p));
+        const b = physicsRef.current[index];
+        if (b) {
+          b.y = (typeof window !== "undefined" ? window.innerHeight : 800) + 80;
+          b.baseX = 20 + Math.random() * ((typeof window !== "undefined" ? window.innerWidth : 1200) - 180);
+        }
+        onAnswer(true);
+      } else {
+        onAnswer(false);
       }
-      onAnswer(Boolean(balloon?.isCorrect));
     },
     [onAnswer]
   );
@@ -3073,34 +3341,43 @@ function BalloonGame({
 
       {isRunning ? (
         <div className="balloons-flying-layer" aria-label="Uçan Balonlar">
-          {balloons.map((b) => (
-            <button
-              key={b.id}
-              className="floating-balloon"
-              style={{
-                left: `${b.x}%`,
-                animationDuration: `${b.riseDuration}s, ${b.swayDuration}s`,
-                animationDelay: `${b.riseDelay}s, ${b.swayDelay}s`,
-                "--balloon-color": b.palette?.main || "#ff598f",
-                "--balloon-light": b.palette?.light || "#ff9ebb",
-                "--balloon-dark": b.palette?.dark || "#c9184a",
-                "--sway": `${b.sway}px`,
-                "--tilt": `${b.tilt}deg`
-              }}
-              onClick={() => handleBalloonClick(b)}
-              type="button"
-            >
-              <div className="balloon-body">
-                <div className="balloon-shine-main" />
-                <div className="balloon-shine-sec" />
-                <span className="balloon-label">{b.text}</span>
-              </div>
-              <div className="balloon-knot" />
-              <svg className="balloon-string-svg" viewBox="0 0 20 70">
-                <path d="M10,0 Q3,20 13,40 T10,70" stroke="#2b1613" strokeWidth="2.5" fill="none" />
-              </svg>
-            </button>
-          ))}
+          {choices.map((choice, i) => {
+            const palette = BALLOON_PALETTES[i % BALLOON_PALETTES.length];
+            const textLen = choice?.text?.length ?? 0;
+            const labelFontSize = textLen > 24 ? "0.74rem" : textLen > 14 ? "0.82rem" : "0.92rem";
+
+            return (
+              <button
+                key={`balloon-slot-${i}`}
+                ref={(el) => {
+                  balloonElementsRef.current[i] = el;
+                }}
+                className="floating-balloon"
+                style={{
+                  "--balloon-color": palette.main,
+                  "--balloon-light": palette.light,
+                  "--balloon-dark": palette.dark
+                }}
+                onClick={() => handleBalloonClick(choice, i)}
+                type="button"
+              >
+                <div className="balloon-body">
+                  <div className="balloon-shine-main" />
+                  <div className="balloon-shine-sec" />
+                  <span
+                    className="balloon-label"
+                    style={{ fontSize: labelFontSize }}
+                  >
+                    {choice?.text || "Seçenek"}
+                  </span>
+                </div>
+                <div className="balloon-knot" />
+                <svg className="balloon-string-svg" viewBox="0 0 20 70">
+                  <path d="M10,0 Q3,20 13,40 T10,70" stroke="#2b1613" strokeWidth="2.5" fill="none" />
+                </svg>
+              </button>
+            );
+          })}
         </div>
       ) : null}
     </main>

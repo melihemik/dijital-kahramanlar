@@ -3163,7 +3163,9 @@ button {
 
 .floating-balloon {
   position: absolute;
-  width: 130px;
+  top: 0;
+  left: 0;
+  width: 140px;
   cursor: pointer;
   pointer-events: auto;
   display: flex;
@@ -3173,12 +3175,8 @@ button {
   background: transparent;
   padding: 0;
   outline: none;
-  animation-name: balloonRise, balloonSway;
-  animation-timing-function: linear, ease-in-out;
-  animation-iteration-count: infinite, infinite;
-  animation-direction: normal, alternate;
   transition: filter 160ms ease;
-  will-change: top, transform;
+  will-change: transform;
 }
 
 .floating-balloon:hover {
@@ -3191,8 +3189,8 @@ button {
 
 .balloon-body {
   position: relative;
-  width: 130px;
-  height: 162px;
+  width: 140px;
+  min-height: 168px;
   border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%;
   background: radial-gradient(circle at 35% 26%, var(--balloon-light, #ff9ebb) 0%, var(--balloon-color, #ff598f) 45%, var(--balloon-dark, #c9184a) 95%);
   border: 4.5px solid #2b1613;
@@ -3247,39 +3245,37 @@ button {
 .balloon-label {
   position: relative;
   z-index: 5;
-  padding: 6px 12px;
+  padding: 6px 10px;
   background: #2b1613;
   color: #fff;
   font-family: inherit;
-  font-size: 0.95rem;
+  font-size: 0.88rem;
   font-weight: 800;
-  line-height: 1.15;
+  line-height: 1.2;
   text-align: center;
   word-break: break-word;
   border-radius: 6px;
   box-shadow: 0 4px 0 rgba(0, 0, 0, 0.35);
-  max-width: 110px;
+  max-width: 122px;
+  user-select: none;
 }
 
-@keyframes balloonRise {
-  0% {
-    top: 105vh;
-  }
-  100% {
-    top: -260px;
-  }
+.settings-field-group {
+  display: grid;
+  gap: 6px;
 }
 
-@keyframes balloonSway {
-  0% {
-    transform: translateX(calc(-50% - var(--sway, 22px))) rotate(calc(-1 * var(--tilt, 3deg)));
-  }
-  50% {
-    transform: translateX(-50%) rotate(0deg);
-  }
-  100% {
-    transform: translateX(calc(-50% + var(--sway, 22px))) rotate(var(--tilt, 3deg));
-  }
+.settings-field-group label {
+  display: grid;
+  gap: 6px;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.settings-wrong-options-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
 }
 
 /* ===== Yılan Oyunu Soru Overlay ===== */

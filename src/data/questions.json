@@ -4,453 +4,703 @@
       "questions": [
         {
           "questionNumber": 1,
-          "question": "İnternet, dünyadaki tüm bilgisayarları birbirine bağlayan büyük bir ağdır.",
+          "question": "Hangisi güçlü ve güvenli bir şifredir?",
           "imageUrl": "",
+          "hint": "Harf, rakam ve sembol içeren karmaşık şifreleri düşünün.",
           "answerOptions": [
             {
-              "text": "Doğru",
-              "rationale": "İnternet, dünya çapındaki bilgisayar ağlarını birbirine bağlayan küresel bir iletişim ağıdır.",
+              "text": "k7!mP9x#",
               "isCorrect": true
             },
             {
-              "text": "Yanlış",
-              "rationale": "İnternet sadece birkaç bilgisayarı değil, dünya genelindeki milyonlarca cihazı birbirine bağlar.",
+              "text": "123456",
+              "isCorrect": false
+            },
+            {
+              "text": "advesoyad",
+              "isCorrect": false
+            },
+            {
+              "text": "000000",
+              "isCorrect": false
+            },
+            {
+              "text": "dogumyili",
               "isCorrect": false
             }
-          ],
-          "hint": "İnternetin ne kadar büyük bir alana yayıldığını düşünün."
+          ]
         },
         {
           "questionNumber": 2,
-          "question": "Sosyal medyada tanımadığımız kişileri arkadaş olarak eklemeliyiz.",
+          "question": "Hesap şifreni kiminle paylaşabilirsin?",
           "imageUrl": "",
+          "hint": "Şifrelerin gizliliğini düşünün.",
           "answerOptions": [
             {
-              "text": "Doğru",
-              "rationale": "Tanımadığımız kişileri eklemek kişisel güvenliğimizi tehlikeye atabilir.",
+              "text": "Yalnızca ailemle",
+              "isCorrect": true
+            },
+            {
+              "text": "Tüm arkadaşlarımla",
               "isCorrect": false
             },
             {
-              "text": "Yanlış",
-              "rationale": "Güvenliğimiz için sadece tanıdığımız ve güvendiğimiz kişileri eklemeliyiz.",
-              "isCorrect": true
+              "text": "Oyundaki yabancılarla",
+              "isCorrect": false
+            },
+            {
+              "text": "Sosyal medya takipçileriyle",
+              "isCorrect": false
+            },
+            {
+              "text": "İnternette tanıştığım biriyle",
+              "isCorrect": false
             }
-          ],
-          "hint": "Güvenlik kurallarını hatırlayın."
+          ]
         },
         {
           "questionNumber": 3,
-          "question": "Ekran başında çok uzun süre kalmak gözlerimizi yorabilir.",
+          "question": "Tanımadığın birinden gelen şüpheli linke ne yapmalısın?",
           "imageUrl": "",
+          "hint": "Bilinmeyen bağlantılara tıklamak tehlikelidir.",
           "answerOptions": [
             {
-              "text": "Doğru",
-              "rationale": "Uzun süre ekrana bakmak göz kuruluğuna ve yorgunluğuna neden olabilir.",
+              "text": "Tıklamayıp büyüğüme gösteririm",
               "isCorrect": true
             },
             {
-              "text": "Yanlış",
-              "rationale": "Ekrana uzun süre bakmak göz sağlığımızı olumsuz etkiler.",
+              "text": "Hemen tıklarım",
+              "isCorrect": false
+            },
+            {
+              "text": "Şifremi girerim",
+              "isCorrect": false
+            },
+            {
+              "text": "Arkadaşlarıma yollarım",
+              "isCorrect": false
+            },
+            {
+              "text": "Merak edip açarım",
               "isCorrect": false
             }
-          ],
-          "hint": "Ekranların göz sağlığına olan etkisini düşünün."
+          ]
         },
         {
           "questionNumber": 4,
-          "question": "İnternette paylaştığımız fotoğraflar sonsuza kadar orada kalabilir.",
+          "question": "Hangisi internette asla paylaşılmaması gereken kişisel bilgidir?",
           "imageUrl": "",
+          "hint": "Kişisel güvenliğinizi tehlikeye atacak bilgileri düşünün.",
           "answerOptions": [
             {
-              "text": "Doğru",
-              "rationale": "Dijital ayak izi nedeniyle paylaşımlar kalıcı olabilir.",
+              "text": "Ev adresi ve TC kimlik no",
               "isCorrect": true
             },
             {
-              "text": "Yanlış",
-              "rationale": "İnternetten silindiğini düşündüğümüz veriler kopyalanabilir ve kalıcı olabilir.",
+              "text": "En sevdiğin renk",
+              "isCorrect": false
+            },
+            {
+              "text": "Tuttuğun futbol takımı",
+              "isCorrect": false
+            },
+            {
+              "text": "En sevdiğin yemek",
+              "isCorrect": false
+            },
+            {
+              "text": "Dinlediğin müzik türü",
               "isCorrect": false
             }
-          ],
-          "hint": "İnternetin kalıcılığı hakkında ne biliyorsunuz?"
+          ]
         },
         {
           "questionNumber": 5,
-          "question": "İnternet üzerinden alışveriş yaparken ailemizden izin almalıyız.",
+          "question": "Ortak bilgisayarda işin bitince ilk ne yapmalısın?",
           "imageUrl": "",
+          "hint": "Başkalarının hesabına erişmesini önlemek gerekir.",
           "answerOptions": [
             {
-              "text": "Doğru",
-              "rationale": "Maddi güvenlik ve bilinçli tüketim için büyüklerin onayı şarttır.",
+              "text": "Hesaptan güvenli çıkış yaparım",
               "isCorrect": true
             },
             {
-              "text": "Yanlış",
-              "rationale": "Çocukların internet üzerinden izinsiz alışveriş yapması risklidir.",
+              "text": "Şifremi tarayıcıya kaydederim",
+              "isCorrect": false
+            },
+            {
+              "text": "Hesabı açık bırakırım",
+              "isCorrect": false
+            },
+            {
+              "text": "Ekranı kapatıp giderim",
+              "isCorrect": false
+            },
+            {
+              "text": "Geçmişi silmeden ayrılırım",
               "isCorrect": false
             }
-          ],
-          "hint": "Finansal konularda kiminle konuşmalıyız?"
+          ]
         },
         {
           "questionNumber": 6,
-          "question": "Güçlü şifreler rakam, harf ve sembollerden oluşmalıdır.",
+          "question": "İnternette siber zorbalığa uğrarsan ne yapmalısın?",
           "imageUrl": "",
+          "hint": "Zorbalık karşısında doğru yetişkin desteği önemlidir.",
           "answerOptions": [
             {
-              "text": "Doğru",
-              "rationale": "Karmaşık şifreler hesaplarımızı daha güvenli hale getirir.",
+              "text": "Ekran görüntüsü alıp aileme söylerim",
               "isCorrect": true
             },
             {
-              "text": "Yanlış",
-              "rationale": "Basit şifreler kolayca tahmin edilebilir.",
+              "text": "Ona daha kötü sözler söylerim",
+              "isCorrect": false
+            },
+            {
+              "text": "Kimseye anlatmayıp üzülürüm",
+              "isCorrect": false
+            },
+            {
+              "text": "Kavga etmek için buluşurum",
+              "isCorrect": false
+            },
+            {
+              "text": "Hesabımı başkasına devrederim",
               "isCorrect": false
             }
-          ],
-          "hint": "Şifrelerin tahmin edilmesini zorlaştırmak için neler kullanırız?"
+          ]
         },
         {
           "questionNumber": 7,
-          "question": "Şifremizi en yakın arkadaşlarımızla paylaşmamızda bir sakınca yoktur.",
+          "question": "Güvenli bir web sitesinin adres çubuğunda ne bulunmalıdır?",
           "imageUrl": "",
+          "hint": "Güvenli bağlantı protokollerini hatırlayın.",
           "answerOptions": [
             {
-              "text": "Doğru",
-              "rationale": "Şifreler tamamen kişiye özeldir ve kimseyle paylaşılmamalıdır.",
+              "text": "https:// ve kilit simgesi",
+              "isCorrect": true
+            },
+            {
+              "text": "Kırmızı çarpı işareti",
               "isCorrect": false
             },
             {
-              "text": "Yanlış",
-              "rationale": "En yakın arkadaşımız bile olsa şifrelerimizi paylaşmak güvenliğimizi riske atar.",
-              "isCorrect": true
+              "text": "http:// ve ünlem işareti",
+              "isCorrect": false
+            },
+            {
+              "text": "Açılan reklam pencereleri",
+              "isCorrect": false
+            },
+            {
+              "text": "Dosya indirme zorunluluğu",
+              "isCorrect": false
             }
-          ],
-          "hint": "Şifrelerin gizliliği ile ilgili kuralı hatırlayın."
+          ]
         },
         {
           "questionNumber": 8,
-          "question": "Günde 10 saatten fazla ekran karşısında kalmak sağlığımız için faydalıdır.",
+          "question": "Bilgisayarına virüs bulaşmaması için hangisi gereklidir?",
           "imageUrl": "",
+          "hint": "Zararlı yazılımlara karşı koruma kalkanını düşünün.",
           "answerOptions": [
             {
-              "text": "Doğru",
-              "rationale": "Çok uzun süre ekranda kalmak hareketsizliğe ve sağlık sorunlarına yol açar.",
+              "text": "Antivirüs kullanıp güncellemek",
+              "isCorrect": true
+            },
+            {
+              "text": "Bilinmeyen her programı indirmek",
               "isCorrect": false
             },
             {
-              "text": "Yanlış",
-              "rationale": "Ekran süresinin çok uzun olması fiziksel ve zihinsel sağlığımıza zarar verir.",
-              "isCorrect": true
+              "text": "Güvenlik duvarını kapatmak",
+              "isCorrect": false
+            },
+            {
+              "text": "Gelen her e-postadaki eki açmak",
+              "isCorrect": false
+            },
+            {
+              "text": "Korsan oyun sitelerine girmek",
+              "isCorrect": false
             }
-          ],
-          "hint": "Aşırı ekran süresinin vücuda etkisini düşünün."
+          ]
         },
         {
           "questionNumber": 9,
-          "question": "Sosyal medyada gördüğümüz her bilginin doğru olduğunu kabul etmeliyiz.",
+          "question": "Dijital ayak izi ne demektir?",
           "imageUrl": "",
+          "hint": "İnternette yapılan işlemlerin kalıcılığını düşünün.",
           "answerOptions": [
             {
-              "text": "Doğru",
-              "rationale": "Sosyal medyada yanlış bilgiler de yer alabilir, bu nedenle her bilgiye inanmamalıyız.",
+              "text": "İnternette bıraktığımız her iz",
+              "isCorrect": true
+            },
+            {
+              "text": "Bilgisayar faresinin hareketi",
               "isCorrect": false
             },
             {
-              "text": "Yanlış",
-              "rationale": "Görülen her bilginin doğruluğunu güvenilir kaynaklardan teyit etmeliyiz.",
-              "isCorrect": true
+              "text": "Klavyeye basma sayısı",
+              "isCorrect": false
+            },
+            {
+              "text": "Ekrana dokunma lekesi",
+              "isCorrect": false
+            },
+            {
+              "text": "İnternet kablosunun boyu",
+              "isCorrect": false
             }
-          ],
-          "hint": "Bilgilerin doğruluğunu nasıl anlarız?"
+          ]
         },
         {
           "questionNumber": 10,
-          "question": "İnternet sayesinde dünyanın öbür ucundaki bir bilgiye saniyeler içinde ulaşabiliriz.",
+          "question": "Ekrana uzun süre aralıksız bakmak neye yol açar?",
           "imageUrl": "",
+          "hint": "Fiziksel ve göz sağlığımızı düşünün.",
           "answerOptions": [
             {
-              "text": "Doğru",
-              "rationale": "İnternet, bilgiye hızlı erişim sağlar.",
+              "text": "Göz yorgunluğu ve baş ağrısına",
               "isCorrect": true
             },
             {
-              "text": "Yanlış",
-              "rationale": "İnternet teknolojisi bilgiye çok hızlı bir şekilde ulaşmamıza olanak tanır.",
+              "text": "Daha hızlı okumaya",
+              "isCorrect": false
+            },
+            {
+              "text": "Daha iyi görmeye",
+              "isCorrect": false
+            },
+            {
+              "text": "Daha enerjik hissetmeye",
+              "isCorrect": false
+            },
+            {
+              "text": "Hafızanın güçlenmesine",
               "isCorrect": false
             }
-          ],
-          "hint": "İnternetin hızını düşünün."
+          ]
         },
         {
           "questionNumber": 11,
-          "question": "Siber zorbalık, internet üzerinden başka birine kötü sözler söylemektir ve yanlıştır.",
+          "question": "İnternetten bir şey satın almadan önce kime danışmalıyız?",
           "imageUrl": "",
+          "hint": "Aile onayı olmadan maddi işlem yapılmamalıdır.",
           "answerOptions": [
             {
-              "text": "Doğru",
-              "rationale": "Siber zorbalık, dijital ortamda yapılan her türlü taciz ve kötü davranıştır.",
+              "text": "Ailemize veya büyüklerimize",
               "isCorrect": true
             },
             {
-              "text": "Yanlış",
-              "rationale": "Siber zorbalık gerçek bir zarardır ve kesinlikle yapılmamalıdır.",
+              "text": "Oyundaki yabancı oyunculara",
+              "isCorrect": false
+            },
+            {
+              "text": "Sosyal medya takipçilerine",
+              "isCorrect": false
+            },
+            {
+              "text": "Hiç kimseye danışmamalıyız",
+              "isCorrect": false
+            },
+            {
+              "text": "Reklamdaki kişiye",
               "isCorrect": false
             }
-          ],
-          "hint": "Zorbalığın sanal ortama taşınması nasıl adlandırılır?"
+          ]
         },
         {
           "questionNumber": 12,
-          "question": "Bilgisayar oyunlarında her gün saatlerce vakit geçirmek derslerimizi olumlu etkiler.",
+          "question": "Sosyal medyada profilimizin güvenliği için ne yapmalıyız?",
           "imageUrl": "",
+          "hint": "Gizlilik ayarları önemlidir.",
           "answerOptions": [
             {
-              "text": "Doğru",
-              "rationale": "Aşırı oyun oynamak derslere ayrılan zamanı azaltarak olumsuz etki yapar.",
+              "text": "Hesabımızı gizli profile almalıyız",
+              "isCorrect": true
+            },
+            {
+              "text": "Şifremizi herkese açık yazmalıyız",
               "isCorrect": false
             },
             {
-              "text": "Yanlış",
-              "rationale": "Sürekli oyun oynamak ders başarısını düşürebilir.",
-              "isCorrect": true
+              "text": "Konumumuzu anlık paylaşmalıyız",
+              "isCorrect": false
+            },
+            {
+              "text": "Tanımadığımız herkesi eklemeliyiz",
+              "isCorrect": false
+            },
+            {
+              "text": "Telefon numaramızı biyografiye yazmalıyız",
+              "isCorrect": false
             }
-          ],
-          "hint": "Zaman yönetimi ve öncelikler."
+          ]
         },
         {
           "questionNumber": 13,
-          "question": "Kişisel bilgilerimizi tanımadığımız kişilerle paylaşmamalıyız.",
+          "question": "İnternette tanıştığın biri seni gerçekte buluşmaya çağırırsa ne yapmalısın?",
           "imageUrl": "",
+          "hint": "Yabancılarla gerçekte buluşmak çok tehlikelidir.",
           "answerOptions": [
             {
-              "text": "Doğru",
-              "rationale": "Kişisel bilgilerin gizliliği güvenlik için çok önemlidir.",
+              "text": "Asla gitmeyip aileme bildiririm",
               "isCorrect": true
             },
             {
-              "text": "Yanlış",
-              "rationale": "Bu bilgiler herkesle paylaşılamaz çünkü kötü niyetli kişilerin eline geçebilir.",
+              "text": "Kimseye haber vermeden giderim",
+              "isCorrect": false
+            },
+            {
+              "text": "Tek başıma buluşma yerine giderim",
+              "isCorrect": false
+            },
+            {
+              "text": "Ona ev adresimi veririm",
+              "isCorrect": false
+            },
+            {
+              "text": "Arkadaşlarımla gizlice giderim",
               "isCorrect": false
             }
-          ],
-          "hint": "Hangi bilgilerin gizli kalması gerektiğini hatırlayın."
+          ]
         },
         {
           "questionNumber": 14,
-          "question": "İnternet kullanımı sırasında duruşumuza dikkat etmek bel ve boyun ağrılarını önler.",
+          "question": "Hangisi bir oltalama (phishing) tuzağı belirtisidir?",
           "imageUrl": "",
+          "hint": "Ödül vadeden sahte mesajlara dikkat edin.",
           "answerOptions": [
             {
-              "text": "Doğru",
-              "rationale": "Ergonomik kurallara uymak kas-skelet sistemi sağlığını korur.",
+              "text": "Bedava ödül kazandınız mesajı",
               "isCorrect": true
             },
             {
-              "text": "Yanlış",
-              "rationale": "Oturma şeklimiz sağlığımızı doğrudan etkiler.",
+              "text": "Güvenli ödeme onay kodu",
+              "isCorrect": false
+            },
+            {
+              "text": "Okul duyuru panosu mesajı",
+              "isCorrect": false
+            },
+            {
+              "text": "Resmi e-devlet bildirimi",
+              "isCorrect": false
+            },
+            {
+              "text": "Öğretmenden gelen ödev linki",
               "isCorrect": false
             }
-          ],
-          "hint": "Bilgisayar başında nasıl oturmalıyız?"
+          ]
         },
         {
           "questionNumber": 15,
-          "question": "Sosyal medyada kullanılan filtrelerin gerçek hayatı yansıtmadığını bilmeliyiz.",
+          "question": "İki adımlı doğrulama (2FA) ne işe yarar?",
           "imageUrl": "",
+          "hint": "Şifreye ek güvenlik kodu katmanı ekler.",
           "answerOptions": [
             {
-              "text": "Doğru",
-              "rationale": "Filtreler sadece görüntüyü değiştiren dijital efektlerdir.",
+              "text": "Hesaba ekstra güvenlik katmanı ekler",
               "isCorrect": true
             },
             {
-              "text": "Yanlış",
-              "rationale": "Sosyal medyadaki her görüntü gerçeği birebir yansıtmaz.",
+              "text": "İnternet hızını düşürür",
+              "isCorrect": false
+            },
+            {
+              "text": "Şifremizi herkese gösterir",
+              "isCorrect": false
+            },
+            {
+              "text": "Oyunları otomatik siler",
+              "isCorrect": false
+            },
+            {
+              "text": "Bilgisayarı kapatır",
               "isCorrect": false
             }
-          ],
-          "hint": "Filtrelerin ne işe yaradığını düşünün."
+          ]
         },
         {
           "questionNumber": 16,
-          "question": "İnternette izinsiz başkalarının fotoğraflarını paylaşmak suç değildir.",
+          "question": "İnternette bir yazı veya resim kullanırken neye dikkat etmeliyiz?",
           "imageUrl": "",
+          "hint": "Eser sahibinin haklarını korumalıyız.",
           "answerOptions": [
             {
-              "text": "Doğru",
-              "rationale": "Başkalarının fotoğraflarını izinsiz paylaşmak gizlilik ihlalidir ve suçtur.",
+              "text": "Telif hakkı ve kaynak göstermeye",
+              "isCorrect": true
+            },
+            {
+              "text": "Kendi eserimiz gibi göstermeye",
               "isCorrect": false
             },
             {
-              "text": "Yanlış",
-              "rationale": "Kişilerin izni olmadan fotoğraf paylaşmak hukuki ve ahlaki olarak suçtur.",
-              "isCorrect": true
+              "text": "İzinsiz her yerde çoğaltmaya",
+              "isCorrect": false
+            },
+            {
+              "text": "Yazarın adını gizlemeye",
+              "isCorrect": false
+            },
+            {
+              "text": "Her şeyin sahipsiz olduğuna",
+              "isCorrect": false
             }
-          ],
-          "hint": "Başkalarının haklarına saygı konusu."
+          ]
         },
         {
           "questionNumber": 17,
-          "question": "Ekran başında uzun süre oturmak uykusuzluğa neden olabilir.",
+          "question": "İnternette gezinirken sahte virüs uyarısı çıkaran reklam gelirse ne yapmalısın?",
           "imageUrl": "",
+          "hint": "Korkutarak tıklatmayı amaçlayan sahte reklamlara kanmayın.",
           "answerOptions": [
             {
-              "text": "Doğru",
-              "rationale": "Ekranlardan yayılan mavi ışık uyku düzenini olumsuz etkiler.",
+              "text": "Pencereyi kapatıp antivirüsle taratırım",
               "isCorrect": true
             },
             {
-              "text": "Yanlış",
-              "rationale": "Ekranların yaydığı ışık uykuya dalmayı zorlaştırabilir.",
+              "text": "Reklamdaki Hemen Temizleye tıklarım",
+              "isCorrect": false
+            },
+            {
+              "text": "İstenen programı hemen kurarım",
+              "isCorrect": false
+            },
+            {
+              "text": "Kredi kartı bilgilerimi girerim",
+              "isCorrect": false
+            },
+            {
+              "text": "Telefon numaramı yazarım",
               "isCorrect": false
             }
-          ],
-          "hint": "Mavi ışığın uykuya etkisi nedir?"
+          ]
         },
         {
           "questionNumber": 18,
-          "question": "E-postalarımıza gelen tanımadığımız linklere tıklamadan önce güvenlik kontrolü yapmalıyız.",
+          "question": "Güvenli internet kullanımı için parola ne sıklıkla yenilenmelidir?",
           "imageUrl": "",
+          "hint": "Düzenli şifre değişimi güvenliği artırır.",
           "answerOptions": [
             {
-              "text": "Doğru",
-              "rationale": "Şüpheli linkler virüs veya dolandırıcılık içerebilir.",
+              "text": "Düzenli aralıklarla veya şüphe durumunda",
               "isCorrect": true
             },
             {
-              "text": "Yanlış",
-              "rationale": "Güvenlik önlemi almadan her linke tıklamak tehlikelidir.",
+              "text": "Ömür boyu aynı şifre kullanılmalıdır",
+              "isCorrect": false
+            },
+            {
+              "text": "Her gün 10 kez değiştirilmelidir",
+              "isCorrect": false
+            },
+            {
+              "text": "Hiç şifre koyulmamalıdır",
+              "isCorrect": false
+            },
+            {
+              "text": "Sadece doğum günlerinde",
               "isCorrect": false
             }
-          ],
-          "hint": "Tanımadığımız bağlantılara karşı nasıl davranmalıyız?"
+          ]
         },
         {
           "questionNumber": 19,
-          "question": "Sosyal medyada paylaştığımız her şeyin gizli kalacağını varsayabiliriz.",
+          "question": "Halka açık ücretsiz Wi-Fi ağlarında ne yapmaktan kaçınmalıyız?",
           "imageUrl": "",
+          "hint": "Şifresiz açık ağlarda veri çalınabilir.",
           "answerOptions": [
             {
-              "text": "Doğru",
-              "rationale": "İnternetteki veriler kopyalanıp yayılabilir, gizlilik tam garanti edilemez.",
+              "text": "Banka ve önemli hesaplara girmekten",
+              "isCorrect": true
+            },
+            {
+              "text": "Haber okumaktan",
               "isCorrect": false
             },
             {
-              "text": "Yanlış",
-              "rationale": "İnternete yüklenen her şeyin başkaları tarafından görülebileceğini düşünmeliyiz.",
-              "isCorrect": true
+              "text": "Hava durumuna bakmaktan",
+              "isCorrect": false
+            },
+            {
+              "text": "Sözlükten kelime aramaktan",
+              "isCorrect": false
+            },
+            {
+              "text": "Yol tarifi almaktan",
+              "isCorrect": false
             }
-          ],
-          "hint": "İnternet ortamının ne kadar güvenli olduğunu düşünün."
+          ]
         },
         {
           "questionNumber": 20,
-          "question": "İnternet kullanımını belirli bir süreyle sınırlandırmak dijital dengeyi sağlar.",
+          "question": "İnternette başkalarıyla iletişim kurarken hangi kurala uymalıyız?",
           "imageUrl": "",
+          "hint": "Nezaket kuralları dijital ortamda da geçerlidir.",
           "answerOptions": [
             {
-              "text": "Doğru",
-              "rationale": "Zamanı planlamak dengeli bir yaşam sağlar.",
+              "text": "Saygılı ve nazik olmalıyız",
               "isCorrect": true
             },
             {
-              "text": "Yanlış",
-              "rationale": "Sınırsız kullanım dengesizliğe yol açar.",
+              "text": "İstediğimiz kişiye hakaret edebiliriz",
+              "isCorrect": false
+            },
+            {
+              "text": "Büyük harflerle bağırarak yazmalıyız",
+              "isCorrect": false
+            },
+            {
+              "text": "İnsanları rahatsız edip alay etmeliyiz",
+              "isCorrect": false
+            },
+            {
+              "text": "Kaba kelimeler kullanmalıyız",
               "isCorrect": false
             }
-          ],
-          "hint": "Zamanı doğru kullanmak nasıl adlandırılır?"
+          ]
         },
         {
           "questionNumber": 21,
-          "question": "Çevrimiçi oyun oynarken tanımadığımız kişilerden gelen hediyeleri kabul etmeliyiz.",
+          "question": "Hangisi güvenli bir şifre kuralı DEĞİLDİR?",
           "imageUrl": "",
+          "hint": "Tahmin edilmesi çok kolay olan dizilimleri düşünün.",
           "answerOptions": [
             {
-              "text": "Doğru",
-              "rationale": "Tanımadığımız kişilerden gelen hediyeler veya linkler tehlikeli olabilir.",
+              "text": "Ardışık sayılar (12345) kullanmak",
+              "isCorrect": true
+            },
+            {
+              "text": "En az 8-12 karakter uzunluğunda olması",
               "isCorrect": false
             },
             {
-              "text": "Yanlış",
-              "rationale": "Bu tür teklifler genellikle dolandırıcılık amacıyla yapılır.",
-              "isCorrect": true
+              "text": "Büyük ve küçük harf içermesi",
+              "isCorrect": false
+            },
+            {
+              "text": "Özel semboller barındırması",
+              "isCorrect": false
+            },
+            {
+              "text": "Kişisel bilgiler içermemesi",
+              "isCorrect": false
             }
-          ],
-          "hint": "Çevrimiçi güvenlik kuralları."
+          ]
         },
         {
           "questionNumber": 22,
-          "question": "İnternet araştırması yaparken tek bir kaynağa güvenmek en doğrusudur.",
+          "question": "Cihazımıza gelen yazılım güncellemeleri neden önemlidir?",
           "imageUrl": "",
+          "hint": "Güvenlik yamaları sistemleri korur.",
           "answerOptions": [
             {
-              "text": "Doğru",
-              "rationale": "Farklı kaynaklardan bilgileri karşılaştırmak daha güvenlidir.",
+              "text": "Güvenlik açıklarını kapatıp korur",
+              "isCorrect": true
+            },
+            {
+              "text": "Bilgisayarı tamamen yavaşlatır",
               "isCorrect": false
             },
             {
-              "text": "Yanlış",
-              "rationale": "Tek bir kaynağın yanıltma ihtimali olabilir, bu yüzden çoklu kaynak taraması gerekir.",
-              "isCorrect": true
+              "text": "Kişisel dosyaları siler",
+              "isCorrect": false
+            },
+            {
+              "text": "İnternet kotasını bitirir",
+              "isCorrect": false
+            },
+            {
+              "text": "Sadece simgelerin rengini değiştirir",
+              "isCorrect": false
             }
-          ],
-          "hint": "Araştırma yaparken kaç kaynaktan faydalanmak gerekir?"
+          ]
         },
         {
           "questionNumber": 23,
-          "question": "Ekran ışığını çok yüksek tutmak gözlerimize zarar verebilir.",
+          "question": "İnternette karşılaştığın bir bilginin doğruluğunu nasıl anlarsın?",
           "imageUrl": "",
+          "hint": "Farklı kaynaklardan teyit etmek gerekir.",
           "answerOptions": [
             {
-              "text": "Doğru",
-              "rationale": "Parlak ekranlar gözü yorar ve zarar verebilir.",
+              "text": "Farklı güvenilir kaynaklardan teyit ederek",
               "isCorrect": true
             },
             {
-              "text": "Yanlış",
-              "rationale": "Ekranın parlaklığı göz sağlığını doğrudan etkiler.",
+              "text": "Gördüğüm ilk paylaşıma hemen inanarak",
+              "isCorrect": false
+            },
+            {
+              "text": "En çok beğeni alan her şeyi doğru sayarak",
+              "isCorrect": false
+            },
+            {
+              "text": "Sosyal medyadaki dedikodulara güvenerek",
+              "isCorrect": false
+            },
+            {
+              "text": "Arkadaşım attıysa kesin doğrudur diyerek",
               "isCorrect": false
             }
-          ],
-          "hint": "Göz sağlığı ve parlaklık ilişkisi."
+          ]
         },
         {
           "questionNumber": 24,
-          "question": "Sosyal medyada beğeni sayısına göre kendi değerimizi ölçmeliyiz.",
+          "question": "Çevrimiçi bir oyunda yabancı biri şifreni isterse ne yapmalısın?",
           "imageUrl": "",
+          "hint": "Hesap güvenliğinizi koruyun.",
           "answerOptions": [
             {
-              "text": "Doğru",
-              "rationale": "İnsan değeri beğeni sayısıyla ölçülemez.",
+              "text": "Vermeyip oyuncuyu bildiririm",
+              "isCorrect": true
+            },
+            {
+              "text": "Hemen şifremi yazarım",
               "isCorrect": false
             },
             {
-              "text": "Yanlış",
-              "rationale": "Kişinin değeri sosyal medyadaki tepkilerden bağımsızdır.",
-              "isCorrect": true
+              "text": "Oyun eşyası karşılığı veririm",
+              "isCorrect": false
+            },
+            {
+              "text": "E-postamı ve şifremi veririm",
+              "isCorrect": false
+            },
+            {
+              "text": "Arkadaşımın şifresini veririm",
+              "isCorrect": false
             }
-          ],
-          "hint": "Kendi değerimizi ne belirler?"
+          ]
         },
         {
           "questionNumber": 25,
-          "question": "İnternet üzerinden tanıştığımız bir kişiyle gerçek hayatta buluşmadan önce mutlaka ailemize haber vermeliyiz.",
+          "question": "Dijital ortamda kişisel verilerini korumak için hangisi doğrudur?",
           "imageUrl": "",
+          "hint": "Uygulama izinlerine dikkat edilmelidir.",
           "answerOptions": [
             {
-              "text": "Doğru",
-              "rationale": "Güvenlik açısından bu durum çok önemlidir ve aile onayı şarttır.",
+              "text": "Gereksiz izin isteyen uygulamaları yüklememek",
               "isCorrect": true
             },
             {
-              "text": "Yanlış",
-              "rationale": "Sanal ortamda tanışılan kişilerle buluşmak risklidir.",
+              "text": "Her uygulamaya kamera ve konum izni vermek",
+              "isCorrect": false
+            },
+            {
+              "text": "Şifreyi bilgisayarın üstüne yapıştırmak",
+              "isCorrect": false
+            },
+            {
+              "text": "Her sitede aynı basit şifreyi kullanmak",
+              "isCorrect": false
+            },
+            {
+              "text": "Güvenlik uyarılarını her zaman yok saymak",
               "isCorrect": false
             }
-          ],
-          "hint": "Yüz yüze buluşma güvenliği."
+          ]
         }
       ]
     },
@@ -458,453 +708,703 @@
       "questions": [
         {
           "questionNumber": 26,
-          "question": "Dijital oyun bağımlılığı, gerçek dünya ile bağımızı koparabilir.",
+          "question": "Sosyal medyada tanımadığın birinin arkadaşlık isteğine ne yapmalısın?",
           "imageUrl": "",
+          "hint": "Yabancılarla bağlantı kurmanın risklerini düşünün.",
           "answerOptions": [
             {
-              "text": "Doğru",
-              "rationale": "Aşırı oyun oynamak sosyal yaşamdan uzaklaştırır.",
+              "text": "İsteği reddedip aileme haber veririm",
               "isCorrect": true
             },
             {
-              "text": "Yanlış",
-              "rationale": "Bağımlılık, gerçek hayattaki ilişkileri ve sorumlulukları olumsuz etkiler.",
+              "text": "Hemen kabul edip mesaj atarım",
+              "isCorrect": false
+            },
+            {
+              "text": "Evimin konumunu gönderirim",
+              "isCorrect": false
+            },
+            {
+              "text": "Okul saatlerimi anlatırım",
+              "isCorrect": false
+            },
+            {
+              "text": "Ailemin telefonunu yazarım",
               "isCorrect": false
             }
-          ],
-          "hint": "Bağımlılığın etkileri."
+          ]
         },
         {
           "questionNumber": 27,
-          "question": "Bilgisayar başında düzenli aralıklarla mola vermek faydalıdır.",
+          "question": "Hangisi güçlü bir şifre oluştururken tavsiye edilir?",
           "imageUrl": "",
+          "hint": "Karmaşık ve tahmin edilemez kombinasyonlar.",
           "answerOptions": [
             {
-              "text": "Doğru",
-              "rationale": "Mola vermek hem gözü hem de bedeni dinlendirir.",
+              "text": "Büyük/küçük harf, sayı ve sembol",
               "isCorrect": true
             },
             {
-              "text": "Yanlış",
-              "rationale": "Mola vermeden çalışmak zararlıdır.",
+              "text": "Doğum tarihi ve yılı",
+              "isCorrect": false
+            },
+            {
+              "text": "Evcil hayvanının adı",
+              "isCorrect": false
+            },
+            {
+              "text": "12345678 dizilimi",
+              "isCorrect": false
+            },
+            {
+              "text": "Sadece kendi adın",
               "isCorrect": false
             }
-          ],
-          "hint": "Sağlıklı çalışma alışkanlıkları."
+          ]
         },
         {
           "questionNumber": 28,
-          "question": "İnternet sitelerindeki reklamların hepsi her zaman güvenlidir.",
+          "question": "E-postana gelen bilinmeyen dosyayı ne yapmalısın?",
           "imageUrl": "",
+          "hint": "E-posta virüsleri dosya eklerinde gizlenir.",
           "answerOptions": [
             {
-              "text": "Doğru",
-              "rationale": "Bazı reklamlar zararlı yazılımlar içerebilir.",
+              "text": "Açmadan silip aileme danışırım",
+              "isCorrect": true
+            },
+            {
+              "text": "Hemen indirip çift tıklarım",
               "isCorrect": false
             },
             {
-              "text": "Yanlış",
-              "rationale": "Her reklama güvenilmez ve dikkatli olunmalıdır.",
-              "isCorrect": true
+              "text": "Bütün arkadaşlarıma iletirim",
+              "isCorrect": false
+            },
+            {
+              "text": "İçindeki linklere tıklarım",
+              "isCorrect": false
+            },
+            {
+              "text": "Şifremi yazarak açarım",
+              "isCorrect": false
             }
-          ],
-          "hint": "Reklamların içeriği."
+          ]
         },
         {
           "questionNumber": 29,
-          "question": "İnternette tanımadığımız kişilere karşı nazik ve saygılı olmalıyız.",
+          "question": "Bir web sitesinde güvenli bağlantı olduğunu gösteren işaret hangisidir?",
           "imageUrl": "",
+          "hint": "Adres çubuğundaki güvenlik sembolü.",
           "answerOptions": [
             {
-              "text": "Doğru",
-              "rationale": "Dijital nezaket kurallarına her zaman uyulmalıdır.",
+              "text": "Yeşil asma kilit ve HTTPS",
               "isCorrect": true
             },
             {
-              "text": "Yanlış",
-              "rationale": "Kişilere sanal ortamda saygısızlık yapmak yanlıştır.",
+              "text": "Kırmızı çarpı işareti",
+              "isCorrect": false
+            },
+            {
+              "text": "Yanıp sönen reklamlar",
+              "isCorrect": false
+            },
+            {
+              "text": "Açılan hediye çarkları",
+              "isCorrect": false
+            },
+            {
+              "text": "Bilinmeyen dosya yükleyici",
               "isCorrect": false
             }
-          ],
-          "hint": "İnternet etiği."
+          ]
         },
         {
           "questionNumber": 30,
-          "question": "Eğitim ve araştırma amaçlı internet kullanımı faydalıdır.",
+          "question": "İnternette paylaştığın fotoğraflarla ilgili hangisi doğrudur?",
           "imageUrl": "",
+          "hint": "Paylaşılan içeriklerin dijital kalıcılığı.",
           "answerOptions": [
             {
-              "text": "Doğru",
-              "rationale": "İnternet, öğrenmeyi ve bilgiye erişimi kolaylaştırır.",
+              "text": "Kopyalanabilir ve sonsuza dek kalabilir",
               "isCorrect": true
             },
             {
-              "text": "Yanlış",
-              "rationale": "İnternet sadece eğlence değil, eğitim için de çok önemlidir.",
+              "text": "Sildikten sonra kimsede kalmaz",
+              "isCorrect": false
+            },
+            {
+              "text": "Sadece 1 saat içinde kaybolur",
+              "isCorrect": false
+            },
+            {
+              "text": "İnternetten tamamen silmek çok kolaydır",
+              "isCorrect": false
+            },
+            {
+              "text": "Yalnızca telefonunda saklanır",
               "isCorrect": false
             }
-          ],
-          "hint": "İnternetin faydalı kullanımı."
+          ]
         },
         {
           "questionNumber": 31,
-          "question": "Sosyal medyadaki herkes gerçek adını ve yaşını kullanır.",
+          "question": "İnternette oynanan çok oyunculu oyunlarda hangisi güvenli davranıştır?",
           "imageUrl": "",
+          "hint": "Oyun içi sohbet kuralları.",
           "answerOptions": [
             {
-              "text": "Doğru",
-              "rationale": "İnsanlar sosyal medyada sahte isimler kullanabilir.",
+              "text": "Kişisel bilgileri gizli tutup saygılı olmak",
+              "isCorrect": true
+            },
+            {
+              "text": "Kullanıcı adını T.C. kimlik yapmak",
               "isCorrect": false
             },
             {
-              "text": "Yanlış",
-              "rationale": "Herkes gerçek kimliğini kullanmayabilir, buna dikkat edilmelidir.",
-              "isCorrect": true
+              "text": "Kaybedince oyunculara kaba davranmak",
+              "isCorrect": false
+            },
+            {
+              "text": "Oyun içi eşya için şifre paylaşmak",
+              "isCorrect": false
+            },
+            {
+              "text": "Bilinmeyen hile programları indirmek",
+              "isCorrect": false
             }
-          ],
-          "hint": "Sosyal medyadaki profillerin güvenilirliği."
+          ]
         },
         {
           "questionNumber": 32,
-          "question": "İnternette adımıza açılan sahte hesapları bildirmeliyiz.",
+          "question": "Korsan oyun veya program indirmek neden tehlikelidir?",
           "imageUrl": "",
+          "hint": "Güvenilmeyen kaynaklar cihazlara virüs bulaştırır.",
           "answerOptions": [
             {
-              "text": "Doğru",
-              "rationale": "Sahte hesaplar tehlikelidir ve şikayet edilmelidir.",
+              "text": "Cihaza virüs ve casus yazılım bulaştırabilir",
               "isCorrect": true
             },
             {
-              "text": "Yanlış",
-              "rationale": "Bu tür hesapları bildirmek güvenlik önlemidir.",
+              "text": "Bilgisayarı çok hızlandırır",
+              "isCorrect": false
+            },
+            {
+              "text": "İnternet kotasını hiç harcamaz",
+              "isCorrect": false
+            },
+            {
+              "text": "Oyunun yapımcısına destek olur",
+              "isCorrect": false
+            },
+            {
+              "text": "Yasal ve tamamen güvenlidir",
               "isCorrect": false
             }
-          ],
-          "hint": "Kişisel hakların korunması."
+          ]
         },
         {
           "questionNumber": 33,
-          "question": "Ekran başında yemek yemek, ne kadar yediğimizi anlamamızı kolaylaştırır.",
+          "question": "İnternette gördüğün her habere neden hemen inanmamalısın?",
           "imageUrl": "",
+          "hint": "Sahte haberler ve bilgi kirliliği.",
           "answerOptions": [
             {
-              "text": "Doğru",
-              "rationale": "Ekranla ilgilenirken ne kadar yediğimizin farkına varamayız.",
+              "text": "Sahte ve yanıltıcı bilgiler bulunabilir",
+              "isCorrect": true
+            },
+            {
+              "text": "İnternetteki her bilgi kesinlikle doğrudur",
               "isCorrect": false
             },
             {
-              "text": "Yanlış",
-              "rationale": "Ekran karşısında yemek yemek aşırı tüketime neden olabilir.",
-              "isCorrect": true
+              "text": "Haberlerin hepsi otomatik onaylanır",
+              "isCorrect": false
+            },
+            {
+              "text": "Haber okumak yasaktır",
+              "isCorrect": false
+            },
+            {
+              "text": "Yalnızca videolu olanlar doğrudur",
+              "isCorrect": false
             }
-          ],
-          "hint": "Ekran karşısında beslenme alışkanlığı."
+          ]
         },
         {
           "questionNumber": 34,
-          "question": "İnternette telif hakkı olan içerikleri izinsiz paylaşmamalıyız.",
+          "question": "Telefon veya tablete uygulama yüklerken nelere dikkat etmelisin?",
           "imageUrl": "",
+          "hint": "Resmi uygulama mağazaları ve izinler.",
           "answerOptions": [
             {
-              "text": "Doğru",
-              "rationale": "Telif hakkı olan eserleri izinsiz paylaşmak yasal değildir.",
+              "text": "Resmi mağazadan ve istenen izinlere bakarak",
               "isCorrect": true
             },
             {
-              "text": "Yanlış",
-              "rationale": "Bu kurala uymak dijital haklara saygıyı gösterir.",
+              "text": "Bilinmeyen sitelerden rastgele",
+              "isCorrect": false
+            },
+            {
+              "text": "En çok reklam çıkaran uygulamaları seçerek",
+              "isCorrect": false
+            },
+            {
+              "text": "Tüm izinleri sorgulamadan onaylayarak",
+              "isCorrect": false
+            },
+            {
+              "text": "Yorumları hiç okumadan indirerek",
               "isCorrect": false
             }
-          ],
-          "hint": "Telif hakkı nedir?"
+          ]
         },
         {
           "questionNumber": 35,
-          "question": "Zararlı içeriklerle karşılaştığımızda ekranı kapatıp bir büyüğe haber vermeliyiz.",
+          "question": "Siber tuzaklardan korunmak için en temel kural nedir?",
           "imageUrl": "",
+          "hint": "Bilinçli ve şüpheci internet kullanıcısı olmak.",
           "answerOptions": [
             {
-              "text": "Doğru",
-              "rationale": "Bu doğru bir korunma yöntemidir.",
+              "text": "Şüpheli linklere tıklamayıp şifre vermemek",
               "isCorrect": true
             },
             {
-              "text": "Yanlış",
-              "rationale": "Zararlı içeriklerden kaçınmak ve büyüklerden yardım almak gerekir.",
+              "text": "Gelen her davete evet demek",
+              "isCorrect": false
+            },
+            {
+              "text": "Her sitede aynı şifreyi yazmak",
+              "isCorrect": false
+            },
+            {
+              "text": "Kredi kartını her sitede kayıtlı tutmak",
+              "isCorrect": false
+            },
+            {
+              "text": "Güvenlik programlarını kaldırmak",
               "isCorrect": false
             }
-          ],
-          "hint": "Kötü içeriklerle karşılaşınca ne yapılmalı?"
+          ]
         },
         {
           "questionNumber": 36,
-          "question": "Sosyal medyada çok vakit geçirmek ders çalışmamızı engellemez.",
+          "question": "Arkadaşının hesabının çalındığını fark edersen ne yapmalısın?",
           "imageUrl": "",
+          "hint": "Hızlı uyarı hesabı kurtarabilir.",
           "answerOptions": [
             {
-              "text": "Doğru",
-              "rationale": "Çok fazla zaman harcamak derslere olan ilgiyi azaltır.",
+              "text": "Arkadaşını başka yoldan arayıp durumu bildiririm",
+              "isCorrect": true
+            },
+            {
+              "text": "Hesaptan gelen para talebine inanırım",
               "isCorrect": false
             },
             {
-              "text": "Yanlış",
-              "rationale": "Zamanı doğru planlamazsak derslerimizi aksatabilir.",
-              "isCorrect": true
+              "text": "Gelen linklere hemen tıklarım",
+              "isCorrect": false
+            },
+            {
+              "text": "Durumu görmezden gelip unuturum",
+              "isCorrect": false
+            },
+            {
+              "text": "Ona kendi şifremi veririm",
+              "isCorrect": false
             }
-          ],
-          "hint": "Zaman yönetimi."
+          ]
         },
         {
           "questionNumber": 37,
-          "question": "İnternet kullanımı, doğru planlandığında zaman kazandırır.",
+          "question": "Sosyal medyada başkalarının izinsiz fotoğrafını paylaşmak neden yanlıştır?",
           "imageUrl": "",
+          "hint": "Kişisel haklar ve mahremiyet.",
           "answerOptions": [
             {
-              "text": "Doğru",
-              "rationale": "İşlerimizi hızlıca halletmemizi sağlar.",
+              "text": "Kişisel mahremiyet ve yasal hak ihlalidir",
               "isCorrect": true
             },
             {
-              "text": "Yanlış",
-              "rationale": "Planlı kullanım verimliliği artırır.",
+              "text": "Daha az beğeni toplar",
+              "isCorrect": false
+            },
+            {
+              "text": "Fotoğrafın kalitesi düşer",
+              "isCorrect": false
+            },
+            {
+              "text": "İnternet kotasını doldurur",
+              "isCorrect": false
+            },
+            {
+              "text": "Hiçbir sakıncası yoktur",
               "isCorrect": false
             }
-          ],
-          "hint": "İnternetin sunduğu kolaylıklar."
+          ]
         },
         {
           "questionNumber": 38,
-          "question": "Şifremizi unutmamak için bir kağıda yazıp herkese açık bir yere asmalıyız.",
+          "question": "Hangisi dijital bağımlılığın bir belirtisidir?",
           "imageUrl": "",
+          "hint": "Aşırı ekran kullanımının günlük hayata etkisi.",
           "answerOptions": [
             {
-              "text": "Doğru",
-              "rationale": "Bu şifremizi başkalarının öğrenmesine neden olur.",
+              "text": "Ekran olmadan huzursuz hissetmek ve ödevleri aksatmak",
+              "isCorrect": true
+            },
+            {
+              "text": "Günde 15 dakika ödev için bakmak",
               "isCorrect": false
             },
             {
-              "text": "Yanlış",
-              "rationale": "Şifreler gizli tutulmalı ve kolay görünen yerlere yazılmamalıdır.",
-              "isCorrect": true
+              "text": "Dışarıda arkadaşlarıyla oyun oynamak",
+              "isCorrect": false
+            },
+            {
+              "text": "Düzenli kitap okumak",
+              "isCorrect": false
+            },
+            {
+              "text": "Zamanında uyumak",
+              "isCorrect": false
             }
-          ],
-          "hint": "Şifre güvenliği."
+          ]
         },
         {
           "questionNumber": 39,
-          "question": "Sanal dünyadaki arkadaşlarımız, gerçek dünyadaki arkadaşlarımızdan daha önemlidir.",
+          "question": "Dosya indirirken hangi uzantılara karşı ekstra dikkatli olunmalıdır?",
           "imageUrl": "",
+          "hint": "Çalıştırılabilir program dosyaları virüs barındırabilir.",
           "answerOptions": [
             {
-              "text": "Doğru",
-              "rationale": "Gerçek hayattaki dostluklar her zaman önceliklidir.",
+              "text": ".exe ve .bat gibi çalıştırılabilir dosyalar",
+              "isCorrect": true
+            },
+            {
+              "text": ".txt metin dosyaları",
               "isCorrect": false
             },
             {
-              "text": "Yanlış",
-              "rationale": "Gerçek ilişkiler sanal olanlardan daha değerlidir.",
-              "isCorrect": true
+              "text": ".jpg fotoğraf dosyaları",
+              "isCorrect": false
+            },
+            {
+              "text": ".mp3 müzik dosyaları",
+              "isCorrect": false
+            },
+            {
+              "text": ".png resim dosyaları",
+              "isCorrect": false
             }
-          ],
-          "hint": "Gerçek ve sanal ilişkilerin kıyaslanması."
+          ]
         },
         {
           "questionNumber": 40,
-          "question": "İnternetteki bilgilerin kaynağını kontrol etmek önemlidir.",
+          "question": "Güvenlik duvarı (Firewall) ne işe yarar?",
           "imageUrl": "",
+          "hint": "Ağ trafiğini denetleyen koruma kalkanı.",
           "answerOptions": [
             {
-              "text": "Doğru",
-              "rationale": "Kaynağı güvenilir olmayan bilgilere inanmamalıyız.",
+              "text": "İnternetten gelen zararlı sızmaları engeller",
               "isCorrect": true
             },
             {
-              "text": "Yanlış",
-              "rationale": "Bilgi kirliliğinden korunmak için kaynak kontrolü şarttır.",
+              "text": "Ekranın parlaklığını ayarlar",
+              "isCorrect": false
+            },
+            {
+              "text": "Bilgisayarı duvara sabitler",
+              "isCorrect": false
+            },
+            {
+              "text": "Hoparlörün sesini yükseltir",
+              "isCorrect": false
+            },
+            {
+              "text": "Oyunlarda bedava puan verir",
               "isCorrect": false
             }
-          ],
-          "hint": "Bilgi doğrulaması."
+          ]
         },
         {
           "questionNumber": 41,
-          "question": "Sosyal medyada linç kültürüne katılmak doğru bir davranıştır.",
+          "question": "İnternette paylaştığın bir bilginin silinememesi durumuna ne denir?",
           "imageUrl": "",
+          "hint": "Dijital ayak izinin kalıcılığı.",
           "answerOptions": [
             {
-              "text": "Doğru",
-              "rationale": "Başkalarına karşı acımasız yorumlar yapmak yanlıştır.",
+              "text": "Dijital kalıcılık",
+              "isCorrect": true
+            },
+            {
+              "text": "Ekran donması",
               "isCorrect": false
             },
             {
-              "text": "Yanlış",
-              "rationale": "Linç kültürü dijital zorbalıktır ve kaçınılmalıdır.",
-              "isCorrect": true
+              "text": "İnternet kesintisi",
+              "isCorrect": false
+            },
+            {
+              "text": "Klavye hatası",
+              "isCorrect": false
+            },
+            {
+              "text": "Pil tasarrufu",
+              "isCorrect": false
             }
-          ],
-          "hint": "Dijital nezaket."
+          ]
         },
         {
           "questionNumber": 42,
-          "question": "Güvenli internet kullanımı için antivirüs programları kullanmalıyız.",
+          "question": "Sosyal medyada konum paylaşımı yaparken en güvenli davranış hangisidir?",
           "imageUrl": "",
+          "hint": "Anlık konum paylaşımı güvenliği riske atar.",
           "answerOptions": [
             {
-              "text": "Doğru",
-              "rationale": "Antivirüsler bilgisayarı zararlı yazılımlardan korur.",
+              "text": "Anlık konum paylaşmayıp gizli tutmak",
               "isCorrect": true
             },
             {
-              "text": "Yanlış",
-              "rationale": "Güvenlik yazılımları önemlidir.",
+              "text": "Her gittiğin yeri canlı yayınlamak",
+              "isCorrect": false
+            },
+            {
+              "text": "Ev adresini tam tarif etmek",
+              "isCorrect": false
+            },
+            {
+              "text": "Okul servisinin plakasını yazmak",
+              "isCorrect": false
+            },
+            {
+              "text": "Evde tek başınayken bildirmek",
               "isCorrect": false
             }
-          ],
-          "hint": "Bilgisayar güvenliği."
+          ]
         },
         {
           "questionNumber": 43,
-          "question": "Ekran süresi azaldıkça fiziksel aktivitelerimiz artabilir.",
+          "question": "Hangisi siber zorbalık örneğidir?",
           "imageUrl": "",
+          "hint": "Başkalarını çevrimiçi ortamda incitmek veya tehdit etmek.",
           "answerOptions": [
             {
-              "text": "Doğru",
-              "rationale": "Ekran karşısında geçirilen zaman azaldığında hareket için daha fazla vakit kalır.",
+              "text": "Birini gruptan dışlayıp arkasından hakaret etmek",
               "isCorrect": true
             },
             {
-              "text": "Yanlış",
-              "rationale": "Ekran süresi ile hareketlilik ters orantılıdır.",
+              "text": "Arkadaşının doğum gününü kutlamak",
+              "isCorrect": false
+            },
+            {
+              "text": "Grup ödevi için bilgi paylaşmak",
+              "isCorrect": false
+            },
+            {
+              "text": "Öğretmene ödevi e-posta ile göndermek",
+              "isCorrect": false
+            },
+            {
+              "text": "Oyunda arkadaşını tebrik etmek",
               "isCorrect": false
             }
-          ],
-          "hint": "Ekran süresinin fiziksel aktivitelere etkisi."
+          ]
         },
         {
           "questionNumber": 44,
-          "question": "İnternet kullanım sözleşmelerini okumadan onaylamak güvenlidir.",
+          "question": "İnternet bankacılığı işlemlerinde güvenliği artıran yöntem nedir?",
           "imageUrl": "",
+          "hint": "Telefona gelen tek kullanımlık SMS şifreleri.",
           "answerOptions": [
             {
-              "text": "Doğru",
-              "rationale": "Sözleşmeler okunmadan onaylanırsa gizlilik riskleri doğabilir.",
+              "text": "Tek kullanımlık SMS onay kodu",
+              "isCorrect": true
+            },
+            {
+              "text": "Şifreyi kağıda yazıp masaya bırakmak",
               "isCorrect": false
             },
             {
-              "text": "Yanlış",
-              "rationale": "Kullanım koşullarını okumak her zaman gereklidir.",
-              "isCorrect": true
+              "text": "Ortak kafelerde bankaya girmek",
+              "isCorrect": false
+            },
+            {
+              "text": "Kart numarasını sosyal medyada sormak",
+              "isCorrect": false
+            },
+            {
+              "text": "Şifreyi 1111 yapmak",
+              "isCorrect": false
             }
-          ],
-          "hint": "Sözleşmelerin okunması."
+          ]
         },
         {
           "questionNumber": 45,
-          "question": "Sosyal medya platformlarında saatlerce hareketsiz oturmak kaslarımıza zarar verebilir.",
+          "question": "Bir e-postanın sahte olduğunu gösteren ipucu hangisi olabilir?",
           "imageUrl": "",
+          "hint": "Yazım hataları ve tuhaf gönderici adresleri.",
           "answerOptions": [
             {
-              "text": "Doğru",
-              "rationale": "Uzun süre hareketsiz kalmak fiziksel sağlığı olumsuz etkiler.",
+              "text": "Bozuk Türkçe ve şüpheli gönderici adresi",
               "isCorrect": true
             },
             {
-              "text": "Yanlış",
-              "rationale": "Kas ve iskelet sistemi hareketsizlikten zarar görebilir.",
+              "text": "Öğretmenin resmi e-posta adresi",
+              "isCorrect": false
+            },
+            {
+              "text": "Okul müdürlüğünün duyuru metni",
+              "isCorrect": false
+            },
+            {
+              "text": "Sipariş takip numarasının doğruluğu",
+              "isCorrect": false
+            },
+            {
+              "text": "Tarihin bugüne ait olması",
               "isCorrect": false
             }
-          ],
-          "hint": "Hareketsiz yaşamın zararları."
+          ]
         },
         {
           "questionNumber": 46,
-          "question": "İnternette karşılaştığımız her haberi paylaşmadan önce doğrulamalıyız.",
+          "question": "Kişisel bilgisayarında kamera güvenliği için ne yapabilirsin?",
           "imageUrl": "",
+          "hint": "Fiziksel kamera kapatıcı kapaklar.",
           "answerOptions": [
             {
-              "text": "Doğru",
-              "rationale": "Yanlış haberlerin yayılmasını önlemek için doğrulama yapılmalıdır.",
+              "text": "Kullanmadığında kamera kapağını kapalı tutmak",
               "isCorrect": true
             },
             {
-              "text": "Yanlış",
-              "rationale": "Yalan haberlerin yayılmasına sebep olmamalıyız.",
+              "text": "Kamerayı 24 saat açık bırakmak",
+              "isCorrect": false
+            },
+            {
+              "text": "Tanımadığın sitelere kamera izni vermek",
+              "isCorrect": false
+            },
+            {
+              "text": "Kamerayı temizlememek",
+              "isCorrect": false
+            },
+            {
+              "text": "Ekranı arkaya çevirmek",
               "isCorrect": false
             }
-          ],
-          "hint": "Haber doğrulama."
+          ]
         },
         {
           "questionNumber": 47,
-          "question": "Akıllı telefonları uyumadan hemen önce kullanmak uyku kalitesini artırır.",
+          "question": "Çevrimiçi sohbet odalarında en güvenli takma ad (nick) hangisidir?",
           "imageUrl": "",
+          "hint": "Gerçek isim, soyisim ve doğum yılı içermeyen rumuzlar.",
           "answerOptions": [
             {
-              "text": "Doğru",
-              "rationale": "Mavi ışık uykuya geçişi zorlaştırır ve kaliteyi düşürür.",
+              "text": "MaviKaplan veya UzayGezgini",
+              "isCorrect": true
+            },
+            {
+              "text": "Ahmet_Yilmaz_2014_Kadikoy",
               "isCorrect": false
             },
             {
-              "text": "Yanlış",
-              "rationale": "Uyku öncesi ekran kullanımı uyku kalitesini olumsuz etkiler.",
-              "isCorrect": true
+              "text": "TcNo_Mehmet",
+              "isCorrect": false
+            },
+            {
+              "text": "Ayse_Telefon_0532",
+              "isCorrect": false
+            },
+            {
+              "text": "AtaturkIlkokulu_Ali",
+              "isCorrect": false
             }
-          ],
-          "hint": "Uyku ve mavi ışık ilişkisi."
+          ]
         },
         {
           "questionNumber": 48,
-          "question": "Bilgisayar oyunlarında kullanılan sanal paralar gerçek parayı temsil ettiği için dikkatli olunmalıdır.",
+          "question": "İnternette araştırma yaparken hangisi doğru bilgiye ulaşmayı sağlar?",
           "imageUrl": "",
+          "hint": "Resmi ve güvenilir kaynaklar.",
           "answerOptions": [
             {
-              "text": "Doğru",
-              "rationale": "Sanal paralar genellikle gerçek paralarla alınır, bu yüzden maddi risk taşır.",
+              "text": "Resmi kurum ve okul sitelerinden bakmak",
               "isCorrect": true
             },
             {
-              "text": "Yanlış",
-              "rationale": "Sanal harcamalar bütçeyi etkileyebilir.",
+              "text": "Rastgele bir forumdaki yoruma inanmak",
+              "isCorrect": false
+            },
+            {
+              "text": "Sosyal medyadaki doğrulanmamış paylaşımlar",
+              "isCorrect": false
+            },
+            {
+              "text": "İnternet reklamlarındaki iddialar",
+              "isCorrect": false
+            },
+            {
+              "text": "Gözü kapalı ilk sonuca tıklamak",
               "isCorrect": false
             }
-          ],
-          "hint": "Sanal paranın maddi değeri."
+          ]
         },
         {
           "questionNumber": 49,
-          "question": "İnternet ortamında paylaştığımız bilgiler gelecekteki iş hayatımızı etkileyebilir.",
+          "question": "Bilgisayarına virüs bulaştığından şüphelenirsen ilk ne yapmalısın?",
           "imageUrl": "",
+          "hint": "Cihazı internetten ayırıp antivirüs ile taratmak.",
           "answerOptions": [
             {
-              "text": "Doğru",
-              "rationale": "Dijital izler uzun yıllar kalabilir ve gelecekteki durumumuzu etkileyebilir.",
+              "text": "Antivirüs ile tam tarama yapıp aileme söylerim",
               "isCorrect": true
             },
             {
-              "text": "Yanlış",
-              "rationale": "İnternet paylaşımları gelecekteki profesyonel hayatı etkileyebilir.",
+              "text": "Hiçbir şey yapmadan oyun oynamaya devam ederim",
+              "isCorrect": false
+            },
+            {
+              "text": "Daha çok dosya indirmeye başlarım",
+              "isCorrect": false
+            },
+            {
+              "text": "Şifrelerimi kontrol etmeden bırakırım",
+              "isCorrect": false
+            },
+            {
+              "text": "Cihazı çöpe atarım",
               "isCorrect": false
             }
-          ],
-          "hint": "Dijital ayak izi ve geleceğimiz."
+          ]
         },
         {
           "questionNumber": 50,
-          "question": "Dijital dünyada geçirdiğimiz zamanı, gerçek dünyadaki etkinliklerle dengelemeliyiz.",
+          "question": "Hangisi dijital ortamda iyi bir 'Dijital Yurttaş' davranışıdır?",
           "imageUrl": "",
+          "hint": "Başkalarının haklarına saygılı ve dürüst olmak.",
           "answerOptions": [
             {
-              "text": "Doğru",
-              "rationale": "Sağlıklı bir yaşam için sanal ve gerçek dünya dengelenmelidir.",
+              "text": "Başkalarının haklarına saygı duyup doğru bilgi yaymak",
               "isCorrect": true
             },
             {
-              "text": "Yanlış",
-              "rationale": "Sadece sanal dünyada kalmak sağlıksızdır.",
+              "text": "Yalan haberleri herkese yaymak",
+              "isCorrect": false
+            },
+            {
+              "text": "Başkalarının hesaplarını çalmaya çalışmak",
+              "isCorrect": false
+            },
+            {
+              "text": "Oyunlarda hile yaparak kazanmak",
+              "isCorrect": false
+            },
+            {
+              "text": "Telifli içerikleri izinsiz satmak",
               "isCorrect": false
             }
-          ],
-          "hint": "Dengeli yaşam."
+          ]
         }
       ]
     }
