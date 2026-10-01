@@ -3534,7 +3534,7 @@ button {
   80% { transform: translateX(calc(-50% + 7px)); }
 }
 
-/* ===== Pacman Oyunu ===== */
+/* ===== Pacman Oyunu (Fare & Dokunma Kontrollü Dikdörtgen Arena) ===== */
 .pacman-screen {
   display: flex;
   flex-direction: column;
@@ -3558,8 +3558,7 @@ button {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  width: min(78vw, calc((100vh - 220px) * 19 / 15));
-  max-width: 780px;
+  width: min(92vw, 860px);
   margin-bottom: 8px;
   gap: 12px;
 }
@@ -3610,149 +3609,97 @@ button {
   animation: antivirusPulsing 0.6s infinite alternate;
 }
 
-.pacman-board-wrap {
+.pacman-arena-wrap {
   display: flex;
-  flex-direction: row;
   align-items: center;
   justify-content: center;
-  gap: 20px;
   width: 100%;
+  margin: 0 auto;
 }
 
-.pacman-board {
-  display: grid;
-  grid-template-columns: repeat(19, 1fr);
-  grid-template-rows: repeat(15, 1fr);
-  height: calc(100vh - 220px);
-  max-height: calc(100vh - 220px);
-  max-width: calc((100vh - 220px) * 19 / 15);
-  width: min(78vw, calc((100vh - 220px) * 19 / 15));
-  aspect-ratio: 19 / 15;
-  position: relative;
-  background: #090d16;
+.pacman-arena-card {
+  width: min(92vw, 860px);
+  aspect-ratio: 16 / 10;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 0 24px rgba(0, 0, 0, 0.7), 6px 6px 0 rgba(43, 22, 19, 0.25);
   border: 4px solid var(--ink);
-  box-shadow: 6px 6px 0 rgba(43, 22, 19, 0.25);
+  background: #090e1a;
+  position: relative;
   touch-action: none;
   user-select: none;
-  overflow: hidden;
+  cursor: crosshair;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
-.pacman-board.antivirus-board {
+.pacman-arena-card.antivirus-active {
   border-color: #38bdf8;
-  box-shadow: 0 0 16px rgba(56, 189, 248, 0.35), 6px 6px 0 rgba(43, 22, 19, 0.25);
+  box-shadow: 0 0 24px rgba(56, 189, 248, 0.45), 6px 6px 0 rgba(43, 22, 19, 0.25);
 }
 
-.pacman-cell {
-  position: relative;
-  overflow: hidden;
-}
-
-.pacman-cell.wall {
-  background: #0d1527;
-}
-
-.pacman-cell.wall::after {
-  content: "";
-  position: absolute;
-  inset: 1px;
-  background: #13213c;
-  border: 1.5px solid #2563eb;
-  border-radius: 2px;
-  box-shadow: 0 0 5px rgba(37, 99, 235, 0.45);
-}
-
-.pacman-cell.door {
-  background: rgba(15, 23, 42, 0.6);
-}
-
-.pacman-cell.door::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 42%;
-  height: 3px;
-  background: #f43f5e;
-  box-shadow: 0 0 6px #f43f5e;
-}
-
-.pacman-cell.den {
-  background: rgba(30, 41, 59, 0.2);
-}
-
-.pacman-cell.dot::after {
-  content: "";
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  width: 5px;
-  height: 5px;
-  background: #fef08a;
-  border-radius: 50%;
-  box-shadow: 0 0 4px #facc15;
-}
-
-.pacman-cell.power::after {
-  content: "";
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  width: 14px;
-  height: 14px;
-  background: #38bdf8;
-  border-radius: 50%;
-  box-shadow: 0 0 8px #38bdf8, 0 0 16px #0284c7;
-  animation: powerPelletPulse 0.5s infinite alternate ease-in-out;
-}
-
-.pacman-entity,
-.virus-entity {
-  position: absolute;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  pointer-events: none;
-  z-index: 5;
-  transition: left 0.16s linear, top 0.16s linear;
-}
-
-.pacman-sprite,
-.virus-sprite {
-  width: 90%;
-  height: 90%;
+.pacman-arena-svg {
+  width: 100%;
+  height: 100%;
   display: block;
+  touch-action: none;
 }
 
-@keyframes pacmanMouth {
+.arena-border-rect {
+  transition: stroke 0.3s ease;
+}
+
+.cyber-dot {
+  filter: drop-shadow(0 0 3px #facc15);
+}
+
+.antivirus-disk-svg {
+  filter: drop-shadow(0 0 8px #38bdf8);
+  animation: diskPulse 0.7s infinite alternate ease-in-out;
+}
+
+@keyframes diskPulse {
+  0% { transform: scale(0.9); }
+  100% { transform: scale(1.15); }
+}
+
+.virus-svg {
+  filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.6));
+  transition: filter 0.2s ease;
+}
+
+.virus-svg.trojan {
+  filter: drop-shadow(0 0 6px rgba(239, 68, 68, 0.6));
+}
+
+.virus-svg.worm {
+  filter: drop-shadow(0 0 6px rgba(34, 197, 94, 0.6));
+}
+
+.virus-svg.ransomware {
+  filter: drop-shadow(0 0 6px rgba(244, 63, 94, 0.6));
+}
+
+.virus-svg.spyware {
+  filter: drop-shadow(0 0 6px rgba(168, 85, 247, 0.6));
+}
+
+.virus-svg.returning {
+  filter: drop-shadow(0 0 8px #38bdf8);
+}
+
+@keyframes pacmanMouthChomp {
   0%, 100% {
     transform: scaleY(1);
-    transform-origin: 18px 18px;
+    transform-origin: 0 0;
   }
   50% {
-    transform: scaleY(0.08);
-    transform-origin: 18px 18px;
+    transform: scaleY(0.05);
+    transform-origin: 0 0;
   }
 }
 
-.pacman-mouth {
-  animation: pacmanMouth 0.22s infinite ease-in-out;
-}
-
-.pacman-sprite:not(.chomping) .pacman-mouth {
-  animation: none;
-}
-
-@keyframes powerPelletPulse {
-  0% {
-    transform: translate(-50%, -50%) scale(0.75);
-    opacity: 0.8;
-  }
-  100% {
-    transform: translate(-50%, -50%) scale(1.2);
-    opacity: 1;
-  }
+.pacman-svg-mouth.chomping {
+  animation: pacmanMouthChomp 0.16s infinite ease-in-out;
 }
 
 @keyframes antivirusPulsing {
@@ -3761,108 +3708,6 @@ button {
   }
   100% {
     box-shadow: 0 0 16px rgba(56, 189, 248, 0.85);
-  }
-}
-
-.virus-sprite.flash {
-  animation: virusFlash 0.25s infinite alternate;
-}
-
-@keyframes virusFlash {
-  0% {
-    filter: brightness(1);
-  }
-  100% {
-    filter: brightness(1.75);
-  }
-}
-
-.pacman-dpad-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  background: rgba(15, 23, 42, 0.75);
-  padding: 14px;
-  border: 3px solid var(--ink);
-  border-radius: 12px;
-  box-shadow: 4px 4px 0 rgba(43, 22, 19, 0.2);
-  user-select: none;
-  touch-action: none;
-}
-
-.pacman-dpad-middle-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.pacman-dpad-stick {
-  font-size: 1.5rem;
-  width: 48px;
-  height: 48px;
-  display: grid;
-  place-items: center;
-  background: rgba(0, 0, 0, 0.35);
-  border-radius: 8px;
-  border: 2px solid rgba(255, 255, 255, 0.1);
-}
-
-.pacman-dpad-btn {
-  width: 56px;
-  height: 56px;
-  min-width: 56px;
-  min-height: 56px;
-  font-size: 1.4rem;
-  padding: 0;
-  display: grid;
-  place-items: center;
-  touch-action: manipulation;
-  cursor: pointer;
-}
-
-.pacman-dpad-btn:active {
-  transform: scale(0.92);
-}
-
-@media (max-width: 960px) {
-  .pacman-board-wrap {
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  .pacman-board {
-    height: auto;
-    width: 94vw;
-    max-width: 94vw;
-  }
-
-  .pacman-topbar {
-    width: 94vw;
-    max-width: 94vw;
-  }
-
-  .pacman-dpad-container {
-    padding: 8px;
-    gap: 4px;
-  }
-
-  .pacman-dpad-middle-row {
-    gap: 4px;
-  }
-
-  .pacman-dpad-btn {
-    width: 48px;
-    height: 48px;
-    min-width: 48px;
-    min-height: 48px;
-    font-size: 1.25rem;
-  }
-
-  .pacman-dpad-stick {
-    width: 40px;
-    height: 40px;
-    font-size: 1.25rem;
   }
 }
 
