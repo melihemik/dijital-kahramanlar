@@ -995,6 +995,17 @@ button {
   z-index: 8;
 }
 
+.cup-3d-canvas-wrap {
+  position: relative;
+  width: min(84vw, 1020px);
+  height: min(56vh, 460px);
+  border: 5px solid var(--ink);
+  background: radial-gradient(circle at 50% 35%, #fff1d6 0%, #ecd4aa 65%, #cbb184 100%);
+  box-shadow: 10px 10px 0 rgba(43, 22, 19, 0.22);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
 .cup-board {
   position: relative;
   width: min(74vw, 940px);
@@ -1287,14 +1298,15 @@ button {
 
 .worm-stage {
   position: relative;
-  display: grid;
-  justify-items: center;
-  align-content: start;
-  gap: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
   width: min(94vw, 1280px);
   margin: 0 auto;
-  min-height: calc(100vh - 168px);
-  padding-top: 12px;
+  gap: 8px;
+  padding: 0;
+  max-height: calc(100vh - 160px);
 }
 
 .worm-stage-topbar {
@@ -1406,11 +1418,15 @@ button {
   display: grid;
   grid-template-columns: repeat(20, 1fr);
   grid-template-rows: repeat(12, 1fr);
-  width: 100%;
+  height: calc(100vh - 220px);
+  max-height: calc(100vh - 220px);
+  max-width: calc((100vh - 220px) * 20 / 12);
+  width: min(94vw, calc((100vh - 220px) * 20 / 12));
+  margin: 0 auto;
   aspect-ratio: 20 / 12;
-  border: 6px solid var(--ink);
-  background: rgba(255, 243, 223, 0.35);
-  box-shadow: 10px 10px 0 rgba(43, 22, 19, 0.2);
+  border: 5px solid var(--ink);
+  background: rgba(255, 243, 223, 0.45);
+  box-shadow: 6px 6px 0 rgba(43, 22, 19, 0.2);
   touch-action: none;
   user-select: none;
 }
@@ -3083,4 +3099,280 @@ button {
     min-height: 66px;
     font-size: 1.8rem;
   }
+}
+
+/* ===== Yeni Balon Oyunu ===== */
+.balloon-new-screen {
+  position: relative;
+}
+
+.balloon-new-stage {
+  position: relative;
+  min-height: calc(100vh - 168px);
+}
+
+.balloon-reset-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 10;
+}
+
+.balloon-question-panel {
+  position: relative;
+  z-index: 5;
+  max-width: 720px;
+  margin: 12px auto 0;
+  padding: 14px 28px 18px;
+  background: var(--fg);
+  border: 5px solid var(--ink);
+  box-shadow: 8px 8px 0 rgba(43, 22, 19, 0.24);
+  text-align: center;
+}
+
+.balloon-chapter-label {
+  display: block;
+  color: var(--button);
+  font-size: 1.1rem;
+  letter-spacing: 2px;
+}
+
+.balloon-question-text {
+  margin: 6px 0 4px;
+  color: var(--ink);
+  font-size: clamp(1.4rem, 2.6vw, 2.1rem);
+  line-height: 1.15;
+}
+
+.balloon-subtitle {
+  margin: 0;
+  color: var(--ink);
+  font-size: 1.05rem;
+  opacity: 0.75;
+}
+
+.balloons-flying-layer {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 100;
+  overflow: hidden;
+}
+
+.floating-balloon {
+  position: absolute;
+  width: 130px;
+  cursor: pointer;
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border: none;
+  background: transparent;
+  padding: 0;
+  outline: none;
+  animation-name: balloonFlyUpAndSway;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  transition: filter 160ms ease, transform 160ms ease;
+  will-change: top, transform;
+}
+
+.floating-balloon:hover {
+  filter: brightness(1.12) drop-shadow(0 0 10px rgba(255, 255, 255, 0.4));
+}
+
+.floating-balloon:active {
+  filter: brightness(0.92);
+}
+
+.balloon-body {
+  position: relative;
+  width: 130px;
+  height: 162px;
+  border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%;
+  background: radial-gradient(circle at 35% 26%, var(--balloon-light, #ff9ebb) 0%, var(--balloon-color, #ff598f) 45%, var(--balloon-dark, #c9184a) 95%);
+  border: 4.5px solid #2b1613;
+  box-shadow: 0 12px 24px rgba(43, 22, 19, 0.28), inset -6px -8px 0 rgba(0, 0, 0, 0.22), inset 6px 8px 0 rgba(255, 255, 255, 0.28);
+  display: grid;
+  place-items: center;
+  padding: 10px;
+}
+
+.balloon-shine-main {
+  position: absolute;
+  top: 16px;
+  left: 18px;
+  width: 26px;
+  height: 48px;
+  border-radius: 50%;
+  transform: rotate(-35deg);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.85) 0%, rgba(255, 255, 255, 0.1) 80%);
+  pointer-events: none;
+}
+
+.balloon-shine-sec {
+  position: absolute;
+  top: 24px;
+  right: 22px;
+  width: 12px;
+  height: 22px;
+  border-radius: 50%;
+  transform: rotate(25deg);
+  background: rgba(255, 255, 255, 0.45);
+  pointer-events: none;
+}
+
+.balloon-knot {
+  width: 16px;
+  height: 10px;
+  background: var(--balloon-dark, #c9184a);
+  border: 3.5px solid #2b1613;
+  border-radius: 2px 2px 5px 5px;
+  margin-top: -3px;
+  z-index: 2;
+}
+
+.balloon-string-svg {
+  width: 20px;
+  height: 70px;
+  margin-top: -2px;
+  pointer-events: none;
+  filter: drop-shadow(0 2px 2px rgba(43, 22, 19, 0.3));
+}
+
+.balloon-label {
+  position: relative;
+  z-index: 5;
+  padding: 6px 12px;
+  background: #2b1613;
+  color: #fff;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 800;
+  line-height: 1.15;
+  text-align: center;
+  word-break: break-word;
+  border-radius: 6px;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.35);
+  max-width: 110px;
+}
+
+@keyframes balloonFlyUpAndSway {
+  0% {
+    top: 105vh;
+    transform: translateX(-50%) translateX(0px) rotate(0deg);
+  }
+  20% {
+    transform: translateX(-50%) translateX(var(--sway, 22px)) rotate(3deg);
+  }
+  40% {
+    transform: translateX(-50%) translateX(calc(-1 * var(--sway, 22px))) rotate(-3deg);
+  }
+  60% {
+    transform: translateX(-50%) translateX(var(--sway, 22px)) rotate(3deg);
+  }
+  80% {
+    transform: translateX(-50%) translateX(calc(-1 * var(--sway, 22px))) rotate(-2deg);
+  }
+  100% {
+    top: -260px;
+    transform: translateX(-50%) translateX(0px) rotate(0deg);
+  }
+}
+
+/* ===== Yılan Oyunu Soru Overlay ===== */
+.worm-question-overlay {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 40;
+  pointer-events: none;
+  display: flex;
+  justify-content: center;
+  padding: 0 24px 20px;
+}
+
+.worm-question-overlay-inner {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  max-width: 900px;
+  width: 100%;
+  padding: 12px 20px;
+  background: rgba(21, 21, 26, 0.72);
+  backdrop-filter: blur(4px);
+  border: 4px solid rgba(255, 243, 223, 0.55);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+.worm-q-timer {
+  flex-shrink: 0;
+  min-width: 64px;
+  padding: 6px 8px;
+  background: var(--button);
+  border: 3px solid var(--ink);
+  color: var(--fg);
+  font-size: 1.5rem;
+  text-align: center;
+}
+
+.worm-q-text {
+  flex: 1;
+  margin: 0;
+  color: var(--fg);
+  font-size: 1.25rem;
+  line-height: 1.2;
+}
+
+.worm-q-actions {
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.worm-q-actions .pixel-button {
+  min-width: 96px;
+  min-height: 48px;
+  font-size: 1.2rem;
+}
+
+/* ===== 3D Köprü Sahnesi ===== */
+.bridge-3d-stage {
+  position: relative;
+  min-height: calc(100vh - 168px);
+}
+
+.bridge-3d-canvas-wrap {
+  position: absolute;
+  inset: 0;
+  border: 5px solid var(--ink);
+  box-shadow: 8px 8px 0 rgba(43, 22, 19, 0.24);
+  overflow: hidden;
+  background: linear-gradient(#87ceeb, #1a8fa8);
+}
+
+.bridge-3d-stage .bridge-question-panel {
+  position: absolute;
+  left: 50%;
+  bottom: 24px;
+  z-index: 10;
+  width: min(680px, calc(100% - 48px));
+  transform: translateX(-50%);
+}
+
+.bridge-3d-stage .bridge-question-panel.shake {
+  animation: bridge-panel-shake 380ms steps(6, end);
+}
+
+@keyframes bridge-panel-shake {
+  0%, 100% { transform: translateX(-50%); }
+  20% { transform: translateX(calc(-50% - 10px)); }
+  40% { transform: translateX(calc(-50% + 10px)); }
+  60% { transform: translateX(calc(-50% - 7px)); }
+  80% { transform: translateX(calc(-50% + 7px)); }
 }

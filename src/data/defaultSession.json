@@ -61,10 +61,6 @@
       "bridge": {
         "A": [],
         "B": []
-      },
-      "jar": {
-        "A": [],
-        "B": []
       }
     },
     "customPuzzles": []
@@ -93,14 +89,6 @@
       "pointsPerCorrect": 10,
       "pointsPerWrong": 0,
       "targetSteps": 7
-    },
-    {
-      "id": "jar",
-      "title": "Fanus Oyunu",
-      "durationSeconds": 90,
-      "pointsPerCorrect": 10,
-      "pointsPerWrong": -10,
-      "paperCount": 12
     },
     {
       "id": "cup",

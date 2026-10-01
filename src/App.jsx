@@ -1,3 +1,11 @@
+import { Canvas, useFrame } from "@react-three/fiber";
+import { Sky, Cloud, useGLTF, useAnimations, Html } from "@react-three/drei";
+import * as THREE from "three";
+import robotGlb from "./assets/models/robot.glb";
+import islandGlb from "./assets/models/island.glb";
+import stoneGlb from "./assets/models/stone.glb";
+import mugGlb from "./assets/models/coffeeMug.glb";
+import tableGlb from "./assets/models/table.glb";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import appLogo from "./assets/images/dkahramanlar.png";
 import puzzleA1 from "./assets/images/atakim_1-puzzle.png";
@@ -18,7 +26,6 @@ import defaultSession from "./data/defaultSession.json";
 import questionBank from "./data/questions.json";
 import wormQuestionBank from "./data/wormQuestions.json";
 import bridgeQuestionBank from "./data/bridgeQuestions.json";
-import jarQuestionBank from "./data/jarQuestions.json";
 
 const MATCH_ICON_MODULES = import.meta.glob("./assets/images/match-icons/*.svg", {
   eager: true,
@@ -171,35 +178,10 @@ const FALLBACK_BRIDGE_QUESTION_BANK = {
     }
   ]
 };
-const FALLBACK_JAR_QUESTION_BANK = {
-  A: [
-    {
-      question: "Güçlü bir şifre için hangisi daha doğrudur?",
-      answerOptions: [
-        { text: "Harf + sayı + sembol", rationale: "", isCorrect: true },
-        { text: "123456", rationale: "", isCorrect: false },
-        { text: "Sadece isim", rationale: "", isCorrect: false }
-      ],
-      hint: ""
-    }
-  ],
-  B: [
-    {
-      question: "Şüpheli link gelirse ne yapmalıyız?",
-      answerOptions: [
-        { text: "Doğrulamadan tıklamamak", rationale: "", isCorrect: true },
-        { text: "Hemen açmak", rationale: "", isCorrect: false },
-        { text: "Herkese göndermek", rationale: "", isCorrect: false }
-      ],
-      hint: ""
-    }
-  ]
-};
 const FALLBACK_QUESTION_BANK = {
   balloon: FALLBACK_TRUE_FALSE_QUESTION_BANK,
   worm: FALLBACK_TRUE_FALSE_QUESTION_BANK,
-  bridge: FALLBACK_BRIDGE_QUESTION_BANK,
-  jar: FALLBACK_JAR_QUESTION_BANK
+  bridge: FALLBACK_BRIDGE_QUESTION_BANK
 };
 const FALLBACK_GAME = {
   id: "balloon",
@@ -656,7 +638,7 @@ function createFillBlankQuestion(questionText, correctText, wrongOptions = [], e
 function normalizeCustomQuestions(rawCustomQuestions, baseCustomQuestions) {
   const normalized = clone(baseCustomQuestions);
 
-  ["balloon", "worm", "bridge", "jar"].forEach((gameId) => {
+  ["balloon", "worm", "bridge"].forEach((gameId) => {
     GROUP_KEYS.forEach((groupKey) => {
       const sourceQuestions = Array.isArray(rawCustomQuestions?.[gameId]?.[groupKey])
         ? rawCustomQuestions[gameId][groupKey]
@@ -804,32 +786,6 @@ function getQuestionsForGroup(gameId, groupKey, customQuestions = null) {
     return [...normalizedBaseBridgeQuestions, ...customBridgeQuestions];
   }
 
-  if (gameId === "jar") {
-    const jarGroupSet = jarQuestionBank?.[groupKey];
-    const otherGroupKey = groupKey === "A" ? "B" : "A";
-    const jarOtherGroupSet = jarQuestionBank?.[otherGroupKey];
-    const rawJarQuestions = Array.isArray(jarGroupSet?.questions)
-      ? jarGroupSet.questions
-      : Array.isArray(jarGroupSet)
-        ? jarGroupSet
-        : [];
-    const rawOtherJarQuestions = Array.isArray(jarOtherGroupSet?.questions)
-      ? jarOtherGroupSet.questions
-      : Array.isArray(jarOtherGroupSet)
-        ? jarOtherGroupSet
-        : [];
-    const mergedJarQuestions = [...rawJarQuestions, ...rawOtherJarQuestions];
-    const questions = mergedJarQuestions.length > 0 ? mergedJarQuestions : fallbackQuestions;
-    const normalizedBaseJarQuestions = questions.map((question, index) =>
-      normalizeQuestion(question, index, groupKey, "jar")
-    );
-    const customJarQuestions = Array.isArray(customQuestions?.jar?.[groupKey])
-      ? customQuestions.jar[groupKey]
-      : [];
-
-    return [...normalizedBaseJarQuestions, ...customJarQuestions];
-  }
-
   const groupQuestionSet = questionBank?.[gameId]?.[groupKey];
   const rawQuestions = Array.isArray(groupQuestionSet)
     ? groupQuestionSet
@@ -956,40 +912,6 @@ function resolveCurrentBridgeQuestion(session) {
   return byId ?? questions[0];
 }
 
-function getJarQuestionPool(session, groupKey) {
-  return getQuestionsForGroup(
-    "jar",
-    groupKey,
-    session?.settings?.customQuestions
-  );
-}
-
-function assignNextJarQuestion(session, groupKey) {
-  const turn = session.gameState.turns[groupKey];
-  const questions = getJarQuestionPool(session, groupKey);
-  const picked = pickRandomQuestionWithoutRepeat(questions, turn.askedQuestionIds);
-
-  turn.askedQuestionIds = picked.askedQuestionIds;
-  turn.currentQuestionId = picked.question?.id ?? null;
-}
-
-function resolveCurrentJarQuestion(session) {
-  const groupKey = session?.activeGroup ?? "A";
-  const turn = session?.gameState?.turns?.[groupKey];
-  const questions = getJarQuestionPool(session, groupKey);
-
-  if (questions.length === 0) {
-    return normalizeQuestion(
-      getFallbackQuestions("jar", groupKey)[0],
-      0,
-      groupKey,
-      "jar"
-    );
-  }
-
-  const byId = questions.find((question) => question.id === turn?.currentQuestionId);
-  return byId ?? questions[0];
-}
 
 function normalizeSession(rawSession) {
   const base = clone(defaultSession);
@@ -1378,13 +1300,7 @@ function App() {
 
     return resolveCurrentBridgeQuestion(data);
   }, [activeGame?.id, data]);
-  const activeJarQuestion = useMemo(() => {
-    if (!data || activeGame?.id !== "jar") {
-      return null;
-    }
 
-    return resolveCurrentJarQuestion(data);
-  }, [activeGame?.id, data]);
   const timeLeft = useMemo(() => {
     if (!data) return 0;
     return getTimeLeft(data, now);
@@ -1522,7 +1438,7 @@ function App() {
       }
 
       const safeGameId =
-        gameId === "worm" || gameId === "bridge" || gameId === "jar"
+        gameId === "worm" || gameId === "bridge"
           ? gameId
           : "balloon";
       const safeGroupKey = groupKey === "B" ? "B" : "A";
@@ -1533,7 +1449,7 @@ function App() {
       const customQuestionId = `custom-${safeGameId}-${safeGroupKey}-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
       let normalizedQuestion;
 
-      if (safeGameId === "bridge" || safeGameId === "jar") {
+      if (safeGameId === "bridge") {
         const safeCorrectOptionText = String(correctOptionText ?? "").trim();
         const safeWrongOptions = Array.isArray(wrongOptionTexts)
           ? wrongOptionTexts
@@ -1617,7 +1533,7 @@ function App() {
     }
 
     const safeGameId =
-      gameId === "worm" || gameId === "bridge" || gameId === "jar"
+      gameId === "worm" || gameId === "bridge"
         ? gameId
         : "balloon";
     const safeGroupKey = groupKey === "B" ? "B" : "A";
@@ -1937,53 +1853,6 @@ function App() {
     [activeGame, data, persistSession]
   );
 
-  const openJarQuestion = useCallback(async () => {
-    if (
-      !data ||
-      data.phase !== "playing" ||
-      data.roundStatus !== "running" ||
-      activeGame?.id !== "jar"
-    ) {
-      return false;
-    }
-
-    const nextSession = clone(data);
-    const groupKey = nextSession.activeGroup;
-    assignNextJarQuestion(nextSession, groupKey);
-    await persistSession(nextSession);
-    return true;
-  }, [activeGame?.id, data, persistSession]);
-
-  const answerJarQuestion = useCallback(
-    async (isCorrect) => {
-      if (
-        !data ||
-        data.phase !== "playing" ||
-        data.roundStatus !== "running" ||
-        activeGame?.id !== "jar"
-      ) {
-        return;
-      }
-
-      const nextSession = clone(data);
-      const groupKey = nextSession.activeGroup;
-      const turn = nextSession.gameState.turns[groupKey];
-      turn.answered += 1;
-      turn.questionIndex += 1;
-
-      if (isCorrect) {
-        turn.correct += 1;
-        nextSession.groups[groupKey].score = Math.max(0, nextSession.groups[groupKey].score + 10);
-      } else {
-        nextSession.groups[groupKey].score = Math.max(0, nextSession.groups[groupKey].score - 10);
-      }
-
-      turn.currentQuestionId = null;
-      playAnswerFeedbackSound(isCorrect);
-      await persistSession(nextSession);
-    },
-    [activeGame?.id, data, persistSession]
-  );
 
   const answerCupGuess = useCallback(
     async (isCorrect) => {
@@ -2102,8 +1971,6 @@ function App() {
       nextSession = makeSession("worm");
     } else if (sceneKey === "bridge") {
       nextSession = makeSession("bridge");
-    } else if (sceneKey === "jar") {
-      nextSession = makeSession("jar");
     } else if (sceneKey === "cup") {
       nextSession = makeSession("cup");
     } else if (sceneKey === "match") {
@@ -2179,10 +2046,6 @@ function App() {
       bridge: {
         A: getQuestionsForGroup("bridge", "A", data.settings.customQuestions),
         B: getQuestionsForGroup("bridge", "B", data.settings.customQuestions)
-      },
-      jar: {
-        A: getQuestionsForGroup("jar", "A", data.settings.customQuestions),
-        B: getQuestionsForGroup("jar", "B", data.settings.customQuestions)
       }
     };
 
@@ -2193,20 +2056,16 @@ function App() {
         customPuzzles={data.settings.customPuzzles}
         customQuestionCounts={{
           balloon: {
-            A: data.settings.customQuestions.balloon.A.length,
-            B: data.settings.customQuestions.balloon.B.length
+            A: data.settings.customQuestions?.balloon?.A?.length ?? 0,
+            B: data.settings.customQuestions?.balloon?.B?.length ?? 0
           },
           worm: {
-            A: data.settings.customQuestions.worm.A.length,
-            B: data.settings.customQuestions.worm.B.length
+            A: data.settings.customQuestions?.worm?.A?.length ?? 0,
+            B: data.settings.customQuestions?.worm?.B?.length ?? 0
           },
           bridge: {
-            A: data.settings.customQuestions.bridge.A.length,
-            B: data.settings.customQuestions.bridge.B.length
-          },
-          jar: {
-            A: data.settings.customQuestions.jar.A.length,
-            B: data.settings.customQuestions.jar.B.length
+            A: data.settings.customQuestions?.bridge?.A?.length ?? 0,
+            B: data.settings.customQuestions?.bridge?.B?.length ?? 0
           }
         }}
         developerMode={data.settings.developerMode}
@@ -2322,27 +2181,6 @@ function App() {
       );
     }
 
-    if (activeGame?.id === "jar") {
-      return (
-        <>
-          <JarGame
-            activeGame={activeGame}
-            activeGroup={data.activeGroup}
-            activeTurn={activeTurn}
-            groups={data.groups}
-            isRunning={data.roundStatus === "running"}
-            onAnswer={answerJarQuestion}
-            onCatchPaper={openJarQuestion}
-            onReset={resetProgress}
-            onStartTurn={startTurn}
-            question={activeJarQuestion}
-            timeLeft={timeLeft}
-          />
-          {settingsButton}
-          {developerNav}
-        </>
-      );
-    }
 
     if (activeGame?.id === "cup") {
       return (
@@ -2501,7 +2339,6 @@ function DeveloperQuickNav({ onJump, onOpenSettings }) {
     { key: "balloon", label: "Balon" },
     { key: "worm", label: "Yılan" },
     { key: "bridge", label: "Boşluk" },
-    { key: "jar", label: "Fanus" },
     { key: "cup", label: "Bardak" },
     { key: "match", label: "Eşleştir" },
     { key: "balloonTransition", label: "Patlat" },
@@ -3036,27 +2873,6 @@ function SettingsScreen({
           />
         </div>
 
-        <h3>Fanus Oyunu Soruları</h3>
-        <div className="settings-grid two-col">
-          <MultipleChoiceQuestionAdder
-            count={customQuestionCounts.jar.A}
-            gameId="jar"
-            groupKey="A"
-            allQuestions={allQuestions.jar.A}
-            label="A Grubu"
-            onAddQuestion={onAddQuestion}
-            onRemoveQuestion={onRemoveQuestion}
-          />
-          <MultipleChoiceQuestionAdder
-            count={customQuestionCounts.jar.B}
-            gameId="jar"
-            groupKey="B"
-            allQuestions={allQuestions.jar.B}
-            label="B Grubu"
-            onAddQuestion={onAddQuestion}
-            onRemoveQuestion={onRemoveQuestion}
-          />
-        </div>
 
         <h3>Puzzle Görseli Ekle</h3>
         <div className="settings-upload">
@@ -3122,6 +2938,20 @@ function PuzzleSetupScreen({ activeDifficulty, onContinue, onReset, onSetDifficu
   );
 }
 
+const BALLOON_COLORS = ["#FF6B6B","#4ECDC4","#FFE66D","#A8E6CF","#FF8B94","#DDA0DD","#87CEEB","#FFA07A","#98FB98","#F0E68C"];
+const BALLOON_POSITIONS = [
+  {x:10,y:38},{x:25,y:55},{x:42,y:32},{x:55,y:58},{x:72,y:35},{x:85,y:55},
+  {x:15,y:68},{x:35,y:72},{x:50,y:45},{x:65,y:68},{x:80,y:42},{x:30,y:42}
+];
+
+const BALLOON_PALETTES = [
+  { main: "#ff598f", light: "#ff9ebb", dark: "#c9184a" },
+  { main: "#00b4d8", light: "#90e0ef", dark: "#0077b6" },
+  { main: "#ffb703", light: "#ffe169", dark: "#fb8500" },
+  { main: "#06d6a0", light: "#80ed99", dark: "#059669" },
+  { main: "#a370f7", light: "#d8bbff", dark: "#7928ca" }
+];
+
 function BalloonGame({
   activeGame,
   activeGroup,
@@ -3135,6 +2965,7 @@ function BalloonGame({
   timeLeft
 }) {
   const [burst, setBurst] = useState(null);
+  const [balloons, setBalloons] = useState([]);
   const fallbackQuestion = normalizeQuestion(
     getFallbackQuestions("balloon", activeGroup)[0],
     0,
@@ -3143,11 +2974,55 @@ function BalloonGame({
   );
   const visibleQuestion = question ?? fallbackQuestion;
   const choices = getAnswerChoices(visibleQuestion);
-  const balloonLevel = activeTurn?.balloonLevel ?? 0;
-  const bubbleSize = Math.min(560, 150 + balloonLevel * 42);
+
+  useEffect(() => {
+    if (!isRunning || !visibleQuestion) return;
+    const correctChoice = choices.find((c) => c.isCorrect);
+    let wrongChoices = choices.filter((c) => !c.isCorrect);
+    const decoys = [
+      { text: "sadece isim", isCorrect: false },
+      { text: "1111", isCorrect: false },
+      { text: "adın + yaş", isCorrect: false },
+      { text: "telefon no", isCorrect: false },
+      { text: "000000", isCorrect: false },
+      { text: "abc", isCorrect: false }
+    ];
+
+    let allWrong = shuffle([...wrongChoices, ...decoys]);
+    let selectedWrong = allWrong.slice(0, 4);
+
+    const allOptions = shuffle([correctChoice, ...selectedWrong].filter(Boolean));
+    const lanes = [10, 29, 49, 69, 88];
+    const delays = [0, -2.8, -5.6, -8.4, -11.2];
+    const sways = [24, -20, 22, -25, 20];
+    const shuffledPalettes = shuffle([...BALLOON_PALETTES]);
+
+    setBalloons(
+      allOptions.slice(0, 5).map((opt, i) => ({
+        id: `balloon-${visibleQuestion.id}-${i}-${opt.text}`,
+        text: opt.text,
+        isCorrect: opt.isCorrect,
+        x: lanes[i % lanes.length],
+        duration: 13.5,
+        delay: delays[i % delays.length],
+        sway: sways[i % sways.length],
+        palette: shuffledPalettes[i % shuffledPalettes.length]
+      }))
+    );
+  }, [isRunning, visibleQuestion?.id, activeGroup]);
+
+  const handleBalloonClick = useCallback(
+    (balloon) => {
+      if (balloon.isCorrect) {
+        setBurst((p) => nextBurstState(p));
+      }
+      onAnswer(balloon.isCorrect);
+    },
+    [onAnswer]
+  );
 
   return (
-    <main className="app-screen game-screen">
+    <main className="app-screen game-screen balloon-new-screen">
       <header className="game-header">
         <ScoreBox label="A Grubu" score={groups.A.score} active={activeGroup === "A"} />
         <div className="timer-box">{formatTime(timeLeft)}</div>
@@ -3163,41 +3038,48 @@ function BalloonGame({
           <IconActionButton actionType="reset" className="small-button reset-button" onClick={onReset} />
         </section>
       ) : (
-        <section className="balloon-stage" aria-label="Balon oyunu">
-          <IconActionButton actionType="reset" className="small-button reset-button" onClick={onReset} />
-          <div
-            className="question-bubble"
-            key={`${activeGroup}-${balloonLevel}`}
-            style={{ "--bubble-size": `${bubbleSize}px` }}
-          >
-            <span className="balloon-shine" />
-          </div>
-          <div className="question-answer-block">
-            <div className="question-card">{visibleQuestion.question}</div>
-            <div className="answer-row">
-              {choices.map((choice) => (
-                <button
-                  className={`pixel-button answer-button ${
-                    choice.text === "Doğru"
-                      ? "true-answer-button"
-                      : "false-answer-button"
-                  }`}
-                  key={`${choice.text}-${choice.isCorrect}`}
-                  onClick={() => {
-                    if (choice.isCorrect) {
-                      setBurst((previousBurst) => nextBurstState(previousBurst));
-                    }
-                    onAnswer(choice.isCorrect);
-                  }}
-                >
-                  {choice.text}
-                </button>
-              ))}
-            </div>
+        <section className="balloon-new-stage">
+          <IconActionButton actionType="reset" className="small-button reset-button balloon-reset-btn" onClick={onReset} />
+          <div className="balloon-question-panel">
+            <span className="balloon-chapter-label">KAPI 1</span>
+            <h2 className="balloon-question-text">{visibleQuestion.question}</h2>
+            <p className="balloon-subtitle">Doğru cevabı taşıyan balonu patlat.</p>
           </div>
           <CelebrationBurst burst={burst} />
         </section>
       )}
+
+      {isRunning ? (
+        <div className="balloons-flying-layer" aria-label="Uçan Balonlar">
+          {balloons.map((b) => (
+            <button
+              key={b.id}
+              className="floating-balloon"
+              style={{
+                left: `${b.x}%`,
+                animationDuration: `${b.duration}s`,
+                animationDelay: `${b.delay}s`,
+                "--balloon-color": b.palette.main,
+                "--balloon-light": b.palette.light,
+                "--balloon-dark": b.palette.dark,
+                "--sway": `${b.sway}px`
+              }}
+              onClick={() => handleBalloonClick(b)}
+              type="button"
+            >
+              <div className="balloon-body">
+                <div className="balloon-shine-main" />
+                <div className="balloon-shine-sec" />
+                <span className="balloon-label">{b.text}</span>
+              </div>
+              <div className="balloon-knot" />
+              <svg className="balloon-string-svg" viewBox="0 0 20 70">
+                <path d="M10,0 Q3,20 13,40 T10,70" stroke="#2b1613" strokeWidth="2.5" fill="none" />
+              </svg>
+            </button>
+          ))}
+        </div>
+      ) : null}
     </main>
   );
 }
@@ -3329,6 +3211,100 @@ function BalloonTransitionScreen({ onContinue, onPop, onReset, popped }) {
         ) : null}
       </section>
     </main>
+  );
+}
+
+function IslandModel({ position, scale = [1.6, 1.2, 1.6], rotation = [0, 0, 0] }) {
+  const { scene } = useGLTF(islandGlb);
+  const cloned = useMemo(() => scene.clone(), [scene]);
+  return <primitive object={cloned} position={position} scale={scale} rotation={rotation} receiveShadow castShadow />;
+}
+
+function Stone3D({ position, scale = [0.75, 0.55, 0.75] }) {
+  const { scene } = useGLTF(stoneGlb);
+  const cloned = useMemo(() => scene.clone(), [scene]);
+  return <primitive object={cloned} position={position} scale={scale} receiveShadow castShadow />;
+}
+
+function AnimatedRobot({ targetPos, isJumping }) {
+  const groupRef = useRef();
+  const { scene, animations } = useGLTF(robotGlb);
+  const cloned = useMemo(() => scene.clone(), [scene]);
+  const { actions } = useAnimations(animations, groupRef);
+
+  useEffect(() => {
+    if (actions?.Idle) {
+      actions.Idle.reset().fadeIn(0.2).play();
+    }
+  }, [actions]);
+
+  useEffect(() => {
+    if (isJumping && actions) {
+      if (actions.Jump) {
+        actions.Jump.reset().fadeIn(0.08).play();
+      }
+      const timer = window.setTimeout(() => {
+        actions.Jump?.fadeOut(0.2);
+        actions.Idle?.reset().fadeIn(0.2).play();
+      }, 520);
+      return () => window.clearTimeout(timer);
+    }
+  }, [isJumping, actions]);
+
+  useFrame((_, delta) => {
+    if (!groupRef.current) return;
+    groupRef.current.position.x = THREE.MathUtils.lerp(groupRef.current.position.x, targetPos[0], delta * 7);
+    groupRef.current.position.z = THREE.MathUtils.lerp(groupRef.current.position.z, targetPos[2], delta * 7);
+    const targetY = isJumping ? targetPos[1] + 1.35 : targetPos[1];
+    groupRef.current.position.y = THREE.MathUtils.lerp(groupRef.current.position.y, targetY, delta * (isJumping ? 14 : 9));
+  });
+
+  return (
+    <group ref={groupRef} position={[targetPos[0], targetPos[1], targetPos[2]]}>
+      <primitive object={cloned} scale={[0.36, 0.36, 0.36]} rotation={[0, Math.PI / 2, 0]} castShadow />
+    </group>
+  );
+}
+
+function Water() {
+  const meshRef = useRef();
+  useFrame((state) => {
+    if (meshRef.current) {
+      meshRef.current.position.y = -0.3 + Math.sin(state.clock.elapsedTime * 0.8) * 0.05;
+    }
+  });
+  return (
+    <mesh ref={meshRef} rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.3, 0]} receiveShadow>
+      <planeGeometry args={[60, 60]} />
+      <meshStandardMaterial color="#1a8fa8" transparent opacity={0.7} roughness={0.1} metalness={0.3} />
+    </mesh>
+  );
+}
+
+function Mountains() {
+  return (
+    <group position={[0, 0, -15]}>
+      <mesh position={[-8, 2, 0]}>
+        <coneGeometry args={[5, 6, 4]} />
+        <meshStandardMaterial color="#5a7a5a" roughness={0.9} />
+      </mesh>
+      <mesh position={[-3, 3.5, -2]}>
+        <coneGeometry args={[6, 8, 4]} />
+        <meshStandardMaterial color="#4a6a4a" roughness={0.9} />
+      </mesh>
+      <mesh position={[3, 2.5, -1]}>
+        <coneGeometry args={[4.5, 5, 4]} />
+        <meshStandardMaterial color="#6a8a6a" roughness={0.9} />
+      </mesh>
+      <mesh position={[8, 3, 0]}>
+        <coneGeometry args={[5.5, 7, 4]} />
+        <meshStandardMaterial color="#4a6a4a" roughness={0.9} />
+      </mesh>
+      <mesh position={[0, 4, -3]}>
+        <coneGeometry args={[7, 9, 4]} />
+        <meshStandardMaterial color="#3a5a3a" roughness={0.9} />
+      </mesh>
+    </group>
   );
 }
 
@@ -3468,8 +3444,30 @@ function BridgeGame({
     }, 120);
   }, [isAnswerLocked, isRunning, onAnswer, solvedSteps, targetSteps]);
 
+  const stonePositions = useMemo(() => {
+    const stones = [];
+    const startX = -4.0;
+    const endX = 4.0;
+    for (let i = 0; i < targetSteps; i++) {
+      const stepX = startX + ((i + 0.5) / targetSteps) * (endX - startX);
+      stones.push([stepX, -0.15, (i % 2 === 0 ? 0.35 : -0.35)]);
+    }
+    return stones;
+  }, [targetSteps]);
+
+  const robotTargetPos = useMemo(() => {
+    if (solvedSteps <= 0) {
+      return [-5.6, 0.45, 0];
+    }
+    if (solvedSteps >= targetSteps) {
+      return [5.6, 0.45, 0];
+    }
+    const currentStone = stonePositions[solvedSteps - 1];
+    return [currentStone[0], 0.28, currentStone[2]];
+  }, [solvedSteps, stonePositions, targetSteps]);
+
   return (
-    <main className="app-screen game-screen bridge-screen" style={bridgeBoardStyle}>
+    <main className="app-screen game-screen bridge-screen">
       <header className="game-header">
         <ScoreBox label="A Grubu" score={groups.A.score} active={activeGroup === "A"} />
         <div className="timer-box">{formatTime(timeLeft)}</div>
@@ -3479,97 +3477,140 @@ function BridgeGame({
       {!isRunning ? (
         <section className="turn-start" aria-label="Tur başlangıcı">
           <div className="turn-label">{groups[activeGroup].name}</div>
-          <button className="pixel-button start-button" onClick={onStartTurn}>
-            Başlat
-          </button>
+          <button className="pixel-button start-button" onClick={onStartTurn}>Başlat</button>
           <IconActionButton actionType="reset" className="small-button reset-button" onClick={onReset} />
         </section>
       ) : (
-        <section className="bridge-stage">
+        <section className="bridge-stage bridge-3d-stage">
           <IconActionButton actionType="reset" className="small-button reset-button" onClick={onReset} />
-          <div className="bridge-board">
-            <div className={`bridge-question-panel ${isShaking ? "shake" : ""}`}>
-              <div className="bridge-question-top">
-                <h3>Boşluk Doldurma</h3>
-                <span className="bridge-step-chip">
-                  {Math.min(currentStepLabel, targetSteps)} / {targetSteps}
-                </span>
-              </div>
-              <p className="bridge-question-text">
-                {questionParts.map((part, index) => (
-                  <span key={`segment-${index}`}>
-                    {part}
-                    {index < questionParts.length - 1 ? (
-                      <span className="bridge-blank">____</span>
-                    ) : null}
-                  </span>
-                ))}
-              </p>
-              <div className="bridge-options">
-                {options.map((choice, index) => (
-                  <button
-                    className="pixel-button bridge-option-button"
-                    disabled={isAnswerLocked || solvedSteps >= targetSteps}
-                    key={`${choice.text}-${index}`}
-                    onClick={() => {
-                      void handleChoice(choice);
-                    }}
-                    type="button"
-                  >
-                    {choice.text}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div className="bridge-sky-deco" aria-hidden="true">
-              <span className="bridge-cloud cloud-one" />
-              <span className="bridge-cloud cloud-two" />
-              <span className="bridge-cloud cloud-three" />
-            </div>
-            <div className="bridge-water-body" aria-hidden="true" />
-            <div className="bridge-waterline" aria-hidden="true" />
-            <div className="bridge-rocks-layer" aria-hidden="true">
-              {bridgeRocks.map((rock, index) => (
-                <span
-                  className="bridge-rock"
-                  key={`rock-${index}`}
-                  style={{
-                    "--rock-x": `${rock.x}%`,
-                    "--rock-y": `${rock.y}%`,
-                    "--rock-scale": rock.scale,
-                    "--rock-image": "var(--bridge-rock-url)"
-                  }}
-                />
+          <div className="bridge-3d-canvas-wrap">
+            <Canvas shadows camera={{ position: [0, 4.5, 8.5], fov: 48 }}>
+              <Sky sunPosition={[100, 25, 100]} turbidity={2} rayleigh={1} />
+              <Cloud position={[-10, 8, -10]} speed={0.2} opacity={0.4} />
+              <Cloud position={[10, 9, -8]} speed={0.15} opacity={0.3} />
+              <ambientLight intensity={0.65} />
+              <directionalLight position={[6, 12, 6]} intensity={1.4} castShadow shadow-mapSize={[1024, 1024]} />
+              <Water />
+              <Mountains />
+
+              {/* Sol Başlangıç Adası */}
+              <IslandModel position={[-6.2, -0.4, 0]} scale={[1.8, 1.3, 1.8]} />
+
+              {/* Sağ Bitiş Adası */}
+              <IslandModel position={[6.2, -0.4, 0]} scale={[1.8, 1.3, 1.8]} rotation={[0, Math.PI, 0]} />
+
+              {/* İki ada arasındaki adım taşları */}
+              {stonePositions.map((pos, i) => (
+                <Stone3D key={i} position={pos} scale={[0.72, 0.55, 0.72]} />
               ))}
+
+              {/* Taşların üstünden zıplayan 3D animasyonlu Robot */}
+              <AnimatedRobot targetPos={robotTargetPos} isJumping={isJumping} />
+            </Canvas>
+          </div>
+          <div className={`bridge-question-panel ${isShaking ? "shake" : ""}`}>
+            <div className="bridge-question-top">
+              <h3>Boşluk Doldurma</h3>
+              <span className="bridge-step-chip">
+                {Math.min(currentStepLabel, targetSteps)} / {targetSteps}
+              </span>
             </div>
-            <div className="bridge-path-wrap">
-              <div
-                className="bridge-path"
-                style={{ gridTemplateColumns: `repeat(${targetSteps}, minmax(0, 1fr))` }}
-              >
-                {bridgeTiles.map((tileIndex) => (
-                  <div
-                    className={`bridge-tile ${
-                      tileIndex < solvedSteps ? "completed" : ""
-                    } ${tileIndex === heroIndex ? "active" : ""}`}
-                    key={tileIndex}
-                    style={{ "--tile-index": tileIndex }}
-                  />
-                ))}
-              </div>
-              <div
-                className={`bridge-hero ${isJumping ? "jump moving" : "idle"}`}
-                style={{ left: `calc(${heroPositionPercent}% - 130px)` }}
-              >
-                <span className="bridge-hero-shadow" />
-                <span className="bridge-hero-pixel" />
-              </div>
+            <p className="bridge-question-text">
+              {questionParts.map((part, index) => (
+                <span key={`segment-${index}`}>
+                  {part}
+                  {index < questionParts.length - 1 ? (
+                    <span className="bridge-blank">____</span>
+                  ) : null}
+                </span>
+              ))}
+            </p>
+            <div className="bridge-options">
+              {options.map((choice, index) => (
+                <button
+                  className="pixel-button bridge-option-button"
+                  disabled={isAnswerLocked || solvedSteps >= targetSteps}
+                  key={`${choice.text}-${index}`}
+                  onClick={() => {
+                    void handleChoice(choice);
+                  }}
+                  type="button"
+                >
+                  {choice.text}
+                </button>
+              ))}
             </div>
           </div>
           <CelebrationBurst burst={burst} />
         </section>
       )}
     </main>
+  );
+}
+
+function Table3D({ position = [0, -2.1, 0], scale = [0.022, 0.022, 0.022] }) {
+  const { scene } = useGLTF(tableGlb);
+  const cloned = useMemo(() => scene.clone(), [scene]);
+  return <primitive object={cloned} position={position} scale={scale} receiveShadow castShadow />;
+}
+
+function Cup3DItem({
+  slot,
+  isLifted,
+  isTarget,
+  hiddenIconUrl,
+  onClick,
+  canGuess
+}) {
+  const meshRef = useRef();
+  const { scene } = useGLTF(mugGlb);
+  const cloned = useMemo(() => scene.clone(), [scene]);
+
+  const slotX = (slot - 1) * 2.5;
+  const targetY = isLifted ? 2.6 : 0.02;
+
+  useFrame((_, delta) => {
+    if (!meshRef.current) return;
+    meshRef.current.position.x = THREE.MathUtils.lerp(meshRef.current.position.x, slotX, delta * 9);
+    meshRef.current.position.y = THREE.MathUtils.lerp(meshRef.current.position.y, targetY, delta * 8);
+    meshRef.current.position.z = THREE.MathUtils.lerp(meshRef.current.position.z, 0, delta * 9);
+  });
+
+  return (
+    <group>
+      {isTarget ? (
+        <group position={[slotX, 0.015, 0]}>
+          <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+            <circleGeometry args={[0.55, 32]} />
+            <meshStandardMaterial color="#ffffff" roughness={0.3} />
+          </mesh>
+          <Html position={[0, 0.03, 0]} transform rotation={[-Math.PI / 2, 0, 0]} scale={0.11}>
+            <div style={{ width: 80, height: 80, display: "grid", placeItems: "center", pointerEvents: "none" }}>
+              <img src={hiddenIconUrl} alt="" style={{ width: 60, height: 60, objectFit: "contain" }} />
+            </div>
+          </Html>
+        </group>
+      ) : null}
+
+      <group
+        ref={meshRef}
+        position={[slotX, targetY, 0]}
+        onClick={(e) => {
+          e.stopPropagation();
+          if (canGuess) {
+            onClick?.();
+          }
+        }}
+        onPointerOver={() => {
+          if (canGuess) document.body.style.cursor = "pointer";
+        }}
+        onPointerOut={() => {
+          document.body.style.cursor = "default";
+        }}
+      >
+        <primitive object={cloned} scale={[0.26, 0.26, 0.26]} rotation={[Math.PI, 0, 0]} castShadow />
+      </group>
+    </group>
   );
 }
 
@@ -3810,42 +3851,38 @@ function CupGame({
       ) : (
         <section className="cup-stage">
           <IconActionButton actionType="reset" className="small-button reset-button" onClick={onReset} />
-          <div className="cup-board" aria-label="Bardak oyunu">
-            <span
-              aria-hidden="true"
-              className={`cup-board-icon ${revealIcon ? "visible" : ""}`}
-              style={{ left: `${16.7 + targetSlot * 33.3}%` }}
-            >
-              <img
-                alt=""
-                src={hiddenIcon.imageUrl}
-              />
-            </span>
-            {[0, 1, 2].map((cupId) => {
-              const slot = slotByCup[cupId];
-              const isTargetCup = targetCupId === cupId;
-              const isPeekCup =
-                (phase === "peek-up" || phase === "peek-down" || phase === "result") &&
-                isTargetCup;
-              const isPeekUp = (phase === "peek-up" || phase === "result") && isPeekCup;
+          
+          <div className="cup-3d-canvas-wrap" aria-label="3D Bardak Oyunu">
+            <Canvas camera={{ position: [0, 2.7, 5.8], fov: 46 }} shadows>
+              <ambientLight intensity={0.75} />
+              <directionalLight position={[6, 12, 6]} intensity={1.6} castShadow shadow-mapSize={[1024, 1024]} />
+              <pointLight position={[0, 4, 2]} intensity={0.5} />
 
-              return (
-                <button
-                  aria-label={`Bardak ${cupId + 1}`}
-                  className={`cup-item ${phase === "shuffle" ? "shuffle-moving" : "snap-position"} ${isPeekCup ? "peek-cup" : ""} ${isPeekUp ? "peek-up" : ""}`}
-                  disabled={!canGuess}
-                  key={`cup-${cupId}`}
-                  onClick={() => {
-                    void handleCupPick(cupId);
-                  }}
-                  style={{ left: `${16.7 + slot * 33.3}%` }}
-                  type="button"
-                >
-                  <span className="cup-item-rim" />
-                  <span className="cup-item-body" />
-                </button>
-              );
-            })}
+              {/* Gerçekçi 3D Masa */}
+              <Table3D position={[0, -2.1, 0]} scale={[0.022, 0.022, 0.022]} />
+
+              {/* 3 Adet Gerçekçi 3D Bardak */}
+              {[0, 1, 2].map((cupId) => {
+                const slot = slotByCup[cupId];
+                const isTarget = targetCupId === cupId;
+                const isPeekCup =
+                  (phase === "peek-up" || phase === "peek-down" || phase === "result") &&
+                  isTarget;
+                const isLifted = (phase === "peek-up" || phase === "result") && isPeekCup;
+
+                return (
+                  <Cup3DItem
+                    key={cupId}
+                    slot={slot}
+                    isLifted={isLifted}
+                    isTarget={isTarget}
+                    hiddenIconUrl={hiddenIcon.imageUrl}
+                    onClick={() => void handleCupPick(cupId)}
+                    canGuess={canGuess}
+                  />
+                );
+              })}
+            </Canvas>
           </div>
 
           <div className="cup-meta">
@@ -4098,363 +4135,6 @@ function MatchingGame({
   );
 }
 
-function JarGame({
-  activeGame,
-  activeGroup,
-  activeTurn,
-  groups,
-  isRunning,
-  onAnswer,
-  onCatchPaper,
-  onReset,
-  onStartTurn,
-  question,
-  timeLeft
-}) {
-  const [burst, setBurst] = useState(null);
-  const [papers, setPapers] = useState([]);
-  // hookPos: kanca pozisyonu viewport'a göre (px). null = olta ucunda bekliyor.
-  const [hookPos, setHookPos] = useState(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const [caughtPaperId, setCaughtPaperId] = useState(null);
-  const [answeredPaperIds, setAnsweredPaperIds] = useState(new Set());
-  const [isJarShaking, setIsJarShaking] = useState(false);
-  const bowlRef = useRef(null);
-  const rodTipRef = useRef(null);
-  const hookRef = useRef(null);
-  const paperRefs = useRef({});
-  const paperCount = Math.max(8, Number(activeGame?.paperCount) || 12);
-  const activeQuestion = question && activeTurn?.currentQuestionId ? question : null;
-
-  // Olta ucunun viewport pozisyonu (SVG çizgisi için)
-  const getRodTipPos = useCallback(() => {
-    if (!rodTipRef.current) return { x: window.innerWidth - 80, y: 120 };
-    const r = rodTipRef.current.getBoundingClientRect();
-    return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
-  }, []);
-
-  const createPaperLayout = useCallback(() => {
-    return Array.from({ length: paperCount }, (_, index) => ({
-      id: `paper-${index + 1}`,
-      x: 30 + (index % 4) * 12 + Math.random() * 5,
-      y: 66 + Math.floor(index / 4) * 8 + Math.random() * 4,
-      rotate: -6 + Math.random() * 12,
-      caught: false
-    }));
-  }, [paperCount]);
-
-  useEffect(() => {
-    if (isRunning) {
-      setPapers(createPaperLayout());
-      setHookPos(null);
-      setIsDragging(false);
-      setCaughtPaperId(null);
-      setAnsweredPaperIds(new Set());
-    }
-  }, [createPaperLayout, isRunning, activeGroup]);
-
-  useEffect(() => {
-    if (!isJarShaking) return undefined;
-    const timer = window.setTimeout(() => setIsJarShaking(false), 420);
-    return () => window.clearTimeout(timer);
-  }, [isJarShaking]);
-
-  const randomizePapers = useCallback((event) => {
-    if (caughtPaperId || isDragging) return;
-    event.stopPropagation();
-    setPapers((previous) =>
-      previous.map((paper) => ({
-        ...paper,
-        x: Math.max(24, Math.min(78, paper.x + (-6 + Math.random() * 12))),
-        y: Math.max(60, Math.min(86, paper.y + (-6 + Math.random() * 12))),
-        rotate: -8 + Math.random() * 16
-      }))
-    );
-    setIsJarShaking(true);
-  }, [caughtPaperId, isDragging]);
-
-  // Kanca sürükleme — window üzerinde dinle (capture kaybetme sorunu yok)
-  const draggingRef = useRef(false);
-  const caughtPaperIdRef = useRef(null);
-  const activeQuestionRef = useRef(null);
-  caughtPaperIdRef.current = caughtPaperId;
-  activeQuestionRef.current = activeQuestion;
-
-  const resetHook = useCallback(() => {
-    draggingRef.current = false;
-    caughtPaperIdRef.current = null;
-    setIsDragging(false);
-    setCaughtPaperId(null);
-    setHookPos(null);
-  }, []);
-
-  const onHookPointerDown = useCallback((event) => {
-    if (!isRunning || activeQuestionRef.current) return;
-    // Eğer önceki turdan kanca takılı kaldıysa sıfırla
-    if (caughtPaperIdRef.current) {
-      resetHook();
-      return;
-    }
-    event.preventDefault();
-    draggingRef.current = true;
-    setIsDragging(true);
-    setHookPos({ x: event.clientX, y: event.clientY });
-  }, [isRunning, resetHook]);
-
-  // Global pointermove/up — pencere düzeyinde dinleyerek kaçırma sorununu önle
-  const lastHookPosRef = useRef(null);
-
-  useEffect(() => {
-    if (!isRunning) return undefined;
-
-    const onMove = (event) => {
-      if (!draggingRef.current) return;
-      const pos = { x: event.clientX, y: event.clientY };
-      lastHookPosRef.current = pos;
-      setHookPos(pos);
-
-      // Kağıt yakalanmadıysa çarpışma kontrolü
-      if (!caughtPaperIdRef.current && !activeQuestionRef.current) {
-        for (const paper of Object.values(paperRefs.current)) {
-          if (!paper) continue;
-          const r = paper.getBoundingClientRect();
-          if (
-            pos.x >= r.left && pos.x <= r.right &&
-            pos.y >= r.top && pos.y <= r.bottom
-          ) {
-            const pid = paper.dataset.paperid;
-            if (!pid) continue;
-            caughtPaperIdRef.current = pid;
-            setCaughtPaperId(pid);
-            setPapers((prev) => prev.map((p) => p.id === pid ? { ...p, caught: true } : p));
-            break;
-          }
-        }
-      }
-
-      // Kağıt yakalandıysa fanus dışına çıkınca soruyu aç (bırakmayı bekleme)
-      if (caughtPaperIdRef.current && !activeQuestionRef.current && bowlRef.current) {
-        const bowlRect = bowlRef.current.getBoundingClientRect();
-        const insideBowl =
-          pos.x >= bowlRect.left && pos.x <= bowlRect.right &&
-          pos.y >= bowlRect.top && pos.y <= bowlRect.bottom;
-        if (!insideBowl) {
-          draggingRef.current = false;
-          setIsDragging(false);
-          void onCatchPaper().then((opened) => {
-            if (!opened) {
-              const capturedId = caughtPaperIdRef.current;
-              caughtPaperIdRef.current = null;
-              setCaughtPaperId(null);
-              setPapers((prev) => prev.map((p) => p.id === capturedId ? { ...p, caught: false } : p));
-              setHookPos(null);
-            }
-          });
-        }
-      }
-    };
-
-    const onUp = () => {
-      if (!draggingRef.current) return;
-      draggingRef.current = false;
-      setIsDragging(false);
-
-      if (!caughtPaperIdRef.current) {
-        // Kağıt yakalanmadı — kancayı sıfırla
-        setHookPos(null);
-        return;
-      }
-
-      if (activeQuestionRef.current) {
-        return;
-      }
-
-      // Kağıt var — fanus içinde mi dışında mı bırakıldı?
-      const lastPos = lastHookPosRef.current;
-      if (!lastPos || !bowlRef.current) {
-        // Pozisyon bilinmiyor — kağıdı geri bırak, kancayı sıfırla
-        const capturedId = caughtPaperIdRef.current;
-        caughtPaperIdRef.current = null;
-        setCaughtPaperId(null);
-        setPapers((p) => p.map((paper) => paper.id === capturedId ? { ...paper, caught: false } : paper));
-        setHookPos(null);
-        return;
-      }
-      const bowlRect = bowlRef.current.getBoundingClientRect();
-      const insideBowl =
-        lastPos.x >= bowlRect.left && lastPos.x <= bowlRect.right &&
-        lastPos.y >= bowlRect.top && lastPos.y <= bowlRect.bottom;
-
-      if (insideBowl) {
-        // Fanus içinde bırakıldı — kağıdı geri bırak, kancayı sıfırla
-        const capturedId = caughtPaperIdRef.current;
-        caughtPaperIdRef.current = null;
-        setCaughtPaperId(null);
-        setPapers((p) => p.map((paper) => paper.id === capturedId ? { ...paper, caught: false } : paper));
-        setHookPos(null);
-      } else {
-        // Fanus dışında bırakıldı — soruyu aç
-        void onCatchPaper().then((opened) => {
-          if (!opened) {
-            const capturedId = caughtPaperIdRef.current;
-            caughtPaperIdRef.current = null;
-            setCaughtPaperId(null);
-            setPapers((p) => p.map((paper) => paper.id === capturedId ? { ...paper, caught: false } : paper));
-            setHookPos(null);
-          }
-        });
-      }
-    };
-
-    window.addEventListener("pointermove", onMove);
-    window.addEventListener("pointerup", onUp);
-    window.addEventListener("pointercancel", onUp);
-
-    return () => {
-      window.removeEventListener("pointermove", onMove);
-      window.removeEventListener("pointerup", onUp);
-      window.removeEventListener("pointercancel", onUp);
-    };
-  }, [isRunning, onCatchPaper]);
-
-  const handleQuestionAnswer = useCallback(async (isCorrect) => {
-    if (!activeQuestion) return;
-    if (isCorrect) {
-      setBurst((prev) => nextBurstState(prev));
-    }
-    const justAnsweredId = caughtPaperId;
-    await onAnswer(isCorrect);
-    // Cevaplanan kağıdı kalıcı olarak işaretle — bir daha açılmasın
-    if (justAnsweredId) {
-      setAnsweredPaperIds((prev) => new Set([...prev, justAnsweredId]));
-      setPapers((prev) => prev.filter((p) => p.id !== justAnsweredId));
-    }
-    setCaughtPaperId(null);
-    setHookPos(null);
-  }, [activeQuestion, caughtPaperId, onAnswer]);
-
-  const rodTip = getRodTipPos();
-  const lineEnd = hookPos ?? rodTip;
-
-  return (
-    <main className="app-screen game-screen jar-screen">
-      <header className="game-header">
-        <ScoreBox label="A Grubu" score={groups.A.score} active={activeGroup === "A"} />
-        <div className="timer-box">{formatTime(timeLeft)}</div>
-        <ScoreBox label="B Grubu" score={groups.B.score} active={activeGroup === "B"} />
-      </header>
-
-      {!isRunning ? (
-        <section className="turn-start" aria-label="Tur başlangıcı">
-          <div className="turn-label">{groups[activeGroup].name}</div>
-          <button className="pixel-button start-button" onClick={onStartTurn}>
-            Başlat
-          </button>
-          <IconActionButton actionType="reset" className="small-button reset-button" onClick={onReset} />
-        </section>
-      ) : (
-        <section className="jar-stage">
-          <IconActionButton actionType="reset" className="small-button reset-button" onClick={onReset} />
-
-          {/* SVG ip — olta ucundan kancaya */}
-          <svg className="jar-line-svg" aria-hidden="true">
-            <line
-              x1={rodTip.x}
-              y1={rodTip.y}
-              x2={lineEnd.x}
-              y2={lineEnd.y}
-              stroke="#c8a870"
-              strokeWidth="3"
-              strokeLinecap="round"
-            />
-          </svg>
-
-          {/* Olta çubuğu — sağ üstte, eğik */}
-          <div className="jar-rod-wrap" aria-hidden="true">
-            <div className="jar-rod-stick" />
-            <div className="jar-rod-grip" />
-            {/* Olta ucunun referans noktası */}
-            <span className="jar-rod-tip" ref={rodTipRef} />
-          </div>
-
-          {/* Kanca — sürüklenebilir, başlangıçta olta ucunda */}
-          <div
-            className={`jar-hook ${isDragging ? "dragging" : ""} ${caughtPaperId ? "has-catch" : ""}`}
-            onPointerDown={onHookPointerDown}
-            style={
-              hookPos
-                ? { position: "fixed", left: hookPos.x, top: hookPos.y, touchAction: "none" }
-                : { position: "fixed", left: rodTip.x, top: rodTip.y, touchAction: "none" }
-            }
-          >
-            <span className="jar-hook-curve" />
-            {caughtPaperId && <div className="jar-caught-paper" />}
-          </div>
-
-          {/* Fanus — ortada */}
-          <div className="jar-bowl-wrap">
-            <div
-              className={`jar-bowl ${isJarShaking ? "shaking" : ""}`}
-              onPointerDown={randomizePapers}
-              ref={bowlRef}
-            >
-              <div className="jar-bowl-inner">
-                <div className="jar-bowl-shine" />
-                <div className="jar-bowl-rim" />
-                {papers.map((paper) => (
-                  <div
-                    className={`jar-paper ${paper.caught ? "caught" : ""}`}
-                    data-paperid={paper.id}
-                    key={paper.id}
-                    ref={(node) => {
-                      if (node) paperRefs.current[paper.id] = node;
-                      else delete paperRefs.current[paper.id];
-                    }}
-                    style={{
-                      left: `${paper.x}%`,
-                      top: `${paper.y}%`,
-                      transform: `translate(-50%, -50%) rotate(${paper.rotate}deg)`,
-                      zIndex: Math.round(paper.y)
-                    }}
-                  />
-                ))}
-              </div>
-              <div className="jar-counter">
-                {activeTurn?.questionIndex ?? 0} / {paperCount}
-              </div>
-            </div>
-          </div>
-
-          {activeQuestion ? (
-            <div className="jar-question-modal">
-              <div className="jar-question-card">
-                <h3>Kağıt Açıldı!</h3>
-                <p className="jar-question-text">{activeQuestion.question}</p>
-                <div className="jar-question-options">
-                  {getAnswerChoices(activeQuestion).map((choice, index) => (
-                    <button
-                      className="pixel-button bridge-option-button"
-                      key={`${choice.text}-${index}`}
-                      onClick={() => {
-                        void handleQuestionAnswer(choice.isCorrect);
-                      }}
-                      type="button"
-                    >
-                      {choice.text}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          ) : null}
-
-          <CelebrationBurst burst={burst} />
-        </section>
-      )}
-    </main>
-  );
-}
-
 function WormGame({
   activeGame,
   activeGroup,
@@ -4475,7 +4155,6 @@ function WormGame({
       Array.isArray(activeGame?.foodValues) && activeGame.foodValues.length > 0
         ? activeGame.foodValues
         : [10, 20, 30];
-
     return [...new Set(values)];
   }, [activeGame?.id, foodValueSignature]);
   const wormCustomSignature = JSON.stringify(customQuestions?.worm ?? {});
@@ -4484,12 +4163,7 @@ function WormGame({
     [activeGroup, wormCustomSignature]
   );
   const questionsByValue = useMemo(() => {
-    const buckets = {
-      10: [],
-      20: [],
-      30: []
-    };
-
+    const buckets = { 10: [], 20: [], 30: [] };
     wormQuestions.forEach((question, index) => {
       const pointValue = getWormPointValue(question, index);
       if (buckets[pointValue]) {
@@ -4498,7 +4172,6 @@ function WormGame({
         buckets[20].push(question);
       }
     });
-
     return buckets;
   }, [wormQuestions]);
   const [snakeCells, setSnakeCells] = useState(() => createInitialSnake());
@@ -4506,20 +4179,14 @@ function WormGame({
   const [foods, setFoods] = useState(() => spawnWormFoods(createInitialSnake(), foodValues));
   const [growth, setGrowth] = useState(0);
   const [pendingQuestion, setPendingQuestion] = useState(null);
-  const askedQuestionIdsByValueRef = useRef({
-    10: [],
-    20: [],
-    30: []
-  });
+  const [questionTimer, setQuestionTimer] = useState(0);
+  const askedQuestionIdsByValueRef = useRef({ 10: [], 20: [], 30: [] });
   const directionRef = useRef(direction);
   const foodsRef = useRef(foods);
   const growthRef = useRef(growth);
-  const dragRef = useRef({
-    active: false,
-    pointerId: null,
-    x: 0,
-    y: 0
-  });
+  const pendingQuestionRef = useRef(null);
+  const questionTimerRef = useRef(null);
+  const dragRef = useRef({ active: false, pointerId: null, x: 0, y: 0 });
   const activeKey = `${activeGame?.id}-${activeGroup}`;
 
   useEffect(() => {
@@ -4532,49 +4199,47 @@ function WormGame({
     foodsRef.current = nextFoods;
     setGrowth(0);
     growthRef.current = 0;
-    askedQuestionIdsByValueRef.current = {
-      10: [],
-      20: [],
-      30: []
-    };
+    askedQuestionIdsByValueRef.current = { 10: [], 20: [], 30: [] };
     setPendingQuestion(null);
+    pendingQuestionRef.current = null;
+    if (questionTimerRef.current) window.clearTimeout(questionTimerRef.current);
+    setQuestionTimer(0);
   }, [activeKey, foodValues, questionsByValue]);
 
-  useEffect(() => {
-    directionRef.current = direction;
-  }, [direction]);
+  useEffect(() => { directionRef.current = direction; }, [direction]);
+  useEffect(() => { foodsRef.current = foods; }, [foods]);
+  useEffect(() => { growthRef.current = growth; }, [growth]);
+  useEffect(() => { pendingQuestionRef.current = pendingQuestion; }, [pendingQuestion]);
+
+  const requestDirection = useCallback((nextDirection) => {
+    if (!isRunning) return;
+    const isOpposite = direction.x + nextDirection.x === 0 && direction.y + nextDirection.y === 0;
+    if (isOpposite && snakeCells.length > 1) return;
+    setDirection(nextDirection);
+  }, [direction, isRunning, snakeCells.length]);
 
   useEffect(() => {
-    foodsRef.current = foods;
-  }, [foods]);
+    if (!isRunning) return undefined;
+    const handleKey = (e) => {
+      const keyMap = {
+        ArrowUp: WORM_DIRECTION_PRESETS.up,
+        ArrowDown: WORM_DIRECTION_PRESETS.down,
+        ArrowLeft: WORM_DIRECTION_PRESETS.left,
+        ArrowRight: WORM_DIRECTION_PRESETS.right,
+        w: WORM_DIRECTION_PRESETS.up,
+        s: WORM_DIRECTION_PRESETS.down,
+        a: WORM_DIRECTION_PRESETS.left,
+        d: WORM_DIRECTION_PRESETS.right
+      };
+      const dir = keyMap[e.key];
+      if (dir) { e.preventDefault(); requestDirection(dir); }
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [isRunning, requestDirection]);
 
   useEffect(() => {
-    growthRef.current = growth;
-  }, [growth]);
-
-  const requestDirection = useCallback(
-    (nextDirection) => {
-      if (!isRunning || pendingQuestion) {
-        return;
-      }
-
-      const isOpposite =
-        direction.x + nextDirection.x === 0 && direction.y + nextDirection.y === 0;
-
-      if (isOpposite && snakeCells.length > 1) {
-        return;
-      }
-
-      setDirection(nextDirection);
-    },
-    [direction, isRunning, pendingQuestion, snakeCells.length]
-  );
-
-  useEffect(() => {
-    if (!isRunning || pendingQuestion) {
-      return undefined;
-    }
-
+    if (!isRunning) return undefined;
     const timerId = window.setInterval(() => {
       setSnakeCells((currentSnake) => {
         const head = currentSnake[0];
@@ -4590,212 +4255,130 @@ function WormGame({
         let nextGrowth = growthRef.current;
 
         if (ateFood) {
-          const targetValue =
-            eatenFood.value === 10 || eatenFood.value === 20 || eatenFood.value === 30
-              ? eatenFood.value
-              : 20;
+          const targetValue = eatenFood.value === 10 || eatenFood.value === 20 || eatenFood.value === 30 ? eatenFood.value : 20;
           const valuePool = questionsByValue[targetValue] ?? [];
-          const fallbackPool = [
-            ...questionsByValue[10],
-            ...questionsByValue[20],
-            ...questionsByValue[30]
-          ];
+          const fallbackPool = [...questionsByValue[10], ...questionsByValue[20], ...questionsByValue[30]];
           const availablePool = valuePool.length > 0 ? valuePool : fallbackPool;
-          const fallbackQuestion = normalizeQuestion(
-            getFallbackQuestions("worm", activeGroup)[0],
-            0,
-            activeGroup,
-            "worm"
-          );
+          const fallbackQuestion = normalizeQuestion(getFallbackQuestions("worm", activeGroup)[0], 0, activeGroup, "worm");
           const askedForValue = askedQuestionIdsByValueRef.current[targetValue] ?? [];
           const picked = pickRandomQuestionWithoutRepeat(availablePool, askedForValue);
           const selectedQuestion = picked.question ?? fallbackQuestion;
-          askedQuestionIdsByValueRef.current = {
-            ...askedQuestionIdsByValueRef.current,
-            [targetValue]: picked.askedQuestionIds
-          };
+          askedQuestionIdsByValueRef.current = { ...askedQuestionIdsByValueRef.current, [targetValue]: picked.askedQuestionIds };
 
-          setPendingQuestion({
+          const pq = {
             value: eatenFood.value,
             growthGain: getWormGrowthByValue(eatenFood.value),
-            prompt: `${eatenFood.value} puanlık soru açıldı`,
+            prompt: `${eatenFood.value} puan`,
             question: selectedQuestion
-          });
+          };
+          pendingQuestionRef.current = pq;
+          setPendingQuestion(pq);
+          setQuestionTimer(10);
+          if (questionTimerRef.current) window.clearTimeout(questionTimerRef.current);
+          questionTimerRef.current = window.setTimeout(() => {
+            pendingQuestionRef.current = null;
+            setPendingQuestion(null);
+            setQuestionTimer(0);
+          }, 10000);
+
           const occupied = new Set(nextSnake.map((cell) => `${cell.x}-${cell.y}`));
-          activeFoods.forEach((candidateFood) => {
-            if (candidateFood !== eatenFood) {
-              occupied.add(`${candidateFood.x}-${candidateFood.y}`);
-            }
-          });
+          activeFoods.forEach((candidateFood) => { if (candidateFood !== eatenFood) occupied.add(`${candidateFood.x}-${candidateFood.y}`); });
           const replacementFood = spawnFoodAtRandomCell(occupied, eatenFood.value);
-          const nextFoods = activeFoods.map((candidateFood) =>
-            candidateFood === eatenFood ? replacementFood : candidateFood
-          );
+          const nextFoods = activeFoods.map((candidateFood) => candidateFood === eatenFood ? replacementFood : candidateFood);
           foodsRef.current = nextFoods;
           setFoods(nextFoods);
         }
 
-        if (nextGrowth > 0) {
-          nextGrowth -= 1;
-        } else {
-          nextSnake.pop();
-        }
-
-        if (nextGrowth !== growthRef.current) {
-          growthRef.current = nextGrowth;
-          setGrowth(nextGrowth);
-        }
-
+        if (nextGrowth > 0) { nextGrowth -= 1; } else { nextSnake.pop(); }
+        if (nextGrowth !== growthRef.current) { growthRef.current = nextGrowth; setGrowth(nextGrowth); }
         return nextSnake;
       });
     }, activeGame?.stepMs ?? WORM_STEP_MS);
-
     return () => window.clearInterval(timerId);
-  }, [
-    activeGame?.stepMs,
-    activeGroup,
-    foodValues,
-    isRunning,
-    pendingQuestion,
-    questionsByValue
-  ]);
+  }, [activeGame?.stepMs, activeGroup, foodValues, isRunning, questionsByValue]);
 
-  const handleQuestionAnswer = useCallback(
-    async (isCorrect) => {
-      if (!pendingQuestion) {
-        return;
-      }
+  useEffect(() => {
+    if (!pendingQuestion) return undefined;
+    const interval = window.setInterval(() => {
+      setQuestionTimer((prev) => {
+        if (prev <= 1) {
+          pendingQuestionRef.current = null;
+          setPendingQuestion(null);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => window.clearInterval(interval);
+  }, [pendingQuestion?.question?.id]);
 
-      if (isCorrect) {
-        await onAddScore(pendingQuestion.value);
-        setBurst((previousBurst) => nextBurstState(previousBurst));
-        setGrowth((currentGrowth) => {
-          const nextGrowth = currentGrowth + (pendingQuestion.growthGain ?? 1);
-          growthRef.current = nextGrowth;
-          return nextGrowth;
-        });
-      } else {
-        await onAddScore(-Math.abs(pendingQuestion.value));
-      }
-
-      setPendingQuestion(null);
-    },
-    [onAddScore, pendingQuestion]
-  );
+  const handleQuestionAnswer = useCallback(async (isCorrect) => {
+    const pq = pendingQuestionRef.current;
+    if (!pq) return;
+    if (isCorrect) {
+      await onAddScore(pq.value);
+      setBurst((p) => nextBurstState(p));
+      setGrowth((cg) => { const ng = cg + (pq.growthGain ?? 1); growthRef.current = ng; return ng; });
+    } else {
+      await onAddScore(-Math.abs(pq.value));
+    }
+    pendingQuestionRef.current = null;
+    setPendingQuestion(null);
+    setQuestionTimer(0);
+    if (questionTimerRef.current) { window.clearTimeout(questionTimerRef.current); questionTimerRef.current = null; }
+  }, [onAddScore]);
 
   const onBoardPointerDown = useCallback((event) => {
     event.currentTarget.setPointerCapture(event.pointerId);
-    dragRef.current = {
-      active: true,
-      pointerId: event.pointerId,
-      x: event.clientX,
-      y: event.clientY
-    };
+    dragRef.current = { active: true, pointerId: event.pointerId, x: event.clientX, y: event.clientY };
   }, []);
 
-  const onBoardPointerMove = useCallback(
-    (event) => {
-      const dragState = dragRef.current;
-      if (!dragState.active || dragState.pointerId !== event.pointerId) {
-        return;
-      }
-
-      const deltaX = event.clientX - dragState.x;
-      const deltaY = event.clientY - dragState.y;
-      const threshold = 14;
-
-      if (Math.abs(deltaX) < threshold && Math.abs(deltaY) < threshold) {
-        return;
-      }
-
-      if (Math.abs(deltaX) > Math.abs(deltaY)) {
-        requestDirection(
-          deltaX > 0 ? WORM_DIRECTION_PRESETS.right : WORM_DIRECTION_PRESETS.left
-        );
-      } else {
-        requestDirection(
-          deltaY > 0 ? WORM_DIRECTION_PRESETS.down : WORM_DIRECTION_PRESETS.up
-        );
-      }
-
-      dragRef.current = {
-        ...dragState,
-        x: event.clientX,
-        y: event.clientY
-      };
-    },
-    [requestDirection]
-  );
+  const onBoardPointerMove = useCallback((event) => {
+    const dragState = dragRef.current;
+    if (!dragState.active || dragState.pointerId !== event.pointerId) return;
+    const deltaX = event.clientX - dragState.x;
+    const deltaY = event.clientY - dragState.y;
+    const threshold = 14;
+    if (Math.abs(deltaX) < threshold && Math.abs(deltaY) < threshold) return;
+    if (Math.abs(deltaX) > Math.abs(deltaY)) {
+      requestDirection(deltaX > 0 ? WORM_DIRECTION_PRESETS.right : WORM_DIRECTION_PRESETS.left);
+    } else {
+      requestDirection(deltaY > 0 ? WORM_DIRECTION_PRESETS.down : WORM_DIRECTION_PRESETS.up);
+    }
+    dragRef.current = { ...dragState, x: event.clientX, y: event.clientY };
+  }, [requestDirection]);
 
   const onBoardPointerEnd = useCallback((event) => {
     const dragState = dragRef.current;
-    if (!dragState.active || dragState.pointerId !== event.pointerId) {
-      return;
-    }
-
-    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-      event.currentTarget.releasePointerCapture(event.pointerId);
-    }
-
-    dragRef.current = {
-      active: false,
-      pointerId: null,
-      x: 0,
-      y: 0
-    };
+    if (!dragState.active || dragState.pointerId !== event.pointerId) return;
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
+    dragRef.current = { active: false, pointerId: null, x: 0, y: 0 };
   }, []);
 
   const cellElements = useMemo(() => {
     const snakeSet = new Set(snakeCells.map((cell) => `${cell.x}-${cell.y}`));
-    const snakeHeadKey =
-      snakeCells.length > 0 ? `${snakeCells[0].x}-${snakeCells[0].y}` : "";
+    const snakeHeadKey = snakeCells.length > 0 ? `${snakeCells[0].x}-${snakeCells[0].y}` : "";
     const foodByKey = new Map(foods.map((item) => [`${item.x}-${item.y}`, item]));
     const cells = [];
-
     for (let y = 0; y < WORM_GRID.rows; y += 1) {
       for (let x = 0; x < WORM_GRID.cols; x += 1) {
         const key = `${x}-${y}`;
         const classNames = ["worm-cell"];
-
-        if (snakeSet.has(key)) {
-          classNames.push("snake");
-          if (key === snakeHeadKey) {
-            classNames.push("head");
-          }
-        }
-
+        if (snakeSet.has(key)) { classNames.push("snake"); if (key === snakeHeadKey) classNames.push("head"); }
         const foodAtCell = foodByKey.get(key);
-
-        if (foodAtCell) {
-          classNames.push("food", `food-${foodAtCell.value}`);
-        }
-
-        cells.push(
-          <div className={classNames.join(" ")} key={key}>
-            {foodAtCell ? <span className="worm-food-token">{foodAtCell.value}</span> : ""}
-          </div>
-        );
+        if (foodAtCell) classNames.push("food", `food-${foodAtCell.value}`);
+        cells.push(<div className={classNames.join(" ")} key={key}>{foodAtCell ? <span className="worm-food-token">{foodAtCell.value}</span> : ""}</div>);
       }
     }
-
     return cells;
   }, [foods, snakeCells]);
 
   const pendingChoices = useMemo(() => {
     const question = pendingQuestion?.question;
     const choices = question ? getAnswerChoices(question) : [];
-
     return {
-      trueOption:
-        choices.find((choice) => choice?.text === "Doğru") ?? {
-          text: "Doğru",
-          isCorrect: true
-        },
-      falseOption:
-        choices.find((choice) => choice?.text === "Yanlış") ?? {
-          text: "Yanlış",
-          isCorrect: false
-        }
+      trueOption: choices.find((c) => c?.text === "Doğru") ?? { text: "Doğru", isCorrect: true },
+      falseOption: choices.find((c) => c?.text === "Yanlış") ?? { text: "Yanlış", isCorrect: false }
     };
   }, [pendingQuestion]);
 
@@ -4810,49 +4393,25 @@ function WormGame({
       {!isRunning ? (
         <section className="turn-start" aria-label="Tur başlangıcı">
           <div className="turn-label">{groups[activeGroup].name}</div>
-          <button className="pixel-button start-button" onClick={onStartTurn}>
-            Başlat
-          </button>
+          <button className="pixel-button start-button" onClick={onStartTurn}>Başlat</button>
           <IconActionButton actionType="reset" className="small-button reset-button" onClick={onReset} />
         </section>
       ) : (
         <section className="worm-stage">
           <div className="worm-stage-topbar">
-            <IconActionButton
-              actionType="reset"
-              className="small-button reset-button worm-reset-button"
-              onClick={onReset}
-            />
+            <IconActionButton actionType="reset" className="small-button reset-button worm-reset-button" onClick={onReset} />
           </div>
-          <div
-            className="worm-board"
-            onPointerDown={onBoardPointerDown}
-            onPointerMove={onBoardPointerMove}
-            onPointerUp={onBoardPointerEnd}
-            onPointerCancel={onBoardPointerEnd}
-          >
+          <div className="worm-board" onPointerDown={onBoardPointerDown} onPointerMove={onBoardPointerMove} onPointerUp={onBoardPointerEnd} onPointerCancel={onBoardPointerEnd}>
             {cellElements}
           </div>
           {pendingQuestion ? (
-            <div className="worm-question-modal">
-              <div className="worm-question-card">
-                <h3>{pendingQuestion.prompt}</h3>
-                <p className="worm-question-text">
-                  {pendingQuestion.question?.question ?? "Soru bulunamadı."}
-                </p>
-                <div className="worm-question-actions">
-                  <button
-                    className="pixel-button true-answer-button"
-                    onClick={() => handleQuestionAnswer(pendingChoices.trueOption.isCorrect)}
-                  >
-                    {pendingChoices.trueOption.text}
-                  </button>
-                  <button
-                    className="pixel-button false-answer-button"
-                    onClick={() => handleQuestionAnswer(pendingChoices.falseOption.isCorrect)}
-                  >
-                    {pendingChoices.falseOption.text}
-                  </button>
+            <div className="worm-question-overlay">
+              <div className="worm-question-overlay-inner">
+                <div className="worm-q-timer">{questionTimer}s</div>
+                <p className="worm-q-text">{pendingQuestion.question?.question ?? "Soru bulunamadı."}</p>
+                <div className="worm-q-actions">
+                  <button className="pixel-button true-answer-button" onClick={() => handleQuestionAnswer(pendingChoices.trueOption.isCorrect)}>{pendingChoices.trueOption.text}</button>
+                  <button className="pixel-button false-answer-button" onClick={() => handleQuestionAnswer(pendingChoices.falseOption.isCorrect)}>{pendingChoices.falseOption.text}</button>
                 </div>
               </div>
             </div>
