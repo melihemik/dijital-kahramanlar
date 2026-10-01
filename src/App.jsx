@@ -321,7 +321,7 @@ const PUZZLE_GRID = {
   rows: 3
 };
 const PUZZLE_PREVIEW_SECONDS = 3;
-const PUZZLE_SCATTER_MS = 760;
+const PUZZLE_SCATTER_MS = 1800;
 const TENSION_THRESHOLD_SECONDS = 15;
 const BRIDGE_TARGET_STEPS = 5;
 const PUZZLE_IMAGE_POOLS = {
@@ -5785,11 +5785,11 @@ function PuzzleGame({
               ) : null}
             </div>
             <div
-              className={`puzzle-tray ${phase === "play" ? "active" : ""}`}
+              className={`puzzle-tray ${phase === "play" || phase === "scatter" ? "active" : ""}`}
               ref={trayRef}
               style={trayGridStyle}
             >
-              {phase === "play" || phase === "complete"
+              {(phase === "play" || phase === "complete" || phase === "scatter")
                 ? visibleTrayPieceIds.map((pieceId) => {
                   const piece = pieceById.get(pieceId);
                   const isDragging = dragState?.pieceId === pieceId;
