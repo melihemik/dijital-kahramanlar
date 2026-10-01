@@ -195,6 +195,11 @@ button {
 .reset-button {
   position: relative;
   z-index: 2;
+  --button-shadow: #1d4ed8;
+}
+
+.reset-button:hover {
+  --button-shadow: #2563eb;
 }
 
 .balloon-stage {
@@ -2284,9 +2289,9 @@ button {
 }
 
 .reset-icon-button {
-  --button-fill: var(--button, #d72d2d);
-  --button-fill-hover: var(--button-hover, #ef3c35);
-  --button-shadow: var(--button-dark, #8f171b);
+  --button-fill: #2563eb;
+  --button-fill-hover: #3b82f6;
+  --button-shadow: #1d4ed8;
 }
 
 .reset-icon-button svg {
@@ -3279,6 +3284,24 @@ button {
   outline: none;
   transition: filter 160ms ease;
   will-change: transform;
+  animation: balloonRise 2.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes balloonRise {
+  0% {
+    transform: translateY(100vh) scale(0.3);
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  70% {
+    transform: translateY(-20px) scale(1.05);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
 }
 
 .floating-balloon:hover {
