@@ -4730,7 +4730,10 @@ function CupGame({
 
         if (nextRoundCount >= roundsPerGroup) {
           busyRef.current = false;
-          await onCompleteTurn();
+          const finishTimer = window.setTimeout(async () => {
+            await onCompleteTurn();
+          }, 2500);
+          timersRef.current.push(finishTimer);
           return;
         }
         startRound(nextRoundCount);
@@ -4774,7 +4777,19 @@ function CupGame({
           {/* Prominent Target Banner during Peek & Result */}
           {(phase === "peek-up" || phase === "peek-down" || phase === "result") && hiddenIcon ? (
             <div className="cup-target-banner" aria-label="Hedef Simge">
-              <img src={hiddenIcon.imageUrl} alt="" className="cup-target-banner-img" />
+              <div className="cup-target-banner-3d">
+                <Canvas camera={{ position: [0, 0.6, 1.8], fov: 35 }} style={{ width: 52, height: 52 }}>
+                  <ambientLight intensity={1.2} />
+                  <directionalLight position={[2, 3, 2]} intensity={1.0} />
+                  {hiddenIcon.id === "wifi" ? (
+                    <WifiRouter3D />
+                  ) : hiddenIcon.id === "computer" ? (
+                    <Computer3D />
+                  ) : (
+                    <InternetGlobe3D />
+                  )}
+                </Canvas>
+              </div>
               <div className="cup-target-banner-text">
                 <span className="cup-target-banner-sub">HEDEF NESNE</span>
                 <span className="cup-target-banner-title">{hiddenIcon.label}</span>
