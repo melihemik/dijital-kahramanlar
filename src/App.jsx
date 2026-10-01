@@ -4737,12 +4737,12 @@ function CupGame({
           setStatusText(`Tüm bardaklar bulundu! (+${scoreCorrect})`);
           const finishTimer = window.setTimeout(async () => {
             await onCompleteTurn();
-          }, 3000);
+          }, 1500);
           timersRef.current.push(finishTimer);
           return;
         }
         startRound(nextRoundCount);
-      }, 2200);
+      }, 1800);
       timersRef.current.push(revealTimer);
     },
     [
