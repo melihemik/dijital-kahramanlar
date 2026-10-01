@@ -88,7 +88,7 @@
       "durationSeconds": 90,
       "pointsPerCorrect": 10,
       "pointsPerWrong": 0,
-      "targetSteps": 7
+      "targetSteps": 5
     },
     {
       "id": "cup",

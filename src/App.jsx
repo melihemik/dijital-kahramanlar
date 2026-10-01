@@ -6,6 +6,7 @@ import islandGlb from "./assets/models/island.glb";
 import stoneGlb from "./assets/models/stone.glb";
 import mugGlb from "./assets/models/coffeeMug.glb";
 import tableGlb from "./assets/models/table.glb";
+import flagGlb from "./assets/models/flag.glb";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import appLogo from "./assets/images/dkahramanlar.png";
 import puzzleA1 from "./assets/images/atakim_1-puzzle.png";
@@ -208,7 +209,7 @@ const PUZZLE_GRID = {
 const PUZZLE_PREVIEW_SECONDS = 3;
 const PUZZLE_SCATTER_MS = 760;
 const TENSION_THRESHOLD_SECONDS = 15;
-const BRIDGE_TARGET_STEPS = 7;
+const BRIDGE_TARGET_STEPS = 5;
 const PUZZLE_IMAGE_POOLS = {
   A: [puzzleA1, puzzleA2],
   B: [puzzleB1, puzzleB2]
@@ -2990,25 +2991,31 @@ function BalloonGame({
 
     let allWrong = shuffle([...wrongChoices, ...decoys]);
     let selectedWrong = allWrong.slice(0, 4);
+    const allOptions = shuffle([
+      correctChoice || { text: "Doğru", isCorrect: true },
+      ...selectedWrong
+    ]);
 
-    const baseLanes = [11, 29, 49, 69, 87];
+    const baseLanes = [10, 29, 49, 69, 88];
     const shuffledPalettes = shuffle([...BALLOON_PALETTES]);
 
     setBalloons(
       allOptions.slice(0, 5).map((opt, i) => {
-        const riseDuration = 16.0 + i * 0.85 + (Math.random() * 1.5 - 0.75);
-        const riseDelay = -1 * (i * (riseDuration / 5) + Math.random() * 1.2);
-        const xPos = baseLanes[i % baseLanes.length] + (Math.random() * 4 - 2);
-        const swayDuration = 3.2 + Math.random() * 1.6;
-        const swayDelay = -1 * Math.random() * 3.0;
-        const swayAmp = 18 + Math.random() * 14;
-        const tilt = 2.5 + Math.random() * 2.5;
+        // Biraz daha yavaş ve belirgin rastgele hız
+        const riseDuration = 18.0 + Math.random() * 4.2 + (i * 0.7);
+        // Her balon farklı yükseklikten başlasın ve döngüde rastgele akış sağlansın
+        const riseDelay = -1 * (Math.random() * riseDuration);
+        const xPos = Math.max(6, Math.min(92, baseLanes[i % baseLanes.length] + (Math.random() * 7 - 3.5)));
+        const swayDuration = 2.8 + Math.random() * 2.6;
+        const swayDelay = -1 * Math.random() * 3.5;
+        const swayAmp = 14 + Math.random() * 20;
+        const tilt = 2.0 + Math.random() * 3.5;
 
         return {
           id: `balloon-${visibleQuestion.id}-${i}-${opt.text}`,
           text: opt.text,
           isCorrect: opt.isCorrect,
-          x: xPos,
+          x: Number(xPos.toFixed(1)),
           riseDuration: Number(riseDuration.toFixed(2)),
           riseDelay: Number(riseDelay.toFixed(2)),
           swayDuration: Number(swayDuration.toFixed(2)),
@@ -3225,54 +3232,143 @@ function BalloonTransitionScreen({ onContinue, onPop, onReset, popped }) {
   );
 }
 
-function IslandModel({ position, scale = [1.6, 1.2, 1.6], rotation = [0, 0, 0] }) {
-  const { scene } = useGLTF(islandGlb);
-  const cloned = useMemo(() => scene.clone(), [scene]);
-  return <primitive object={cloned} position={position} scale={scale} rotation={rotation} receiveShadow castShadow />;
-}
-
-function Stone3D({ position, scale = [0.75, 0.55, 0.75] }) {
-  const { scene } = useGLTF(stoneGlb);
+function FlagModel({ position = [0, 0, 0], scale = [1, 1, 1] }) {
+  const { scene } = useGLTF(flagGlb);
   const cloned = useMemo(() => scene.clone(), [scene]);
   return <primitive object={cloned} position={position} scale={scale} receiveShadow castShadow />;
 }
 
-function AnimatedRobot({ targetPos, isJumping }) {
+function IslandModel({ position, scale = [1.85, 1.35, 1.85], rotation = [0, 0, 0], hasFlag = false }) {
+  const { scene } = useGLTF(islandGlb);
+  const cloned = useMemo(() => scene.clone(), [scene]);
+  return (
+    <group position={position} rotation={rotation} scale={scale}>
+      <primitive object={cloned} receiveShadow castShadow />
+      {hasFlag ? (
+        <FlagModel position={[0.7, 0.45, 0.5]} scale={[0.85, 0.85, 0.85]} />
+      ) : null}
+    </group>
+  );
+}
+
+function Stone3D({ position, scale = [0.85, 0.6, 0.85], isCurrent, isPassed }) {
+  const { scene } = useGLTF(stoneGlb);
+  const cloned = useMemo(() => scene.clone(), [scene]);
+  return (
+    <group position={position} scale={scale}>
+      <primitive object={cloned} receiveShadow castShadow />
+      {isCurrent ? (
+        <mesh position={[0, 0.22, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <ringGeometry args={[0.7, 0.88, 32]} />
+          <meshBasicMaterial color="#38a169" transparent opacity={0.85} />
+        </mesh>
+      ) : null}
+    </group>
+  );
+}
+
+function AnimatedRobot({ targetPos, isJumping, isWrong }) {
   const groupRef = useRef();
   const { scene, animations } = useGLTF(robotGlb);
-  const cloned = useMemo(() => scene.clone(), [scene]);
-  const { actions } = useAnimations(animations, groupRef);
+  const { actions } = useAnimations(animations, scene);
+  const activeActionRef = useRef("Idle");
+  const jumpProgressRef = useRef(1);
+  const jumpStartPosRef = useRef([...targetPos]);
 
+  useEffect(() => {
+    scene.traverse((obj) => {
+      if (obj.isMesh) {
+        obj.castShadow = true;
+        obj.receiveShadow = true;
+      }
+    });
+  }, [scene]);
+
+  // Normal hareketsiz/idle duruş
   useEffect(() => {
     if (actions?.Idle) {
       actions.Idle.reset().fadeIn(0.2).play();
+      activeActionRef.current = "Idle";
     }
   }, [actions]);
 
+  // Yanlış cevap -> Sağa sola kafa sallama (No)
+  useEffect(() => {
+    if (isWrong && actions?.No) {
+      if (activeActionRef.current && actions[activeActionRef.current]) {
+        actions[activeActionRef.current].fadeOut(0.12);
+      }
+      actions.No.reset().fadeIn(0.12).play();
+      activeActionRef.current = "No";
+
+      const timer = window.setTimeout(() => {
+        actions.No?.fadeOut(0.25);
+        actions.Idle?.reset().fadeIn(0.25).play();
+        activeActionRef.current = "Idle";
+      }, 1150);
+
+      return () => window.clearTimeout(timer);
+    }
+  }, [isWrong, actions]);
+
+  // Doğru cevap -> Kolunu havaya kaldırıp zıplama (Jump)
   useEffect(() => {
     if (isJumping && actions) {
+      if (groupRef.current) {
+        jumpStartPosRef.current = [
+          groupRef.current.position.x,
+          groupRef.current.position.y,
+          groupRef.current.position.z
+        ];
+      }
+      jumpProgressRef.current = 0;
+
+      if (activeActionRef.current && actions[activeActionRef.current]) {
+        actions[activeActionRef.current].fadeOut(0.1);
+      }
       if (actions.Jump) {
         actions.Jump.reset().fadeIn(0.08).play();
       }
-      const timer = window.setTimeout(() => {
-        actions.Jump?.fadeOut(0.2);
-        actions.Idle?.reset().fadeIn(0.2).play();
-      }, 520);
-      return () => window.clearTimeout(timer);
+      activeActionRef.current = "Jump";
     }
   }, [isJumping, actions]);
 
+  // Gerçekçi parabolik atlama hareketi
   useFrame((_, delta) => {
     if (!groupRef.current) return;
-    groupRef.current.position.x = THREE.MathUtils.lerp(groupRef.current.position.x, targetPos[0], delta * 7);
-    groupRef.current.position.z = THREE.MathUtils.lerp(groupRef.current.position.z, targetPos[2], delta * 7);
-    const targetY = isJumping ? targetPos[1] + 1.35 : targetPos[1];
-    groupRef.current.position.y = THREE.MathUtils.lerp(groupRef.current.position.y, targetY, delta * (isJumping ? 14 : 9));
+
+    if (jumpProgressRef.current < 1) {
+      jumpProgressRef.current = Math.min(1, jumpProgressRef.current + delta * 1.35);
+      const p = jumpProgressRef.current;
+      const smoothP = p * p * (3 - 2 * p);
+
+      const start = jumpStartPosRef.current;
+      const currentX = THREE.MathUtils.lerp(start[0], targetPos[0], smoothP);
+      const currentZ = THREE.MathUtils.lerp(start[2], targetPos[2], smoothP);
+      const baseY = THREE.MathUtils.lerp(start[1], targetPos[1], smoothP);
+      const arcY = Math.sin(p * Math.PI) * 1.6;
+
+      groupRef.current.position.set(currentX, baseY + arcY, currentZ);
+
+      if (p >= 1) {
+        if (actions?.Jump) {
+          actions.Jump.fadeOut(0.2);
+        }
+        if (actions?.Idle) {
+          actions.Idle.reset().fadeIn(0.2).play();
+        }
+        activeActionRef.current = "Idle";
+      }
+    } else {
+      groupRef.current.position.x = THREE.MathUtils.lerp(groupRef.current.position.x, targetPos[0], delta * 8);
+      groupRef.current.position.y = THREE.MathUtils.lerp(groupRef.current.position.y, targetPos[1], delta * 8);
+      groupRef.current.position.z = THREE.MathUtils.lerp(groupRef.current.position.z, targetPos[2], delta * 8);
+    }
   });
 
   return (
-    <group ref={groupRef} position={[targetPos[0], targetPos[1], targetPos[2]]}>
-      <primitive object={cloned} scale={[0.36, 0.36, 0.36]} rotation={[0, Math.PI / 2, 0]} castShadow />
+    <group ref={groupRef} position={targetPos}>
+      <primitive object={scene} scale={[0.42, 0.42, 0.42]} rotation={[0, Math.PI / 2, 0]} />
     </group>
   );
 }
@@ -3281,41 +3377,20 @@ function Water() {
   const meshRef = useRef();
   useFrame((state) => {
     if (meshRef.current) {
-      meshRef.current.position.y = -0.3 + Math.sin(state.clock.elapsedTime * 0.8) * 0.05;
+      meshRef.current.position.y = -0.22 + Math.sin(state.clock.elapsedTime * 1.2) * 0.035;
     }
   });
   return (
-    <mesh ref={meshRef} rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.3, 0]} receiveShadow>
-      <planeGeometry args={[60, 60]} />
-      <meshStandardMaterial color="#1a8fa8" transparent opacity={0.7} roughness={0.1} metalness={0.3} />
+    <mesh ref={meshRef} rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.22, 0]} receiveShadow>
+      <planeGeometry args={[80, 40]} />
+      <meshStandardMaterial
+        color="#0ea5e9"
+        roughness={0.15}
+        metalness={0.35}
+        transparent
+        opacity={0.82}
+      />
     </mesh>
-  );
-}
-
-function Mountains() {
-  return (
-    <group position={[0, 0, -15]}>
-      <mesh position={[-8, 2, 0]}>
-        <coneGeometry args={[5, 6, 4]} />
-        <meshStandardMaterial color="#5a7a5a" roughness={0.9} />
-      </mesh>
-      <mesh position={[-3, 3.5, -2]}>
-        <coneGeometry args={[6, 8, 4]} />
-        <meshStandardMaterial color="#4a6a4a" roughness={0.9} />
-      </mesh>
-      <mesh position={[3, 2.5, -1]}>
-        <coneGeometry args={[4.5, 5, 4]} />
-        <meshStandardMaterial color="#6a8a6a" roughness={0.9} />
-      </mesh>
-      <mesh position={[8, 3, 0]}>
-        <coneGeometry args={[5.5, 7, 4]} />
-        <meshStandardMaterial color="#4a6a4a" roughness={0.9} />
-      </mesh>
-      <mesh position={[0, 4, -3]}>
-        <coneGeometry args={[7, 9, 4]} />
-        <meshStandardMaterial color="#3a5a3a" roughness={0.9} />
-      </mesh>
-    </group>
   );
 }
 
@@ -3336,6 +3411,8 @@ function BridgeGame({
   const [isShaking, setIsShaking] = useState(false);
   const [isAnswerLocked, setIsAnswerLocked] = useState(false);
   const [isJumping, setIsJumping] = useState(false);
+  const [isWrong, setIsWrong] = useState(false);
+  const [hasFinishedIsland, setHasFinishedIsland] = useState(false);
   const completedRef = useRef(false);
   const targetSteps = Math.max(1, Number(activeGame?.targetSteps) || BRIDGE_TARGET_STEPS);
   const solvedSteps = Math.max(
@@ -3390,6 +3467,8 @@ function BridgeGame({
     setIsAnswerLocked(false);
     setIsShaking(false);
     setIsJumping(false);
+    setIsWrong(false);
+    setHasFinishedIsland(false);
   }, [activeGroup, isRunning, visibleQuestion?.id]);
 
   useEffect(() => {
@@ -3399,7 +3478,7 @@ function BridgeGame({
 
     const shakeTimerId = window.setTimeout(() => {
       setIsShaking(false);
-    }, 380);
+    }, 450);
 
     return () => {
       window.clearTimeout(shakeTimerId);
@@ -3413,12 +3492,37 @@ function BridgeGame({
 
     const jumpTimerId = window.setTimeout(() => {
       setIsJumping(false);
-    }, 460);
+    }, 850);
 
     return () => {
       window.clearTimeout(jumpTimerId);
     };
   }, [isJumping]);
+
+  useEffect(() => {
+    if (!isWrong) {
+      return undefined;
+    }
+
+    const wrongTimerId = window.setTimeout(() => {
+      setIsWrong(false);
+    }, 1200);
+
+    return () => {
+      window.clearTimeout(wrongTimerId);
+    };
+  }, [isWrong]);
+
+  useEffect(() => {
+    if (solvedSteps >= targetSteps && isRunning) {
+      const timer = window.setTimeout(() => {
+        setHasFinishedIsland(true);
+        setIsJumping(true);
+      }, 700);
+      return () => window.clearTimeout(timer);
+    }
+    setHasFinishedIsland(false);
+  }, [solvedSteps, targetSteps, isRunning]);
 
   useEffect(() => {
     if (!isRunning || solvedSteps < targetSteps) {
@@ -3430,8 +3534,12 @@ function BridgeGame({
       return;
     }
 
-    completedRef.current = true;
-    void onCompleteTurn();
+    const timer = window.setTimeout(() => {
+      completedRef.current = true;
+      void onCompleteTurn();
+    }, 1600);
+
+    return () => window.clearTimeout(timer);
   }, [isRunning, onCompleteTurn, solvedSteps, targetSteps]);
 
   const handleChoice = useCallback(async (choice) => {
@@ -3447,35 +3555,34 @@ function BridgeGame({
       await onAnswer(true);
     } else {
       setIsShaking(true);
+      setIsWrong(true);
       await onAnswer(false);
     }
 
     window.setTimeout(() => {
       setIsAnswerLocked(false);
-    }, 120);
+    }, 350);
   }, [isAnswerLocked, isRunning, onAnswer, solvedSteps, targetSteps]);
 
-  const stonePositions = useMemo(() => {
-    const stones = [];
-    const startX = -4.0;
-    const endX = 4.0;
-    for (let i = 0; i < targetSteps; i++) {
-      const stepX = startX + ((i + 0.5) / targetSteps) * (endX - startX);
-      stones.push([stepX, -0.15, (i % 2 === 0 ? 0.35 : -0.35)]);
-    }
-    return stones;
-  }, [targetSteps]);
+  // İki ada arasında tam olarak 5 adet adım taşı
+  const stonePositions = useMemo(() => [
+    [-3.4, 0.05, 0.22],
+    [-1.7, 0.05, -0.22],
+    [0.0,  0.05, 0.22],
+    [1.7,  0.05, -0.22],
+    [3.4,  0.05, 0.22]
+  ], []);
 
   const robotTargetPos = useMemo(() => {
     if (solvedSteps <= 0) {
-      return [-5.6, 0.45, 0];
+      return [-5.2, 0.46, 0];
     }
-    if (solvedSteps >= targetSteps) {
-      return [5.6, 0.45, 0];
+    if (hasFinishedIsland) {
+      return [5.2, 0.46, 0];
     }
-    const currentStone = stonePositions[solvedSteps - 1];
-    return [currentStone[0], 0.28, currentStone[2]];
-  }, [solvedSteps, stonePositions, targetSteps]);
+    const currentStone = stonePositions[Math.min(solvedSteps - 1, 4)];
+    return [currentStone[0], 0.42, currentStone[2]];
+  }, [hasFinishedIsland, solvedSteps, stonePositions]);
 
   return (
     <main className="app-screen game-screen bridge-screen">
@@ -3495,28 +3602,33 @@ function BridgeGame({
         <section className="bridge-stage bridge-3d-stage">
           <IconActionButton actionType="reset" className="small-button reset-button" onClick={onReset} />
           <div className="bridge-3d-canvas-wrap">
-            <Canvas shadows camera={{ position: [0, 4.5, 8.5], fov: 48 }}>
-              <Sky sunPosition={[100, 25, 100]} turbidity={2} rayleigh={1} />
-              <Cloud position={[-10, 8, -10]} speed={0.2} opacity={0.4} />
-              <Cloud position={[10, 9, -8]} speed={0.15} opacity={0.3} />
-              <ambientLight intensity={0.65} />
-              <directionalLight position={[6, 12, 6]} intensity={1.4} castShadow shadow-mapSize={[1024, 1024]} />
+            <Canvas shadows camera={{ position: [0, 4.4, 8.8], fov: 46 }}>
+              <Sky sunPosition={[100, 25, 100]} turbidity={1.5} rayleigh={0.8} />
+              <Cloud position={[-11, 7, -10]} speed={0.15} opacity={0.35} />
+              <Cloud position={[11, 8, -9]} speed={0.12} opacity={0.3} />
+              <ambientLight intensity={0.7} />
+              <directionalLight position={[6, 12, 6]} intensity={1.5} castShadow shadow-mapSize={[1024, 1024]} />
               <Water />
-              <Mountains />
 
               {/* Sol Başlangıç Adası */}
-              <IslandModel position={[-6.2, -0.4, 0]} scale={[1.8, 1.3, 1.8]} />
+              <IslandModel position={[-5.6, -0.2, 0]} scale={[1.85, 1.35, 1.85]} />
 
-              {/* Sağ Bitiş Adası */}
-              <IslandModel position={[6.2, -0.4, 0]} scale={[1.8, 1.3, 1.8]} rotation={[0, Math.PI, 0]} />
+              {/* Sağ Bitiş Adası (Hedef Bayraklı) */}
+              <IslandModel position={[5.6, -0.2, 0]} scale={[1.85, 1.35, 1.85]} rotation={[0, Math.PI, 0]} hasFlag />
 
-              {/* İki ada arasındaki adım taşları */}
+              {/* İki ada arasındaki 5 adet adım taşı */}
               {stonePositions.map((pos, i) => (
-                <Stone3D key={i} position={pos} scale={[0.72, 0.55, 0.72]} />
+                <Stone3D
+                  key={i}
+                  position={pos}
+                  scale={[0.82, 0.58, 0.82]}
+                  isCurrent={solvedSteps > 0 && solvedSteps - 1 === i}
+                  isPassed={solvedSteps > i + 1}
+                />
               ))}
 
               {/* Taşların üstünden zıplayan 3D animasyonlu Robot */}
-              <AnimatedRobot targetPos={robotTargetPos} isJumping={isJumping} />
+              <AnimatedRobot targetPos={robotTargetPos} isJumping={isJumping} isWrong={isWrong} />
             </Canvas>
           </div>
           <div className={`bridge-question-panel ${isShaking ? "shake" : ""}`}>
