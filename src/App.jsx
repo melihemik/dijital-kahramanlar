@@ -3241,11 +3241,11 @@ function BalloonGame({
   const balloonElementsRef = useRef([]);
   const entranceStartTimeRef = useRef(0);
   const physicsRef = useRef([
-    { baseX: 80, y: 800, baseSpeed: 18, speedWaveFreq: 0.6, speedWaveAmp: 9, speedWavePhase: 0.2, swayAmp: 16, swayFreq: 0.5, swayPhase: 0.2, tiltAmp: 2.5, swayTime: 0 },
-    { baseX: 280, y: 880, baseSpeed: 16, speedWaveFreq: 0.5, speedWaveAmp: 8, speedWavePhase: 1.5, swayAmp: 18, swayFreq: 0.6, swayPhase: 1.5, tiltAmp: 3.0, swayTime: 0 },
-    { baseX: 500, y: 960, baseSpeed: 19, speedWaveFreq: 0.7, speedWaveAmp: 10, speedWavePhase: 2.8, swayAmp: 15, swayFreq: 0.45, swayPhase: 2.8, tiltAmp: 2.2, swayTime: 0 },
-    { baseX: 740, y: 1040, baseSpeed: 17, speedWaveFreq: 0.55, speedWaveAmp: 9, speedWavePhase: 4.1, swayAmp: 19, swayFreq: 0.55, swayPhase: 4.1, tiltAmp: 3.2, swayTime: 0 },
-    { baseX: 980, y: 1120, baseSpeed: 18, speedWaveFreq: 0.65, speedWaveAmp: 9, speedWavePhase: 5.3, swayAmp: 17, swayFreq: 0.65, swayPhase: 5.3, tiltAmp: 2.8, swayTime: 0 }
+    { baseX: 80, y: 800, baseSpeed: 55, speedWaveFreq: 0.6, speedWaveAmp: 9, speedWavePhase: 0.2, swayAmp: 16, swayFreq: 0.5, swayPhase: 0.2, tiltAmp: 2.5, swayTime: 0 },
+    { baseX: 280, y: 880, baseSpeed: 50, speedWaveFreq: 0.5, speedWaveAmp: 8, speedWavePhase: 1.5, swayAmp: 18, swayFreq: 0.6, swayPhase: 1.5, tiltAmp: 3.0, swayTime: 0 },
+    { baseX: 500, y: 960, baseSpeed: 60, speedWaveFreq: 0.7, speedWaveAmp: 10, speedWavePhase: 2.8, swayAmp: 15, swayFreq: 0.45, swayPhase: 2.8, tiltAmp: 2.2, swayTime: 0 },
+    { baseX: 740, y: 1040, baseSpeed: 52, speedWaveFreq: 0.55, speedWaveAmp: 9, speedWavePhase: 4.1, swayAmp: 19, swayFreq: 0.55, swayPhase: 4.1, tiltAmp: 3.2, swayTime: 0 },
+    { baseX: 980, y: 1120, baseSpeed: 58, speedWaveFreq: 0.65, speedWaveAmp: 9, speedWavePhase: 5.3, swayAmp: 17, swayFreq: 0.65, swayPhase: 5.3, tiltAmp: 2.8, swayTime: 0 }
   ]);
 
   const resetBalloonPositions = useCallback(() => {
@@ -3270,7 +3270,7 @@ function BalloonGame({
       const slotX = 25 + laneIndex * bandWidth + Math.random() * Math.max(10, bandWidth - 180);
       b.baseX = Math.max(20, Math.min(W - 195, slotX));
       b.y = verticalSlots[i] + (Math.random() * 20 - 10);
-      b.baseSpeed = 16 + Math.random() * 8;
+      b.baseSpeed = 45 + Math.random() * 20;
       b.speedWaveFreq = 0.45 + Math.random() * 0.35;
       b.speedWaveAmp = 8 + Math.random() * 6;
       b.speedWavePhase = Math.random() * Math.PI * 2;
@@ -3306,9 +3306,9 @@ function BalloonGame({
       // Fast initial entrance boost: during the first 1.8 seconds, balloons rush up from bottom
       const entranceElapsed = (currentTime - entranceStartTimeRef.current) / 1000;
       let entranceBoost = 0;
-      if (entranceElapsed < 2.0) {
-        const p = 1 - entranceElapsed / 2.0;
-        entranceBoost = p * p * 200;
+      if (entranceElapsed < 1.2) {
+        const p = 1 - entranceElapsed / 1.2;
+        entranceBoost = p * p * 350;
       }
 
       // Atmospheric thermal / wind pulse across the scene
@@ -3317,7 +3317,7 @@ function BalloonGame({
       physicsRef.current.forEach((b, i) => {
         // Natural speed variation: sometimes faster, sometimes slower
         const speedWave = Math.sin(b.swayTime * b.speedWaveFreq + b.speedWavePhase) * b.speedWaveAmp;
-        const currentSpeed = Math.max(8, b.baseSpeed + speedWave + globalGust + entranceBoost);
+        const currentSpeed = Math.max(30, b.baseSpeed + speedWave + globalGust + entranceBoost);
 
         b.y -= currentSpeed * dt;
         b.swayTime += dt;
@@ -3328,13 +3328,13 @@ function BalloonGame({
         if (b.y < -260) {
           b.y = H + 30 + Math.random() * 70;
           b.baseX = 20 + Math.random() * (W - 200);
-          b.baseSpeed = 16 + Math.random() * 8;
-          b.speedWaveFreq = 0.45 + Math.random() * 0.35;
-          b.speedWaveAmp = 8 + Math.random() * 6;
-          b.speedWavePhase = Math.random() * Math.PI * 2;
-          b.swayFreq = 0.45 + Math.random() * 0.3;
-          b.swayPhase = Math.random() * Math.PI * 2;
-          b.swayAmp = 14 + Math.random() * 8;
+      b.baseSpeed = 45 + Math.random() * 20;
+      b.speedWaveFreq = 0.45 + Math.random() * 0.35;
+      b.speedWaveAmp = 8 + Math.random() * 6;
+      b.speedWavePhase = Math.random() * Math.PI * 2;
+      b.swayFreq = 0.45 + Math.random() * 0.3;
+      b.swayPhase = Math.random() * Math.PI * 2;
+      b.swayAmp = 14 + Math.random() * 8;
         }
 
         const el = balloonElementsRef.current[i];
@@ -4734,9 +4734,10 @@ function CupGame({
 
         if (nextRoundCount >= roundsPerGroup) {
           busyRef.current = false;
+          setStatusText(`Tüm bardaklar bulundu! (+${scoreCorrect})`);
           const finishTimer = window.setTimeout(async () => {
             await onCompleteTurn();
-          }, 2500);
+          }, 3000);
           timersRef.current.push(finishTimer);
           return;
         }
