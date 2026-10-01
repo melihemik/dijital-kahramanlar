@@ -3214,11 +3214,11 @@ function BalloonGame({
 
   const balloonElementsRef = useRef([]);
   const physicsRef = useRef([
-    { baseX: 80, y: 140, speed: 44, swayAmp: 22, swayFreq: 1.0, swayPhase: 0.2, tiltAmp: 3.5, swayTime: 0 },
-    { baseX: 280, y: 300, speed: 40, swayAmp: 26, swayFreq: 1.2, swayPhase: 1.5, tiltAmp: 4.0, swayTime: 0 },
-    { baseX: 500, y: 460, speed: 48, swayAmp: 20, swayFreq: 0.9, swayPhase: 2.8, tiltAmp: 3.2, swayTime: 0 },
-    { baseX: 740, y: 620, speed: 42, swayAmp: 25, swayFreq: 1.1, swayPhase: 4.1, tiltAmp: 4.2, swayTime: 0 },
-    { baseX: 980, y: 780, speed: 46, swayAmp: 24, swayFreq: 1.3, swayPhase: 5.3, tiltAmp: 3.8, swayTime: 0 }
+    { baseX: 80, y: 520, speed: 18, swayAmp: 18, swayFreq: 0.5, swayPhase: 0.2, tiltAmp: 2.5, swayTime: 0 },
+    { baseX: 280, y: 640, speed: 16, swayAmp: 20, swayFreq: 0.6, swayPhase: 1.5, tiltAmp: 3.0, swayTime: 0 },
+    { baseX: 500, y: 760, speed: 19, swayAmp: 16, swayFreq: 0.45, swayPhase: 2.8, tiltAmp: 2.2, swayTime: 0 },
+    { baseX: 740, y: 880, speed: 17, swayAmp: 21, swayFreq: 0.55, swayPhase: 4.1, tiltAmp: 3.2, swayTime: 0 },
+    { baseX: 980, y: 990, speed: 18, swayAmp: 19, swayFreq: 0.65, swayPhase: 5.3, tiltAmp: 2.8, swayTime: 0 }
   ]);
 
   const resetBalloonPositions = useCallback(() => {
@@ -3228,11 +3228,11 @@ function BalloonGame({
     const bandWidth = usableWidth / 5;
 
     const verticalSlots = shuffle([
-      H * 0.14,
-      H * 0.32,
-      H * 0.50,
+      H * 0.52,
       H * 0.68,
-      H * 0.86
+      H * 0.84,
+      H * 1.00,
+      H * 1.16
     ]);
     const laneSlots = shuffle([0, 1, 2, 3, 4]);
 
@@ -3240,12 +3240,12 @@ function BalloonGame({
       const laneIndex = laneSlots[i];
       const slotX = 25 + laneIndex * bandWidth + Math.random() * Math.max(10, bandWidth - 180);
       b.baseX = Math.max(20, Math.min(W - 195, slotX));
-      b.y = verticalSlots[i] + (Math.random() * 30 - 15);
-      b.speed = 36 + Math.random() * 20;
-      b.swayAmp = 18 + Math.random() * 16;
-      b.swayFreq = 0.85 + Math.random() * 0.55;
+      b.y = verticalSlots[i] + (Math.random() * 24 - 12);
+      b.speed = 15 + Math.random() * 7;
+      b.swayAmp = 14 + Math.random() * 8;
+      b.swayFreq = 0.45 + Math.random() * 0.3;
       b.swayPhase = Math.random() * Math.PI * 2;
-      b.tiltAmp = 2.5 + Math.random() * 3.5;
+      b.tiltAmp = 2.0 + Math.random() * 2.0;
       b.swayTime = Math.random() * 10;
     });
   }, []);
@@ -3278,13 +3278,13 @@ function BalloonGame({
         const tilt = Math.sin(b.swayTime * b.swayFreq + b.swayPhase) * b.tiltAmp;
         const curX = Math.max(16, Math.min(W - 195, b.baseX + sway));
 
-        if (b.y < -280) {
-          b.y = H + 60 + Math.random() * 90;
+        if (b.y < -260) {
+          b.y = H + 40 + Math.random() * 70;
           b.baseX = 20 + Math.random() * (W - 200);
-          b.speed = 36 + Math.random() * 20;
-          b.swayFreq = 0.85 + Math.random() * 0.55;
+          b.speed = 15 + Math.random() * 7;
+          b.swayFreq = 0.45 + Math.random() * 0.3;
           b.swayPhase = Math.random() * Math.PI * 2;
-          b.swayAmp = 18 + Math.random() * 16;
+          b.swayAmp = 14 + Math.random() * 8;
         }
 
         const el = balloonElementsRef.current[i];

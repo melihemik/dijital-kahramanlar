@@ -3188,12 +3188,14 @@ button {
   position: absolute;
   top: 12px;
   right: 12px;
-  z-index: 10;
+  z-index: 150;
+  pointer-events: auto;
 }
 
 .balloon-question-panel {
   position: relative;
-  z-index: 5;
+  z-index: 120;
+  pointer-events: none;
   max-width: 720px;
   margin: 12px auto 0;
   padding: 14px 28px 18px;
