@@ -3173,10 +3173,11 @@ button {
   background: transparent;
   padding: 0;
   outline: none;
-  animation-name: balloonFlyUpAndSway;
-  animation-timing-function: linear;
-  animation-iteration-count: infinite;
-  transition: filter 160ms ease, transform 160ms ease;
+  animation-name: balloonRise, balloonSway;
+  animation-timing-function: linear, ease-in-out;
+  animation-iteration-count: infinite, infinite;
+  animation-direction: normal, alternate;
+  transition: filter 160ms ease;
   will-change: top, transform;
 }
 
@@ -3260,26 +3261,24 @@ button {
   max-width: 110px;
 }
 
-@keyframes balloonFlyUpAndSway {
+@keyframes balloonRise {
   0% {
     top: 105vh;
-    transform: translateX(-50%) translateX(0px) rotate(0deg);
-  }
-  20% {
-    transform: translateX(-50%) translateX(var(--sway, 22px)) rotate(3deg);
-  }
-  40% {
-    transform: translateX(-50%) translateX(calc(-1 * var(--sway, 22px))) rotate(-3deg);
-  }
-  60% {
-    transform: translateX(-50%) translateX(var(--sway, 22px)) rotate(3deg);
-  }
-  80% {
-    transform: translateX(-50%) translateX(calc(-1 * var(--sway, 22px))) rotate(-2deg);
   }
   100% {
     top: -260px;
-    transform: translateX(-50%) translateX(0px) rotate(0deg);
+  }
+}
+
+@keyframes balloonSway {
+  0% {
+    transform: translateX(calc(-50% - var(--sway, 22px))) rotate(calc(-1 * var(--tilt, 3deg)));
+  }
+  50% {
+    transform: translateX(-50%) rotate(0deg);
+  }
+  100% {
+    transform: translateX(calc(-50% + var(--sway, 22px))) rotate(var(--tilt, 3deg));
   }
 }
 

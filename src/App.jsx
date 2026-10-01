@@ -2991,23 +2991,33 @@ function BalloonGame({
     let allWrong = shuffle([...wrongChoices, ...decoys]);
     let selectedWrong = allWrong.slice(0, 4);
 
-    const allOptions = shuffle([correctChoice, ...selectedWrong].filter(Boolean));
-    const lanes = [10, 29, 49, 69, 88];
-    const delays = [0, -2.8, -5.6, -8.4, -11.2];
-    const sways = [24, -20, 22, -25, 20];
+    const baseLanes = [11, 29, 49, 69, 87];
     const shuffledPalettes = shuffle([...BALLOON_PALETTES]);
 
     setBalloons(
-      allOptions.slice(0, 5).map((opt, i) => ({
-        id: `balloon-${visibleQuestion.id}-${i}-${opt.text}`,
-        text: opt.text,
-        isCorrect: opt.isCorrect,
-        x: lanes[i % lanes.length],
-        duration: 13.5,
-        delay: delays[i % delays.length],
-        sway: sways[i % sways.length],
-        palette: shuffledPalettes[i % shuffledPalettes.length]
-      }))
+      allOptions.slice(0, 5).map((opt, i) => {
+        const riseDuration = 16.0 + i * 0.85 + (Math.random() * 1.5 - 0.75);
+        const riseDelay = -1 * (i * (riseDuration / 5) + Math.random() * 1.2);
+        const xPos = baseLanes[i % baseLanes.length] + (Math.random() * 4 - 2);
+        const swayDuration = 3.2 + Math.random() * 1.6;
+        const swayDelay = -1 * Math.random() * 3.0;
+        const swayAmp = 18 + Math.random() * 14;
+        const tilt = 2.5 + Math.random() * 2.5;
+
+        return {
+          id: `balloon-${visibleQuestion.id}-${i}-${opt.text}`,
+          text: opt.text,
+          isCorrect: opt.isCorrect,
+          x: xPos,
+          riseDuration: Number(riseDuration.toFixed(2)),
+          riseDelay: Number(riseDelay.toFixed(2)),
+          swayDuration: Number(swayDuration.toFixed(2)),
+          swayDelay: Number(swayDelay.toFixed(2)),
+          sway: Number(swayAmp.toFixed(1)),
+          tilt: Number(tilt.toFixed(1)),
+          palette: shuffledPalettes[i % shuffledPalettes.length]
+        };
+      })
     );
   }, [isRunning, visibleQuestion?.id, activeGroup]);
 
@@ -3057,12 +3067,13 @@ function BalloonGame({
               className="floating-balloon"
               style={{
                 left: `${b.x}%`,
-                animationDuration: `${b.duration}s`,
-                animationDelay: `${b.delay}s`,
+                animationDuration: `${b.riseDuration}s, ${b.swayDuration}s`,
+                animationDelay: `${b.riseDelay}s, ${b.swayDelay}s`,
                 "--balloon-color": b.palette.main,
                 "--balloon-light": b.palette.light,
                 "--balloon-dark": b.palette.dark,
-                "--sway": `${b.sway}px`
+                "--sway": `${b.sway}px`,
+                "--tilt": `${b.tilt}deg`
               }}
               onClick={() => handleBalloonClick(b)}
               type="button"
