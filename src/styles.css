@@ -2253,11 +2253,13 @@ button {
 }
 
 .icon-button {
-  min-width: 58px;
-  width: 58px;
-  min-height: 54px;
-  height: 54px;
-  padding: 0;
+  --corner: 8px !important;
+  --step: 3px !important;
+  min-width: 48px !important;
+  width: 48px !important;
+  min-height: 48px !important;
+  height: 48px !important;
+  padding: 0 !important;
   display: grid;
   place-items: center;
   font-size: 0;
@@ -2271,9 +2273,23 @@ button {
 }
 
 .reset-icon-button {
-  --button-fill: #2f8a7d;
-  --button-fill-hover: #3ea394;
-  --button-shadow: #1d5d54;
+  --button-fill: var(--button, #d72d2d);
+  --button-fill-hover: var(--button-hover, #ef3c35);
+  --button-shadow: var(--button-dark, #8f171b);
+}
+
+.reset-icon-button svg {
+  display: block;
+  filter: drop-shadow(1px 1px 0 rgba(0, 0, 0, 0.3));
+  transition: transform 0.2s ease;
+}
+
+.reset-icon-button:hover svg {
+  transform: rotate(45deg);
+}
+
+.reset-icon-button:active svg {
+  transform: rotate(180deg);
 }
 
 .icon-glyph {
