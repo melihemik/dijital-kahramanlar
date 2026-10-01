@@ -2,9 +2,13 @@ import { Canvas, useFrame } from "@react-three/fiber";
 import { Sky, Cloud, useGLTF, useAnimations, Html } from "@react-three/drei";
 import * as THREE from "three";
 import robotGlb from "./assets/models/robot.glb";
-import islandGlb from "./assets/models/island.glb";
-import stoneGlb from "./assets/models/stone.glb";
 import flagGlb from "./assets/models/flag.glb";
+import rockAGlb from "./assets/models/rock-a.glb";
+import rockBGlb from "./assets/models/rock-b.glb";
+import rockCGlb from "./assets/models/rock-c.glb";
+import palmTreeGlb from "./assets/models/palm-tree.glb";
+import chestGlb from "./assets/models/chest.glb";
+import grassPlantGlb from "./assets/models/grass-plant.glb";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import appLogo from "./assets/images/dkahramanlar.png";
 import puzzleA1 from "./assets/images/atakim_1-puzzle.png";
@@ -1451,7 +1455,6 @@ function App() {
         timeLeft <= TENSION_THRESHOLD_SECONDS;
       nextTrack = inTensionWindow ? "tension" : "gameplay";
     } else if (
-      data.phase === "balloonTransition" ||
       data.phase === "puzzleSetup" ||
       data.phase === "intro"
     ) {
@@ -1808,11 +1811,7 @@ function App() {
       const nextGameIndex = nextSession.activeGameIndex + 1;
       const nextGame = nextSession.games[nextGameIndex];
 
-      if (currentGame?.id === "balloon") {
-        nextSession.phase = "balloonTransition";
-        nextSession.roundStatus = "transition";
-        nextSession.gameState.transition.balloonPopped = false;
-      } else if (nextGame?.id === "puzzle") {
+      if (nextGame?.id === "puzzle") {
         nextSession.phase = "puzzleSetup";
         nextSession.roundStatus = "transition";
         nextSession.activeGameIndex = nextGameIndex;
@@ -1845,7 +1844,7 @@ function App() {
   }, [persistSession]);
 
   const addScoreToActiveGroup = useCallback(
-    async (amount) => {
+    async (amount, playFeedback = true) => {
       const currentSession = dataRef.current;
       if (!currentSession || currentSession.phase !== "playing") {
         return;
@@ -1858,71 +1857,13 @@ function App() {
         0,
         nextSession.groups[groupKey].score + amount
       );
-      if (amount !== 0) {
+      if (amount !== 0 && playFeedback) {
         playAnswerFeedbackSound(amount > 0);
       }
       await persistSession(nextSession);
     },
     [persistSession]
   );
-
-  const popTransitionBalloon = useCallback(async () => {
-    if (!data || data.phase !== "balloonTransition") {
-      return;
-    }
-
-    const popTrack = audioRefs.current?.pop;
-    if (popTrack) {
-      popTrack.currentTime = 0;
-      popTrack.play().catch(() => {});
-    }
-
-    const nextSession = clone(data);
-    nextSession.gameState.transition.balloonPopped = true;
-    await persistSession(nextSession);
-  }, [data, persistSession]);
-
-  const continueToNextSection = useCallback(async () => {
-    if (!data || data.phase !== "balloonTransition") {
-      return;
-    }
-
-    const nextSession = clone(data);
-    const nextGameIndex = nextSession.activeGameIndex + 1;
-    const nextGame = nextSession.games[nextGameIndex];
-
-    nextSession.gameState.transition.balloonPopped = false;
-
-    if (nextGame?.id === "puzzle") {
-      nextSession.phase = "puzzleSetup";
-      nextSession.roundStatus = "transition";
-      nextSession.activeGameIndex = nextGameIndex;
-      nextSession.activeGroup = "A";
-      nextSession.gameState.transition.puzzleDifficulty = "medium";
-      nextSession.timer = {
-        durationSeconds: nextSession.games[nextGameIndex]?.durationSeconds ?? 90,
-        startedAt: null,
-        endsAt: null
-      };
-      nextSession.gameState.turns = clone(defaultSession.gameState.turns);
-    } else if (nextGameIndex < nextSession.games.length) {
-      nextSession.phase = "playing";
-      nextSession.roundStatus = "idle";
-      nextSession.activeGameIndex = nextGameIndex;
-      nextSession.activeGroup = "A";
-      nextSession.timer = {
-        durationSeconds: nextSession.games[nextGameIndex]?.durationSeconds ?? 90,
-        startedAt: null,
-        endsAt: null
-      };
-      nextSession.gameState.turns = clone(defaultSession.gameState.turns);
-    } else {
-      nextSession.phase = "winner";
-      nextSession.roundStatus = "complete";
-    }
-
-    await persistSession(nextSession);
-  }, [data, persistSession]);
 
   const answerQuestion = useCallback(
     async (isCorrect) => {
@@ -2143,13 +2084,10 @@ function App() {
       nextSession = makeSession("cup");
     } else if (sceneKey === "match") {
       nextSession = makeSession("match");
+    } else if (sceneKey === "pacman") {
+      nextSession = makeSession("pacman");
     } else if (sceneKey === "puzzle") {
       nextSession = makeSession("puzzle");
-    } else if (sceneKey === "balloonTransition") {
-      nextSession = makeSession("balloon");
-      nextSession.phase = "balloonTransition";
-      nextSession.roundStatus = "transition";
-      nextSession.gameState.transition.balloonPopped = false;
     } else if (sceneKey === "puzzleSetup") {
       nextSession = makeSession("puzzle");
       nextSession.phase = "puzzleSetup";
@@ -2308,6 +2246,26 @@ function App() {
       );
     }
 
+    if (activeGame?.id === "pacman") {
+      return (
+        <>
+          <PacmanGame
+            activeGame={activeGame}
+            activeGroup={data.activeGroup}
+            groups={data.groups}
+            isRunning={data.roundStatus === "running"}
+            onAddScore={addScoreToActiveGroup}
+            onCompleteTurn={finishTurn}
+            onReset={resetProgress}
+            onStartTurn={startTurn}
+            timeLeft={timeLeft}
+          />
+          {settingsButton}
+          {developerNav}
+        </>
+      );
+    }
+
     if (activeGame?.id === "puzzle") {
       return (
         <>
@@ -2401,20 +2359,6 @@ function App() {
     );
   }
 
-  if (data.phase === "balloonTransition") {
-    return (
-      <>
-        <BalloonTransitionScreen
-          onContinue={continueToNextSection}
-          onPop={popTransitionBalloon}
-          onReset={resetProgress}
-          popped={data.gameState.transition.balloonPopped}
-        />
-        {settingsButton}
-        {developerNav}
-      </>
-    );
-  }
 
   if (data.phase === "puzzleSetup") {
     return (
@@ -2535,7 +2479,7 @@ function DeveloperQuickNav({ onJump, onOpenSettings }) {
     { key: "bridge", label: "Boşluk" },
     { key: "cup", label: "Bardak" },
     { key: "match", label: "Eşleştir" },
-    { key: "balloonTransition", label: "Patlat" },
+    { key: "pacman", label: "Pacman" },
     { key: "puzzleSetup", label: "Puzzle Seç" },
     { key: "puzzle", label: "Puzzle" },
     { key: "winner", label: "Kazanan" }
@@ -3459,145 +3403,99 @@ function ScoreBox({ active, label, score }) {
   );
 }
 
-function BalloonTransitionScreen({ onContinue, onPop, onReset, popped }) {
-  const stageRef = useRef(null);
-  const balloonRef = useRef(null);
-  const [dragging, setDragging] = useState(false);
-  const [needlePosition, setNeedlePosition] = useState(null);
-
-  const moveNeedle = useCallback((event) => {
-    if (!dragging || !stageRef.current) {
-      return;
-    }
-
-    const stageRect = stageRef.current.getBoundingClientRect();
-    setNeedlePosition({
-      x: event.clientX - stageRect.left,
-      y: event.clientY - stageRect.top
-    });
-  }, [dragging]);
-
-  const releaseNeedle = useCallback((event) => {
-    if (!dragging) {
-      return;
-    }
-
-    setDragging(false);
-
-    if (!balloonRef.current) {
-      setNeedlePosition(null);
-      return;
-    }
-
-    const balloonRect = balloonRef.current.getBoundingClientRect();
-    const hitBalloon =
-      event.clientX >= balloonRect.left &&
-      event.clientX <= balloonRect.right &&
-      event.clientY >= balloonRect.top &&
-      event.clientY <= balloonRect.bottom;
-
-    if (hitBalloon) {
-      onPop();
-      return;
-    }
-
-    setNeedlePosition(null);
-  }, [dragging, onPop]);
-
-  const startNeedleDrag = useCallback((event) => {
-    if (popped) {
-      return;
-    }
-
-    event.currentTarget.setPointerCapture(event.pointerId);
-    setDragging(true);
-
-    if (stageRef.current) {
-      const stageRect = stageRef.current.getBoundingClientRect();
-      setNeedlePosition({
-        x: event.clientX - stageRect.left,
-        y: event.clientY - stageRect.top
-      });
-    }
-  }, [popped]);
-
-  return (
-    <main className="app-screen game-screen pop-screen">
-      <IconActionButton actionType="reset" className="small-button reset-button" onClick={onReset} />
-      <section
-        className="pop-stage"
-        onPointerMove={moveNeedle}
-        onPointerUp={releaseNeedle}
-        ref={stageRef}
-      >
-        <div
-          className={`transition-balloon ${popped ? "popped" : ""}`}
-          ref={balloonRef}
-        >
-          <span className="balloon-shine" />
-        </div>
-        {popped ? (
-          <div className="pop-particles" aria-hidden="true">
-            <span />
-            <span />
-            <span />
-            <span />
-            <span />
-            <span />
-            <span />
-            <span />
-            <span />
-            <span />
-            <span />
-            <span />
-          </div>
-        ) : (
-          <button
-            aria-label="İğne"
-            className={`needle-tool ${dragging ? "dragging" : ""} ${
-              needlePosition ? "placed" : ""
-            }`}
-            onPointerDown={startNeedleDrag}
-            style={
-              needlePosition
-                ? {
-                    left: `${needlePosition.x}px`,
-                    top: `${needlePosition.y}px`
-                  }
-                : undefined
-            }
-          >
-            <span />
-          </button>
-        )}
-        {popped ? (
-          <button className="pixel-button start-button continue-button" onClick={onContinue}>
-            Devam Et
-          </button>
-        ) : null}
-      </section>
-    </main>
-  );
-}
-
-function FlagModel({ position = [0, 0, 0], scale = [1, 1, 1] }) {
+function FlagModel({ position = [0, 0, 0], scale = [0.72, 0.72, 0.72], rotation = [0, 0, 0] }) {
   const { scene } = useGLTF(flagGlb);
-  const cloned = useMemo(() => scene.clone(), [scene]);
-  return <primitive object={cloned} position={position} scale={scale} receiveShadow castShadow />;
+  const cloned = useMemo(() => {
+    const c = scene.clone();
+    c.traverse((node) => {
+      if (node.isMesh) {
+        node.castShadow = true;
+        node.receiveShadow = true;
+      }
+    });
+    return c;
+  }, [scene]);
+  return <primitive object={cloned} position={position} scale={scale} rotation={rotation} />;
 }
 
-function BeachIsland({ position, rotation = [0, 0, 0], hasFlag = false }) {
-  const islandGeo = useMemo(() => {
-    const geo = new THREE.CylinderGeometry(2.5, 3.0, 0.4, 8, 1);
+function PalmTreeModel({ position = [0, 0, 0], scale = [0.38, 0.38, 0.38], rotation = [0, 0, 0] }) {
+  const { scene } = useGLTF(palmTreeGlb);
+  const cloned = useMemo(() => {
+    const c = scene.clone();
+    c.traverse((node) => {
+      if (node.isMesh) {
+        node.castShadow = true;
+        node.receiveShadow = true;
+      }
+    });
+    return c;
+  }, [scene]);
+  return <primitive object={cloned} position={position} scale={scale} rotation={rotation} />;
+}
+
+function ChestModel({ position = [0, 0, 0], scale = [0.36, 0.36, 0.36], rotation = [0, 0, 0] }) {
+  const { scene } = useGLTF(chestGlb);
+  const cloned = useMemo(() => {
+    const c = scene.clone();
+    c.traverse((node) => {
+      if (node.isMesh) {
+        node.castShadow = true;
+        node.receiveShadow = true;
+      }
+    });
+    return c;
+  }, [scene]);
+  return <primitive object={cloned} position={position} scale={scale} rotation={rotation} />;
+}
+
+function GrassPlantModel({ position = [0, 0, 0], scale = [0.24, 0.24, 0.24], rotation = [0, 0, 0] }) {
+  const { scene } = useGLTF(grassPlantGlb);
+  const cloned = useMemo(() => {
+    const c = scene.clone();
+    c.traverse((node) => {
+      if (node.isMesh) {
+        node.castShadow = true;
+        node.receiveShadow = true;
+      }
+    });
+    return c;
+  }, [scene]);
+  return <primitive object={cloned} position={position} scale={scale} rotation={rotation} />;
+}
+
+function BeachIsland({ position, rotation = [0, 0, 0], isDestination = false }) {
+  const reefGeo = useMemo(() => {
+    const geo = new THREE.CylinderGeometry(2.7, 3.2, 0.35, 9);
+    geo.computeVertexNormals();
+    return geo;
+  }, []);
+
+  const beachGeo = useMemo(() => {
+    const geo = new THREE.CylinderGeometry(2.3, 2.8, 0.34, 9);
     const pos = geo.attributes.position;
     for (let i = 0; i < pos.count; i++) {
-      const x = pos.getX(i);
       const y = pos.getY(i);
-      const z = pos.getZ(i);
       if (y > 0) {
-        const noise = 0.85 + Math.random() * 0.3;
-        pos.setX(i, x * noise);
-        pos.setZ(i, z * noise);
+        const angle = Math.atan2(pos.getZ(i), pos.getX(i));
+        const rMod = 1 + 0.12 * Math.sin(angle * 2.5) + 0.06 * Math.cos(angle * 4);
+        pos.setX(i, pos.getX(i) * rMod);
+        pos.setZ(i, pos.getZ(i) * rMod);
+      }
+    }
+    geo.computeVertexNormals();
+    return geo;
+  }, []);
+
+  const grassGeo = useMemo(() => {
+    const geo = new THREE.CylinderGeometry(1.65, 2.05, 0.16, 9);
+    const pos = geo.attributes.position;
+    for (let i = 0; i < pos.count; i++) {
+      const y = pos.getY(i);
+      if (y > 0) {
+        const angle = Math.atan2(pos.getZ(i), pos.getX(i));
+        const rMod = 1 + 0.1 * Math.sin(angle * 3);
+        pos.setX(i, pos.getX(i) * rMod);
+        pos.setZ(i, pos.getZ(i) * rMod);
       }
     }
     geo.computeVertexNormals();
@@ -3606,101 +3504,126 @@ function BeachIsland({ position, rotation = [0, 0, 0], hasFlag = false }) {
 
   return (
     <group position={position} rotation={rotation}>
-      {/* Low-poly kumsal taban */}
-      <mesh geometry={islandGeo} position={[0, -0.1, 0]} receiveShadow castShadow>
-        <meshStandardMaterial color="#d4b96a" roughness={0.95} />
+      {/* Sualtı kaya temeli */}
+      <mesh geometry={reefGeo} position={[0, -0.22, 0]} receiveShadow>
+        <meshStandardMaterial color="#264448" roughness={0.92} flatShading />
       </mesh>
-      {/* Kum üst katman - daha düzensiz */}
-      <mesh position={[0, 0.05, 0]} receiveShadow>
-        <cylinderGeometry args={[2.2, 2.5, 0.15, 7]} />
-        <meshStandardMaterial color="#e8d08a" roughness={0.9} />
+
+      {/* Islak kum ve kıyı köpüğü halkası */}
+      <mesh position={[0, -0.19, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[2.65, 2.95, 18]} />
+        <meshBasicMaterial color="#e0f7fa" transparent opacity={0.4} />
       </mesh>
-      {/* Kum kenarı - suya doğru eğim */}
-      <mesh position={[0, -0.2, 0]} receiveShadow>
-        <cylinderGeometry args={[2.7, 3.2, 0.1, 8]} />
-        <meshStandardMaterial color="#b89a52" roughness={0.95} />
+
+      {/* Low-poly altın kumsal gövdesi */}
+      <mesh geometry={beachGeo} position={[0, -0.04, 0]} receiveShadow castShadow>
+        <meshStandardMaterial color="#e5c875" roughness={0.92} flatShading />
       </mesh>
-      {/* Küçük kum tepeleri - düzensiz */}
-      <mesh position={[0.9, 0.1, 0.6]} receiveShadow>
-        <dodecahedronGeometry args={[0.3, 0]} />
-        <meshStandardMaterial color="#e8d08a" roughness={0.9} />
+
+      {/* Üst çimenlik plato */}
+      <mesh geometry={grassGeo} position={[0, 0.18, 0]} receiveShadow castShadow>
+        <meshStandardMaterial color="#54a83b" roughness={0.88} flatShading />
       </mesh>
-      <mesh position={[-0.7, 0.08, -0.5]} receiveShadow>
-        <dodecahedronGeometry args={[0.25, 0]} />
-        <meshStandardMaterial color="#d4b96a" roughness={0.9} />
-      </mesh>
-      {/* Bayrak */}
-      {hasFlag ? (
-        <group position={[0.9, 0.5, 0.6]}>
-          <mesh castShadow>
-            <cylinderGeometry args={[0.02, 0.02, 0.6, 6]} />
-            <meshStandardMaterial color="#666" metalness={0.6} />
+
+      {/* Ada tipine göre çevre detayları */}
+      {!isDestination ? (
+        <>
+          <PalmTreeModel position={[-0.85, 0.22, -0.55]} scale={[0.36, 0.36, 0.36]} rotation={[0.08, 0.35, -0.12]} />
+          <GrassPlantModel position={[-0.45, 0.26, -0.45]} scale={[0.22, 0.22, 0.22]} />
+          <GrassPlantModel position={[-0.7, 0.26, 0.4]} scale={[0.2, 0.2, 0.2]} />
+          <mesh position={[0.9, 0.12, 0]} rotation={[0, 0, -0.05]} castShadow receiveShadow>
+            <boxGeometry args={[0.55, 0.05, 0.45]} />
+            <meshStandardMaterial color="#7a4b22" roughness={0.85} flatShading />
           </mesh>
-          <mesh position={[0.1, 0.18, 0]} castShadow>
-            <boxGeometry args={[0.2, 0.15, 0.01]} />
-            <meshStandardMaterial color="#e63946" />
-          </mesh>
-        </group>
-      ) : null}
+        </>
+      ) : (
+        <>
+          <PalmTreeModel position={[0.9, 0.22, -0.55]} scale={[0.38, 0.38, 0.38]} rotation={[-0.08, -0.45, 0.12]} />
+          <ChestModel position={[0.62, 0.26, 0.45]} scale={[0.38, 0.38, 0.38]} rotation={[0, -Math.PI / 3.5, 0]} />
+          <FlagModel position={[0.42, 0.26, -0.45]} scale={[0.72, 0.72, 0.72]} rotation={[0, -Math.PI / 4, 0]} />
+          <GrassPlantModel position={[0.18, 0.26, -0.65]} scale={[0.24, 0.24, 0.24]} />
+          <GrassPlantModel position={[0.3, 0.26, 0.6]} scale={[0.2, 0.2, 0.2]} />
+        </>
+      )}
     </group>
   );
 }
 
-function Rock3D({ position, scale = 1, isCurrent, isPassed }) {
-  const rockGeo = useMemo(() => {
-    const geo = new THREE.DodecahedronGeometry(0.5, 0);
-    const pos = geo.attributes.position;
-    for (let i = 0; i < pos.count; i++) {
-      const x = pos.getX(i);
-      const y = pos.getY(i);
-      const z = pos.getZ(i);
-      const noise = 0.8 + Math.random() * 0.4;
-      pos.setXYZ(i, x * noise, y * 0.7 * noise, z * noise);
-    }
-    geo.computeVertexNormals();
-    return geo;
-  }, []);
+const ROCK_GLB_MAP = [rockAGlb, rockBGlb, rockCGlb, rockAGlb, rockBGlb];
+const ROCK_SCALES = [
+  [0.34, 0.22, 0.34],
+  [0.34, 0.175, 0.34],
+  [0.40, 0.27, 0.40],
+  [0.34, 0.22, 0.34],
+  [0.34, 0.175, 0.34]
+];
+const ROCK_ROTATIONS = [
+  [0, 0.2, 0],
+  [0, -0.85, 0],
+  [0, 1.35, 0],
+  [0, -1.9, 0],
+  [0, 0.95, 0]
+];
 
-  const rockColor = isPassed ? "#5a6b5c" : isCurrent ? "#6b7d6e" : "#4a4a4a";
+function Rock3D({ index = 0, position, isCurrent, isPassed, isTarget }) {
+  const modelUrl = ROCK_GLB_MAP[index % ROCK_GLB_MAP.length];
+  const { scene } = useGLTF(modelUrl);
+  const cloned = useMemo(() => {
+    const c = scene.clone();
+    c.traverse((node) => {
+      if (node.isMesh) {
+        node.castShadow = true;
+        node.receiveShadow = true;
+      }
+    });
+    return c;
+  }, [scene]);
+
+  const scale = ROCK_SCALES[index % ROCK_SCALES.length];
+  const rotation = ROCK_ROTATIONS[index % ROCK_ROTATIONS.length];
 
   return (
-    <group position={position} scale={scale}>
-      {/* Ana kaya */}
-      <mesh geometry={rockGeo} position={[0, 0.3, 0]} receiveShadow castShadow>
-        <meshStandardMaterial color={rockColor} roughness={0.9} />
+    <group position={position}>
+      <primitive object={cloned} scale={scale} rotation={rotation} />
+
+      {/* Su yüzeyi köpük dalgası */}
+      <mesh position={[0, -0.05, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[0.62, 0.78, 16]} />
+        <meshBasicMaterial color="#d4f1f9" transparent opacity={0.35} />
       </mesh>
-      {/* Küçük kaya parçaları */}
-      <mesh position={[0.2, 0.15, 0.15]} receiveShadow>
-        <dodecahedronGeometry args={[0.2, 0]} />
-        <meshStandardMaterial color={rockColor} roughness={0.9} />
-      </mesh>
-      <mesh position={[-0.15, 0.12, -0.1]} receiveShadow>
-        <dodecahedronGeometry args={[0.15, 0]} />
-        <meshStandardMaterial color="#3a3a3a" roughness={0.9} />
-      </mesh>
-      {/* Yosun detayı */}
-      <mesh position={[0.15, 0.35, 0.2]}>
-        <sphereGeometry args={[0.08, 6, 6]} />
-        <meshStandardMaterial color="#3a5a2a" roughness={0.9} />
-      </mesh>
-      {/* Mevcut taş vurgu halkası */}
+
+      {/* Sıradaki hedef taş vurgusu (yeşil halka) */}
+      {isTarget ? (
+        <mesh position={[0, 0.45, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <ringGeometry args={[0.55, 0.68, 24]} />
+          <meshBasicMaterial color="#4ade80" transparent opacity={0.85} />
+        </mesh>
+      ) : null}
+
+      {/* Robotun üzerinde bulunduğu aktif taş vurgusu (mavi halka) */}
       {isCurrent ? (
-        <mesh position={[0, 0.02, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-          <ringGeometry args={[0.6, 0.75, 24]} />
-          <meshBasicMaterial color="#4ade80" transparent opacity={0.9} />
+        <mesh position={[0, 0.45, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <ringGeometry args={[0.52, 0.65, 24]} />
+          <meshBasicMaterial color="#60a5fa" transparent opacity={0.75} />
         </mesh>
       ) : null}
     </group>
   );
 }
 
-function AnimatedRobot({ targetPos, isJumping, isWrong }) {
+function AnimatedRobot({ targetPos, isJumping, isWrong, hasFinishedIsland }) {
   const groupRef = useRef();
   const { scene, animations } = useGLTF(robotGlb);
   const { actions } = useAnimations(animations, scene);
   const activeActionRef = useRef("Idle");
-  const jumpProgressRef = useRef(1);
+
+  // Continuous position tracking across renders
+  const currentPosRef = useRef([...targetPos]);
   const jumpStartPosRef = useRef([...targetPos]);
+  const jumpProgressRef = useRef(1);
+  const previousTargetRef = useRef([...targetPos]);
+  const targetPosRef = useRef([...targetPos]);
+  targetPosRef.current = targetPos;
 
   useEffect(() => {
     scene.traverse((obj) => {
@@ -3711,91 +3634,156 @@ function AnimatedRobot({ targetPos, isJumping, isWrong }) {
     });
   }, [scene]);
 
-  // Normal hareketsiz/idle duruş
+  // Initial Idle action
   useEffect(() => {
-    if (actions?.Idle) {
+    if (actions?.Idle && activeActionRef.current === "Idle") {
       actions.Idle.reset().fadeIn(0.2).play();
-      activeActionRef.current = "Idle";
     }
   }, [actions]);
 
-  // Yanlış cevap -> Sağa sola kafa sallama (No)
+  // Handle jump initiation and reset
   useEffect(() => {
-    if (isWrong && actions?.No) {
-      if (activeActionRef.current && actions[activeActionRef.current]) {
-        actions[activeActionRef.current].fadeOut(0.12);
-      }
-      actions.No.reset().fadeIn(0.12).play();
-      activeActionRef.current = "No";
+    const prev = previousTargetRef.current;
+    const targetChanged =
+      prev[0] !== targetPos[0] ||
+      prev[1] !== targetPos[1] ||
+      prev[2] !== targetPos[2];
+    previousTargetRef.current = [...targetPos];
 
-      const timer = window.setTimeout(() => {
-        actions.No?.fadeOut(0.25);
-        actions.Idle?.reset().fadeIn(0.25).play();
-        activeActionRef.current = "Idle";
-      }, 1150);
-
-      return () => window.clearTimeout(timer);
-    }
-  }, [isWrong, actions]);
-
-  // Doğru cevap -> Kolunu havaya kaldırıp zıplama (Jump)
-  useEffect(() => {
-    if (isJumping && actions) {
+    // Reset back to start island
+    if (targetPos[0] <= -5.0 && targetChanged && !isJumping) {
+      currentPosRef.current = [...targetPos];
+      jumpProgressRef.current = 1;
       if (groupRef.current) {
-        jumpStartPosRef.current = [
-          groupRef.current.position.x,
-          groupRef.current.position.y,
-          groupRef.current.position.z
-        ];
+        groupRef.current.position.set(...targetPos);
+        groupRef.current.rotation.set(0, Math.PI / 2, 0);
       }
+      if (actions) {
+        Object.values(actions).forEach((a) => a.stop());
+        actions.Idle?.reset().fadeIn(0.2).play();
+        activeActionRef.current = "Idle";
+      }
+      return;
+    }
+
+    if (isJumping && actions) {
+      jumpStartPosRef.current = [...currentPosRef.current];
       jumpProgressRef.current = 0;
 
       if (activeActionRef.current && actions[activeActionRef.current]) {
         actions[activeActionRef.current].fadeOut(0.1);
       }
       if (actions.Jump) {
-        actions.Jump.reset().fadeIn(0.08).play();
+        actions.Jump.reset().setLoop(THREE.LoopOnce, 1);
+        actions.Jump.clampWhenFinished = true;
+        actions.Jump.fadeIn(0.08).play();
       }
       activeActionRef.current = "Jump";
     }
-  }, [isJumping, actions]);
+  }, [isJumping, targetPos, actions]);
 
-  // Gerçekçi parabolik atlama hareketi
+  // Wrong answer -> head shake (No)
+  useEffect(() => {
+    if (isWrong && actions?.No) {
+      if (activeActionRef.current && actions[activeActionRef.current]) {
+        actions[activeActionRef.current].fadeOut(0.12);
+      }
+      actions.No.reset().setLoop(THREE.LoopOnce, 1);
+      actions.No.clampWhenFinished = true;
+      actions.No.fadeIn(0.12).play();
+      activeActionRef.current = "No";
+
+      const timer = window.setTimeout(() => {
+        actions.No?.fadeOut(0.25);
+        actions.Idle?.reset().fadeIn(0.25).play();
+        activeActionRef.current = "Idle";
+      }, 1250);
+
+      return () => window.clearTimeout(timer);
+    }
+  }, [isWrong, actions]);
+
+  // Island completed celebration
+  useEffect(() => {
+    if (hasFinishedIsland && actions) {
+      const celebrationTimer = window.setTimeout(() => {
+        if (actions.Dance) {
+          if (activeActionRef.current && actions[activeActionRef.current]) {
+            actions[activeActionRef.current].fadeOut(0.2);
+          }
+          actions.Dance.reset().fadeIn(0.25).play();
+          activeActionRef.current = "Dance";
+        } else if (actions.ThumbsUp) {
+          actions.ThumbsUp.reset().fadeIn(0.25).play();
+          activeActionRef.current = "ThumbsUp";
+        }
+      }, 600);
+      return () => window.clearTimeout(celebrationTimer);
+    }
+  }, [hasFinishedIsland, actions]);
+
+  // Frame update
   useFrame((_, delta) => {
     if (!groupRef.current) return;
 
     if (jumpProgressRef.current < 1) {
-      jumpProgressRef.current = Math.min(1, jumpProgressRef.current + delta * 1.35);
+      jumpProgressRef.current = Math.min(1, jumpProgressRef.current + delta * 1.4);
       const p = jumpProgressRef.current;
       const smoothP = p * p * (3 - 2 * p);
 
       const start = jumpStartPosRef.current;
-      const currentX = THREE.MathUtils.lerp(start[0], targetPos[0], smoothP);
-      const currentZ = THREE.MathUtils.lerp(start[2], targetPos[2], smoothP);
-      const baseY = THREE.MathUtils.lerp(start[1], targetPos[1], smoothP);
-      const arcY = Math.sin(p * Math.PI) * 1.6;
+      const dest = targetPosRef.current;
 
-      groupRef.current.position.set(currentX, baseY + arcY, currentZ);
+      const currentX = THREE.MathUtils.lerp(start[0], dest[0], smoothP);
+      const currentZ = THREE.MathUtils.lerp(start[2], dest[2], smoothP);
+      const baseY = THREE.MathUtils.lerp(start[1], dest[1], p);
+      const arcY = Math.sin(p * Math.PI) * 1.45;
+      const currentY = baseY + arcY;
+
+      groupRef.current.position.set(currentX, currentY, currentZ);
+      currentPosRef.current = [currentX, currentY, currentZ];
+
+      const dx = dest[0] - start[0];
+      const dz = dest[2] - start[2];
+      if (Math.abs(dx) > 0.01 || Math.abs(dz) > 0.01) {
+        const heading = Math.atan2(dx, dz);
+        const pitch = -Math.sin(p * Math.PI) * 0.18;
+        groupRef.current.rotation.y = THREE.MathUtils.lerp(
+          groupRef.current.rotation.y,
+          heading,
+          delta * 12
+        );
+        groupRef.current.rotation.x = pitch;
+      }
 
       if (p >= 1) {
-        if (actions?.Jump) {
-          actions.Jump.fadeOut(0.2);
+        groupRef.current.rotation.x = 0;
+        if (!hasFinishedIsland) {
+          actions?.Jump?.fadeOut(0.18);
+          actions?.Idle?.reset().fadeIn(0.2).play();
+          activeActionRef.current = "Idle";
         }
-        if (actions?.Idle) {
-          actions.Idle.reset().fadeIn(0.2).play();
-        }
-        activeActionRef.current = "Idle";
       }
     } else {
-      groupRef.current.position.x = THREE.MathUtils.lerp(groupRef.current.position.x, targetPos[0], delta * 8);
-      groupRef.current.position.y = THREE.MathUtils.lerp(groupRef.current.position.y, targetPos[1], delta * 8);
-      groupRef.current.position.z = THREE.MathUtils.lerp(groupRef.current.position.z, targetPos[2], delta * 8);
+      const dest = targetPosRef.current;
+      groupRef.current.position.x = THREE.MathUtils.lerp(groupRef.current.position.x, dest[0], delta * 10);
+      groupRef.current.position.y = THREE.MathUtils.lerp(groupRef.current.position.y, dest[1], delta * 10);
+      groupRef.current.position.z = THREE.MathUtils.lerp(groupRef.current.position.z, dest[2], delta * 10);
+      groupRef.current.rotation.x = THREE.MathUtils.lerp(groupRef.current.rotation.x, 0, delta * 8);
+
+      const idleHeading = Math.PI / 2;
+      groupRef.current.rotation.y = THREE.MathUtils.lerp(groupRef.current.rotation.y, idleHeading, delta * 6);
+      currentPosRef.current = [
+        groupRef.current.position.x,
+        groupRef.current.position.y,
+        groupRef.current.position.z
+      ];
     }
   });
 
   return (
-    <group ref={groupRef} position={targetPos}>
-      <primitive object={scene} scale={[0.3, 0.3, 0.3]} rotation={[0, Math.PI / 2, 0]} />
+    <group ref={groupRef}>
+      <primitive object={scene} scale={[0.32, 0.32, 0.32]} />
     </group>
   );
 }
@@ -3964,7 +3952,7 @@ function BridgeGame({
     const timer = window.setTimeout(() => {
       completedRef.current = true;
       void onCompleteTurn();
-    }, 1600);
+    }, 2600);
 
     return () => window.clearTimeout(timer);
   }, [isRunning, onCompleteTurn, solvedSteps, targetSteps]);
@@ -3993,22 +3981,22 @@ function BridgeGame({
 
   // İki kumsal arasında 5 kaya - eşit aralıklı
   const stonePositions = useMemo(() => [
-    [-3.36, 0.05, 0.3],
-    [-1.68, 0.05, -0.3],
-    [0.0,  0.05, 0.3],
-    [1.68,  0.05, -0.3],
-    [3.36,  0.05, 0.3]
+    [-3.36, -0.15, 0.25],
+    [-1.68, -0.15, -0.25],
+    [0.0,   -0.15, 0.25],
+    [1.68,  -0.15, -0.25],
+    [3.36,  -0.15, 0.25]
   ], []);
 
   const robotTargetPos = useMemo(() => {
     if (solvedSteps <= 0) {
-      return [-5.2, 0.46, 0];
+      return [-5.2, 0.48, 0];
     }
     if (hasFinishedIsland) {
-      return [5.2, 0.46, 0];
+      return [5.2, 0.48, 0];
     }
     const currentStone = stonePositions[Math.min(solvedSteps - 1, 4)];
-    return [currentStone[0], 0.55, currentStone[2]];
+    return [currentStone[0], 0.52, currentStone[2]];
   }, [hasFinishedIsland, solvedSteps, stonePositions]);
 
   return (
@@ -4037,25 +4025,31 @@ function BridgeGame({
               <directionalLight position={[6, 12, 6]} intensity={1.5} castShadow shadow-mapSize={[1024, 1024]} />
               <Water />
 
-              {/* Sol Kumsal Başlangıç */}
-              <BeachIsland position={[-5.6, -0.2, 0]} />
+              {/* Sol Kumsal Başlangıç Adası */}
+              <BeachIsland position={[-5.6, -0.2, 0]} isDestination={false} />
 
-              {/* Sağ Kumsal Bitiş (Bayraklı) */}
-              <BeachIsland position={[5.6, -0.2, 0]} rotation={[0, Math.PI, 0]} hasFlag />
+              {/* Sağ Kumsal Bitiş Adası (Hedef Bayraklı & Hazineli) */}
+              <BeachIsland position={[5.6, -0.2, 0]} isDestination={true} />
 
               {/* İki kumsal arasındaki 5 kaya */}
               {stonePositions.map((pos, i) => (
                 <Rock3D
                   key={i}
+                  index={i}
                   position={pos}
-                  scale={1}
                   isCurrent={solvedSteps > 0 && solvedSteps - 1 === i}
+                  isTarget={solvedSteps === i}
                   isPassed={solvedSteps > i + 1}
                 />
               ))}
 
               {/* Taşların üstünden zıplayan 3D animasyonlu Robot */}
-              <AnimatedRobot targetPos={robotTargetPos} isJumping={isJumping} isWrong={isWrong} />
+              <AnimatedRobot
+                targetPos={robotTargetPos}
+                isJumping={isJumping}
+                isWrong={isWrong}
+                hasFinishedIsland={hasFinishedIsland}
+              />
             </Canvas>
           </div>
           <div className={`bridge-question-panel ${isShaking ? "shake" : ""}`}>
@@ -5474,6 +5468,876 @@ function WormGame({
               </div>
             </div>
           ) : null}
+          <CelebrationBurst burst={burst} />
+        </section>
+      )}
+    </main>
+  );
+}
+
+const PACMAN_GRID = { cols: 19, rows: 15 };
+
+const PACMAN_MAP_TEMPLATE = [
+  "1111111111111111111",
+  "1o.......1.......o1",
+  "1.11.111.1.111.11.1",
+  "1.................1",
+  "1.11.1.11111.1.11.1",
+  "1....1...1...1....1",
+  "1111.111   111.1111",
+  "    ...11-11...    ",
+  "1111.1.1GGG1.1.1111",
+  "1....1.11111.1....1",
+  "1.11.1.......1.11.1",
+  "1..1...11111...1..1",
+  "11.1.1...1...1.1.11",
+  "1o...111.3.111...o1",
+  "1111111111111111111"
+];
+
+const PACMAN_DIRECTIONS = {
+  up: { x: 0, y: -1, angle: 270, name: "up" },
+  down: { x: 0, y: 1, angle: 90, name: "down" },
+  left: { x: -1, y: 0, angle: 180, name: "left" },
+  right: { x: 1, y: 0, angle: 0, name: "right" }
+};
+
+const VIRUS_DEFS = [
+  { id: "trojan", name: "Truva", color: "#ef4444", spawnX: 9, spawnY: 8, releaseDelay: 0, personality: "chase" },
+  { id: "spyware", name: "Casus", color: "#a855f7", spawnX: 8, spawnY: 8, releaseDelay: 8, personality: "ambush" },
+  { id: "worm", name: "Solucan", color: "#10b981", spawnX: 10, spawnY: 8, releaseDelay: 16, personality: "patrol" },
+  { id: "ransom", name: "Fidye", color: "#06b6d4", spawnX: 9, spawnY: 7, releaseDelay: 24, personality: "corner" }
+];
+
+function playPacmanWakaSound(stepCount = 0) {
+  const audioContext = getFeedbackAudioContext();
+  if (!audioContext) return;
+  const now = audioContext.currentTime;
+  const freq = stepCount % 2 === 0 ? 320 : 440;
+  playFeedbackTone(audioContext, freq, now, 0.05, "triangle");
+}
+
+function playPacmanPowerSound() {
+  const audioContext = getFeedbackAudioContext();
+  if (!audioContext) return;
+  const now = audioContext.currentTime;
+  playFeedbackTone(audioContext, 587.33, now, 0.08, "square");
+  playFeedbackTone(audioContext, 739.99, now + 0.07, 0.08, "square");
+  playFeedbackTone(audioContext, 880.0, now + 0.14, 0.14, "square");
+}
+
+function playPacmanEatGhostSound() {
+  const audioContext = getFeedbackAudioContext();
+  if (!audioContext) return;
+  const now = audioContext.currentTime;
+  playFeedbackTone(audioContext, 440, now, 0.06, "square");
+  playFeedbackTone(audioContext, 660, now + 0.05, 0.06, "square");
+  playFeedbackTone(audioContext, 880, now + 0.1, 0.08, "square");
+  playFeedbackTone(audioContext, 1100, now + 0.15, 0.12, "square");
+}
+
+function playPacmanDeathSound() {
+  const audioContext = getFeedbackAudioContext();
+  if (!audioContext) return;
+  const now = audioContext.currentTime;
+  playFeedbackTone(audioContext, 440, now, 0.08, "sawtooth");
+  playFeedbackTone(audioContext, 370, now + 0.07, 0.08, "sawtooth");
+  playFeedbackTone(audioContext, 311, now + 0.14, 0.08, "sawtooth");
+  playFeedbackTone(audioContext, 220, now + 0.21, 0.16, "sawtooth");
+}
+
+function canPacmanMoveTo(x, y) {
+  if (y < 0 || y >= PACMAN_GRID.rows) return false;
+  const wrappedX = (x + PACMAN_GRID.cols) % PACMAN_GRID.cols;
+  const char = PACMAN_MAP_TEMPLATE[y][wrappedX];
+  return char !== "1" && char !== "-" && char !== "G";
+}
+
+function canGhostMoveTo(x, y, isDoorAllowed = false) {
+  if (y < 0 || y >= PACMAN_GRID.rows) return false;
+  const wrappedX = (x + PACMAN_GRID.cols) % PACMAN_GRID.cols;
+  const char = PACMAN_MAP_TEMPLATE[y][wrappedX];
+  if (char === "1") return false;
+  if ((char === "-" || char === "G") && !isDoorAllowed) return false;
+  return true;
+}
+
+function createInitialPacmanDots() {
+  const dots = new Set();
+  const pellets = new Set();
+  for (let y = 0; y < PACMAN_GRID.rows; y += 1) {
+    for (let x = 0; x < PACMAN_GRID.cols; x += 1) {
+      const c = PACMAN_MAP_TEMPLATE[y][x];
+      if (c === ".") {
+        dots.add(`${x}-${y}`);
+      } else if (c === "o") {
+        dots.add(`${x}-${y}`);
+        pellets.add(`${x}-${y}`);
+      }
+    }
+  }
+  return { dots, pellets };
+}
+
+function createInitialViruses() {
+  return VIRUS_DEFS.map((def) => ({
+    id: def.id,
+    name: def.name,
+    color: def.color,
+    personality: def.personality,
+    releaseDelay: def.releaseDelay,
+    x: def.spawnX,
+    y: def.spawnY,
+    prevX: def.spawnX,
+    prevY: def.spawnY,
+    dir: PACMAN_DIRECTIONS.up,
+    status: "normal",
+    inDen: def.spawnY >= 7 && def.spawnY <= 8 && def.spawnX >= 8 && def.spawnX <= 10,
+    ticksAlive: 0
+  }));
+}
+
+function PacmanSvg({ direction = PACMAN_DIRECTIONS.right, isChomping = true }) {
+  const angle = direction?.angle ?? 0;
+  return (
+    <svg
+      className={`pacman-sprite ${isChomping ? "chomping" : ""}`}
+      style={{ transform: `rotate(${angle}deg)` }}
+      viewBox="0 0 36 36"
+    >
+      <circle cx="18" cy="18" fill="#facc15" r="16" />
+      <polygon className="pacman-mouth" fill="#090d16" points="18,18 36,8 36,28" />
+      <circle cx="18" cy="8" fill="#000000" r="2.2" />
+    </svg>
+  );
+}
+
+function VirusSvg({ def, direction, isFlashing, isReturning, isScared }) {
+  if (isReturning) {
+    const eyeOffsetX = (direction?.x ?? 0) * 2;
+    const eyeOffsetY = (direction?.y ?? 0) * 2;
+    return (
+      <svg className="virus-sprite returning" viewBox="0 0 36 36">
+        <circle cx="13" cy="16" fill="#ffffff" r="4.5" />
+        <circle cx="23" cy="16" fill="#ffffff" r="4.5" />
+        <circle cx={13 + eyeOffsetX} cy={16 + eyeOffsetY} fill="#2563eb" r="2.2" />
+        <circle cx={23 + eyeOffsetX} cy={16 + eyeOffsetY} fill="#2563eb" r="2.2" />
+      </svg>
+    );
+  }
+
+  const bodyColor = isScared
+    ? (isFlashing ? "#f1f5f9" : "#1d4ed8")
+    : def.color;
+  const eyeColor = isScared ? (isFlashing ? "#ef4444" : "#f8fafc") : "#ffffff";
+  const pupilColor = isScared ? (isFlashing ? "#ffffff" : "#f43f5e") : "#0f172a";
+  const eyeOffsetX = isScared ? 0 : (direction?.x ?? 0) * 2;
+  const eyeOffsetY = isScared ? 0 : (direction?.y ?? 0) * 2;
+
+  return (
+    <svg
+      className={`virus-sprite ${isScared ? "scared" : ""} ${isFlashing ? "flash" : ""}`}
+      viewBox="0 0 36 36"
+    >
+      <circle cx="9" cy="8" fill={bodyColor} r="2" />
+      <line stroke={bodyColor} strokeWidth="2" x1="11" x2="9" y1="11" y2="8" />
+      <circle cx="27" cy="8" fill={bodyColor} r="2" />
+      <line stroke={bodyColor} strokeWidth="2" x1="25" x2="27" y1="11" y2="8" />
+      <circle cx="18" cy="6" fill={bodyColor} r="2" />
+      <line stroke={bodyColor} strokeWidth="2" x1="18" x2="18" y1="10" y2="6" />
+
+      <path
+        d="M 6 18 A 12 12 0 0 1 30 18 L 30 30 L 26 26 L 22 30 L 18 26 L 14 30 L 10 26 L 6 30 Z"
+        fill={bodyColor}
+      />
+
+      <circle cx="13" cy="17" fill={eyeColor} r="4" />
+      <circle cx="23" cy="17" fill={eyeColor} r="4" />
+      <circle cx={13 + eyeOffsetX} cy={17 + eyeOffsetY} fill={pupilColor} r="2" />
+      <circle cx={23 + eyeOffsetX} cy={17 + eyeOffsetY} fill={pupilColor} r="2" />
+
+      {isScared ? (
+        <path
+          d="M 11 25 L 14 23 L 17 25 L 20 23 L 23 25 L 25 23"
+          fill="none"
+          stroke={pupilColor}
+          strokeLinecap="round"
+          strokeWidth="1.8"
+        />
+      ) : null}
+    </svg>
+  );
+}
+
+function PacmanGame({
+  activeGame,
+  activeGroup,
+  groups,
+  isRunning,
+  onAddScore,
+  onCompleteTurn,
+  onReset,
+  onStartTurn,
+  timeLeft
+}) {
+  const pointsPerDot = Number(activeGame?.pointsPerDot) || 1;
+  const pointsPerPowerPellet = Number(activeGame?.pointsPerPowerPellet) || 10;
+  const pointsPerVirus = Number(activeGame?.pointsPerVirus) || 30;
+  const stepMs = Number(activeGame?.stepMs) || 180;
+  const activeKey = `${activeGame?.id}-${activeGroup}`;
+
+  const [initialData] = useState(() => createInitialPacmanDots());
+  const [dots, setDots] = useState(() => new Set(initialData.dots));
+  const [powerPellets] = useState(() => new Set(initialData.pellets));
+  const totalDotsCount = initialData.dots.size;
+
+  const [pacmanPos, setPacmanPos] = useState({ x: 9, y: 13 });
+  const [pacmanDir, setPacmanDir] = useState(PACMAN_DIRECTIONS.right);
+  const [requestedDir, setRequestedDir] = useState(PACMAN_DIRECTIONS.right);
+  const [viruses, setViruses] = useState(() => createInitialViruses());
+  const [lives, setLives] = useState(3);
+  const [antivirusMsRemaining, setAntivirusMsRemaining] = useState(0);
+  const [burst, setBurst] = useState(null);
+  const [isPaused, setIsPaused] = useState(false);
+  const [stepCounter, setStepCounter] = useState(0);
+
+  const dotsRef = useRef(dots);
+  const pacmanPosRef = useRef(pacmanPos);
+  const pacmanDirRef = useRef(pacmanDir);
+  const requestedDirRef = useRef(requestedDir);
+  const virusesRef = useRef(viruses);
+  const livesRef = useRef(lives);
+  const isPausedRef = useRef(isPaused);
+  const dragRef = useRef({ active: false, pointerId: null, startX: 0, startY: 0 });
+  const stepCounterRef = useRef(0);
+  const antivirusEndTimeRef = useRef(0);
+
+  useEffect(() => {
+    const fresh = createInitialPacmanDots();
+    setDots(new Set(fresh.dots));
+    dotsRef.current = new Set(fresh.dots);
+    setPacmanPos({ x: 9, y: 13 });
+    pacmanPosRef.current = { x: 9, y: 13 };
+    setPacmanDir(PACMAN_DIRECTIONS.right);
+    pacmanDirRef.current = PACMAN_DIRECTIONS.right;
+    setRequestedDir(PACMAN_DIRECTIONS.right);
+    requestedDirRef.current = PACMAN_DIRECTIONS.right;
+    const freshViruses = createInitialViruses();
+    setViruses(freshViruses);
+    virusesRef.current = freshViruses;
+    setLives(3);
+    livesRef.current = 3;
+    setAntivirusMsRemaining(0);
+    antivirusEndTimeRef.current = 0;
+    setIsPaused(false);
+    isPausedRef.current = false;
+    setBurst(null);
+    stepCounterRef.current = 0;
+    setStepCounter(0);
+  }, [activeKey]);
+
+  useEffect(() => {
+    dotsRef.current = dots;
+  }, [dots]);
+
+  useEffect(() => {
+    pacmanPosRef.current = pacmanPos;
+  }, [pacmanPos]);
+
+  useEffect(() => {
+    pacmanDirRef.current = pacmanDir;
+  }, [pacmanDir]);
+
+  useEffect(() => {
+    requestedDirRef.current = requestedDir;
+  }, [requestedDir]);
+
+  useEffect(() => {
+    virusesRef.current = viruses;
+  }, [viruses]);
+
+  useEffect(() => {
+    livesRef.current = lives;
+  }, [lives]);
+
+  useEffect(() => {
+    isPausedRef.current = isPaused;
+  }, [isPaused]);
+
+  const requestDirection = useCallback((nextDir) => {
+    if (!isRunning || !nextDir) return;
+    setRequestedDir(nextDir);
+    requestedDirRef.current = nextDir;
+    if (canPacmanMoveTo(pacmanPosRef.current.x + nextDir.x, pacmanPosRef.current.y + nextDir.y)) {
+      setPacmanDir(nextDir);
+      pacmanDirRef.current = nextDir;
+    }
+  }, [isRunning]);
+
+  useEffect(() => {
+    if (!isRunning) return undefined;
+    const handleKey = (e) => {
+      const keyMap = {
+        ArrowUp: PACMAN_DIRECTIONS.up,
+        ArrowDown: PACMAN_DIRECTIONS.down,
+        ArrowLeft: PACMAN_DIRECTIONS.left,
+        ArrowRight: PACMAN_DIRECTIONS.right,
+        w: PACMAN_DIRECTIONS.up,
+        W: PACMAN_DIRECTIONS.up,
+        s: PACMAN_DIRECTIONS.down,
+        S: PACMAN_DIRECTIONS.down,
+        a: PACMAN_DIRECTIONS.left,
+        A: PACMAN_DIRECTIONS.left,
+        d: PACMAN_DIRECTIONS.right,
+        D: PACMAN_DIRECTIONS.right
+      };
+      const dir = keyMap[e.key];
+      if (dir) {
+        e.preventDefault();
+        requestDirection(dir);
+      }
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [isRunning, requestDirection]);
+
+  const onBoardPointerDown = useCallback((e) => {
+    dragRef.current = {
+      active: true,
+      pointerId: e.pointerId,
+      startX: e.clientX,
+      startY: e.clientY
+    };
+    if (e.currentTarget.setPointerCapture) {
+      try { e.currentTarget.setPointerCapture(e.pointerId); } catch (_) {}
+    }
+  }, []);
+
+  const onBoardPointerMove = useCallback((e) => {
+    const drag = dragRef.current;
+    if (!drag.active || drag.pointerId !== e.pointerId) return;
+    const dx = e.clientX - drag.startX;
+    const dy = e.clientY - drag.startY;
+    const threshold = 14;
+
+    if (Math.abs(dx) > threshold || Math.abs(dy) > threshold) {
+      if (Math.abs(dx) > Math.abs(dy)) {
+        requestDirection(dx > 0 ? PACMAN_DIRECTIONS.right : PACMAN_DIRECTIONS.left);
+      } else {
+        requestDirection(dy > 0 ? PACMAN_DIRECTIONS.down : PACMAN_DIRECTIONS.up);
+      }
+      drag.startX = e.clientX;
+      drag.startY = e.clientY;
+    }
+  }, [requestDirection]);
+
+  const onBoardPointerEnd = useCallback((e) => {
+    const drag = dragRef.current;
+    if (!drag.active || drag.pointerId !== e.pointerId) return;
+    if (e.currentTarget.hasPointerCapture && e.currentTarget.hasPointerCapture(e.pointerId)) {
+      try { e.currentTarget.releasePointerCapture(e.pointerId); } catch (_) {}
+    }
+    dragRef.current = { active: false, pointerId: null, startX: 0, startY: 0 };
+  }, []);
+
+  useEffect(() => {
+    if (!isRunning) return undefined;
+
+    const timerId = window.setInterval(() => {
+      if (isPausedRef.current || livesRef.current <= 0) return;
+
+      const now = Date.now();
+      const currentAntivirusEnd = antivirusEndTimeRef.current;
+      const isAntivirusActive = now < currentAntivirusEnd;
+      const msLeft = Math.max(0, currentAntivirusEnd - now);
+      setAntivirusMsRemaining(msLeft);
+
+      stepCounterRef.current += 1;
+      const step = stepCounterRef.current;
+      setStepCounter(step);
+
+      const currPos = pacmanPosRef.current;
+      const reqDir = requestedDirRef.current;
+      let currDir = pacmanDirRef.current;
+
+      const reqTargetX = (currPos.x + reqDir.x + PACMAN_GRID.cols) % PACMAN_GRID.cols;
+      const reqTargetY = currPos.y + reqDir.y;
+      if (canPacmanMoveTo(reqTargetX, reqTargetY)) {
+        currDir = reqDir;
+        setPacmanDir(reqDir);
+        pacmanDirRef.current = reqDir;
+      }
+
+      const targetX = (currPos.x + currDir.x + PACMAN_GRID.cols) % PACMAN_GRID.cols;
+      const targetY = currPos.y + currDir.y;
+      let nextPos = currPos;
+      if (canPacmanMoveTo(targetX, targetY)) {
+        nextPos = { x: targetX, y: targetY };
+        setPacmanPos(nextPos);
+        pacmanPosRef.current = nextPos;
+      }
+
+      const cellKey = `${nextPos.x}-${nextPos.y}`;
+      const currentDots = dotsRef.current;
+      if (currentDots.has(cellKey)) {
+        currentDots.delete(cellKey);
+        setDots(new Set(currentDots));
+
+        if (powerPellets.has(cellKey)) {
+          void onAddScore(pointsPerPowerPellet, false);
+          playPacmanPowerSound();
+          const newEndTime = now + 7500;
+          antivirusEndTimeRef.current = newEndTime;
+          setAntivirusMsRemaining(7500);
+
+          virusesRef.current = virusesRef.current.map((v) => ({
+            ...v,
+            status: v.status === "returning" ? "returning" : "scared",
+            dir: { x: -v.dir.x, y: -v.dir.y }
+          }));
+          setViruses([...virusesRef.current]);
+
+          setBurst({
+            id: `power-${now}`,
+            text: `+${pointsPerPowerPellet} ANTİVİRÜS!`,
+            x: 50,
+            y: 40
+          });
+        } else {
+          void onAddScore(pointsPerDot, false);
+          playPacmanWakaSound(step);
+        }
+
+        if (currentDots.size === 0) {
+          void onAddScore(50, true);
+          setBurst({
+            id: `clear-${now}`,
+            text: "+50 BÖLÜM GEÇİLDİ!",
+            x: 50,
+            y: 50
+          });
+          const fresh = createInitialPacmanDots();
+          dotsRef.current = new Set(fresh.dots);
+          setDots(new Set(fresh.dots));
+        }
+      }
+
+      if (!isAntivirusActive) {
+        let changed = false;
+        virusesRef.current = virusesRef.current.map((v) => {
+          if (v.status === "scared") {
+            changed = true;
+            return { ...v, status: "normal" };
+          }
+          return v;
+        });
+        if (changed) {
+          setViruses([...virusesRef.current]);
+        }
+      }
+
+      const allDirs = [
+        PACMAN_DIRECTIONS.up,
+        PACMAN_DIRECTIONS.down,
+        PACMAN_DIRECTIONS.left,
+        PACMAN_DIRECTIONS.right
+      ];
+
+      const updatedViruses = virusesRef.current.map((virus) => {
+        let { x, y, dir, inDen, status, ticksAlive, releaseDelay } = virus;
+        const prevX = x;
+        const prevY = y;
+        ticksAlive += 1;
+
+        if (inDen) {
+          if (ticksAlive >= releaseDelay) {
+            if (x !== 9) {
+              x += x < 9 ? 1 : -1;
+            } else if (y > 6) {
+              y -= 1;
+            }
+            if (y <= 6) {
+              inDen = false;
+              dir = PACMAN_DIRECTIONS.left;
+            }
+          }
+          return { ...virus, x, y, prevX, prevY, dir, inDen, ticksAlive, status };
+        }
+
+        if (status === "returning") {
+          if (x === 9 && y === 8) {
+            return {
+              ...virus,
+              x: 9,
+              y: 8,
+              prevX,
+              prevY,
+              inDen: true,
+              status: "normal",
+              ticksAlive: 0,
+              releaseDelay: 4
+            };
+          }
+
+          const target = y < 7 ? { x: 9, y: 6 } : { x: 9, y: 8 };
+          const validMoves = allDirs
+            .map((d) => ({
+              dir: d,
+              x: (x + d.x + PACMAN_GRID.cols) % PACMAN_GRID.cols,
+              y: y + d.y
+            }))
+            .filter((m) => canGhostMoveTo(m.x, m.y, true));
+
+          validMoves.sort((a, b) => {
+            const da = Math.hypot(a.x - target.x, a.y - target.y);
+            const db = Math.hypot(b.x - target.x, b.y - target.y);
+            return da - db;
+          });
+
+          if (validMoves.length > 0) {
+            x = validMoves[0].x;
+            y = validMoves[0].y;
+            dir = validMoves[0].dir;
+          }
+          return { ...virus, x, y, prevX, prevY, dir, inDen, ticksAlive, status };
+        }
+
+        if (status === "scared" && step % 2 !== 0) {
+          return { ...virus, prevX, prevY };
+        }
+
+        const validMoves = allDirs
+          .map((d) => ({
+            dir: d,
+            x: (x + d.x + PACMAN_GRID.cols) % PACMAN_GRID.cols,
+            y: y + d.y
+          }))
+          .filter((m) => canGhostMoveTo(m.x, m.y, false));
+
+        if (validMoves.length === 0) {
+          return { ...virus, prevX, prevY };
+        }
+
+        const nonReverse = validMoves.filter((m) => !(m.dir.x === -dir.x && m.dir.y === -dir.y));
+        const candidates = nonReverse.length > 0 ? nonReverse : validMoves;
+
+        let chosenMove = candidates[0];
+
+        if (status === "scared") {
+          candidates.sort((a, b) => {
+            const da = Math.hypot(a.x - nextPos.x, a.y - nextPos.y);
+            const db = Math.hypot(b.x - nextPos.x, b.y - nextPos.y);
+            return db - da;
+          });
+          chosenMove = candidates[0];
+        } else if (virus.personality === "chase") {
+          candidates.sort((a, b) => {
+            const da = Math.hypot(a.x - nextPos.x, a.y - nextPos.y);
+            const db = Math.hypot(b.x - nextPos.x, b.y - nextPos.y);
+            return da - db;
+          });
+          chosenMove = candidates[0];
+        } else if (virus.personality === "ambush") {
+          const target = {
+            x: (nextPos.x + currDir.x * 3 + PACMAN_GRID.cols) % PACMAN_GRID.cols,
+            y: Math.max(0, Math.min(PACMAN_GRID.rows - 1, nextPos.y + currDir.y * 3))
+          };
+          candidates.sort((a, b) => {
+            const da = Math.hypot(a.x - target.x, a.y - target.y);
+            const db = Math.hypot(b.x - target.x, b.y - target.y);
+            return da - db;
+          });
+          chosenMove = candidates[0];
+        } else if (virus.personality === "corner") {
+          const dist = Math.hypot(x - nextPos.x, y - nextPos.y);
+          const target = dist > 5 ? nextPos : { x: 17, y: 1 };
+          candidates.sort((a, b) => {
+            const da = Math.hypot(a.x - target.x, a.y - target.y);
+            const db = Math.hypot(b.x - target.x, b.y - target.y);
+            return da - db;
+          });
+          chosenMove = candidates[0];
+        } else {
+          const straight = candidates.find((m) => m.dir.x === dir.x && m.dir.y === dir.y);
+          if (straight && Math.random() < 0.65) {
+            chosenMove = straight;
+          } else {
+            chosenMove = candidates[Math.floor(Math.random() * candidates.length)];
+          }
+        }
+
+        return {
+          ...virus,
+          x: chosenMove.x,
+          y: chosenMove.y,
+          prevX,
+          prevY,
+          dir: chosenMove.dir,
+          inDen,
+          ticksAlive,
+          status
+        };
+      });
+
+      virusesRef.current = updatedViruses;
+      setViruses(updatedViruses);
+
+      let pacmanHit = false;
+      const postCollisionViruses = updatedViruses.map((v) => {
+        const isOverlap = v.x === nextPos.x && v.y === nextPos.y;
+        const isSwap =
+          v.prevX === nextPos.x &&
+          v.prevY === nextPos.y &&
+          v.x === currPos.x &&
+          v.y === currPos.y;
+
+        if (isOverlap || isSwap) {
+          if (v.status === "scared") {
+            void onAddScore(pointsPerVirus, false);
+            playPacmanEatGhostSound();
+            setBurst({
+              id: `eat-virus-${now}-${v.id}`,
+              text: `+${pointsPerVirus} ${v.name} TEMİZLENDİ!`,
+              x: 50,
+              y: 45
+            });
+            return { ...v, status: "returning" };
+          } else if (v.status === "normal") {
+            pacmanHit = true;
+          }
+        }
+        return v;
+      });
+
+      virusesRef.current = postCollisionViruses;
+      setViruses(postCollisionViruses);
+
+      if (pacmanHit) {
+        playPacmanDeathSound();
+        const nextLives = livesRef.current - 1;
+        livesRef.current = nextLives;
+        setLives(nextLives);
+
+        if (nextLives <= 0) {
+          isPausedRef.current = true;
+          setIsPaused(true);
+          setBurst({
+            id: `gameover-${now}`,
+            text: "CANLAR BİTTİ!",
+            x: 50,
+            y: 50
+          });
+          window.setTimeout(() => {
+            onCompleteTurn();
+          }, 1200);
+        } else {
+          isPausedRef.current = true;
+          setIsPaused(true);
+          setBurst({
+            id: `hit-${now}`,
+            text: "DİKKAT! VİRÜSE YAKALANDIN!",
+            x: 50,
+            y: 50
+          });
+
+          window.setTimeout(() => {
+            setPacmanPos({ x: 9, y: 13 });
+            pacmanPosRef.current = { x: 9, y: 13 };
+            setPacmanDir(PACMAN_DIRECTIONS.right);
+            pacmanDirRef.current = PACMAN_DIRECTIONS.right;
+            setRequestedDir(PACMAN_DIRECTIONS.right);
+            requestedDirRef.current = PACMAN_DIRECTIONS.right;
+            const resetViruses = createInitialViruses();
+            virusesRef.current = resetViruses;
+            setViruses(resetViruses);
+            isPausedRef.current = false;
+            setIsPaused(false);
+          }, 900);
+        }
+      }
+    }, stepMs);
+
+    return () => window.clearInterval(timerId);
+  }, [
+    isRunning,
+    onAddScore,
+    onCompleteTurn,
+    pointsPerDot,
+    pointsPerPowerPellet,
+    pointsPerVirus,
+    powerPellets,
+    stepMs
+  ]);
+
+  const isFlashing = antivirusMsRemaining > 0 && antivirusMsRemaining < 2500;
+  const isAntivirusActive = antivirusMsRemaining > 0;
+
+  const gridCells = useMemo(() => {
+    const cells = [];
+    for (let y = 0; y < PACMAN_GRID.rows; y += 1) {
+      for (let x = 0; x < PACMAN_GRID.cols; x += 1) {
+        const key = `${x}-${y}`;
+        const char = PACMAN_MAP_TEMPLATE[y][x];
+        const classNames = ["pacman-cell"];
+
+        if (char === "1") {
+          classNames.push("wall");
+        } else if (char === "-") {
+          classNames.push("door");
+        } else if (char === "G") {
+          classNames.push("den");
+        } else if (dots.has(key)) {
+          if (powerPellets.has(key)) {
+            classNames.push("power");
+          } else {
+            classNames.push("dot");
+          }
+        } else {
+          classNames.push("empty");
+        }
+
+        cells.push(<div className={classNames.join(" ")} key={key} />);
+      }
+    }
+    return cells;
+  }, [dots, powerPellets]);
+
+  const pacmanStyle = {
+    left: `${(pacmanPos.x / PACMAN_GRID.cols) * 100}%`,
+    top: `${(pacmanPos.y / PACMAN_GRID.rows) * 100}%`,
+    width: `${(1 / PACMAN_GRID.cols) * 100}%`,
+    height: `${(1 / PACMAN_GRID.rows) * 100}%`
+  };
+
+  return (
+    <main className="app-screen game-screen pacman-screen">
+      <header className="game-header">
+        <ScoreBox active={activeGroup === "A"} label="A Grubu" score={groups.A.score} />
+        <div className="timer-box">{formatTime(timeLeft)}</div>
+        <ScoreBox active={activeGroup === "B"} label="B Grubu" score={groups.B.score} />
+      </header>
+
+      {!isRunning ? (
+        <section aria-label="Tur başlangıcı" className="turn-start">
+          <div className="turn-label">{groups[activeGroup].name}</div>
+          <button className="pixel-button start-button" onClick={onStartTurn} type="button">
+            Başlat
+          </button>
+          <IconActionButton actionType="reset" className="small-button reset-button" onClick={onReset} />
+        </section>
+      ) : (
+        <section className="pacman-stage">
+          <div className="pacman-topbar">
+            <IconActionButton
+              actionType="reset"
+              className="small-button reset-button pacman-reset-button"
+              onClick={onReset}
+            />
+            <div aria-label="Kalan Canlar" className="pacman-lives-box">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <span
+                  className={`pacman-life-heart ${i < lives ? "active" : "lost"}`}
+                  key={i}
+                >
+                  {i < lives ? "❤️" : "🖤"}
+                </span>
+              ))}
+            </div>
+            <div className={`pacman-status-chip ${isAntivirusActive ? "antivirus-active" : ""}`}>
+              {isAntivirusActive ? (
+                <span>⚡ ANTİVİRÜS! {Math.ceil(antivirusMsRemaining / 1000)}s</span>
+              ) : (
+                <span>Yem: {totalDotsCount - dots.size} / {totalDotsCount}</span>
+              )}
+            </div>
+          </div>
+
+          <div className="pacman-board-wrap">
+            <div
+              className={`pacman-board ${isAntivirusActive ? "antivirus-board" : ""}`}
+              onPointerCancel={onBoardPointerEnd}
+              onPointerDown={onBoardPointerDown}
+              onPointerMove={onBoardPointerMove}
+              onPointerUp={onBoardPointerEnd}
+            >
+              {gridCells}
+
+              <div className="pacman-entity" style={pacmanStyle}>
+                <PacmanSvg direction={pacmanDir} isChomping={!isPaused} />
+              </div>
+
+              {viruses.map((v) => {
+                const virusStyle = {
+                  left: `${(v.x / PACMAN_GRID.cols) * 100}%`,
+                  top: `${(v.y / PACMAN_GRID.rows) * 100}%`,
+                  width: `${(1 / PACMAN_GRID.cols) * 100}%`,
+                  height: `${(1 / PACMAN_GRID.rows) * 100}%`
+                };
+                return (
+                  <div className="virus-entity" key={v.id} style={virusStyle}>
+                    <VirusSvg
+                      def={v}
+                      direction={v.dir}
+                      isFlashing={isFlashing}
+                      isReturning={v.status === "returning"}
+                      isScared={v.status === "scared"}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+
+            <div aria-label="Akıllı Tahta Yön Kontrolleri" className="pacman-dpad-container">
+              <button
+                aria-label="Yukarı"
+                className="pixel-button pacman-dpad-btn up"
+                onPointerDown={(e) => {
+                  e.preventDefault();
+                  requestDirection(PACMAN_DIRECTIONS.up);
+                }}
+                type="button"
+              >
+                ▲
+              </button>
+              <div className="pacman-dpad-middle-row">
+                <button
+                  aria-label="Sol"
+                  className="pixel-button pacman-dpad-btn left"
+                  onPointerDown={(e) => {
+                    e.preventDefault();
+                    requestDirection(PACMAN_DIRECTIONS.left);
+                  }}
+                  type="button"
+                >
+                  ◀
+                </button>
+                <div className="pacman-dpad-stick">🕹️</div>
+                <button
+                  aria-label="Sağ"
+                  className="pixel-button pacman-dpad-btn right"
+                  onPointerDown={(e) => {
+                    e.preventDefault();
+                    requestDirection(PACMAN_DIRECTIONS.right);
+                  }}
+                  type="button"
+                >
+                  ▶
+                </button>
+              </div>
+              <button
+                aria-label="Aşağı"
+                className="pixel-button pacman-dpad-btn down"
+                onPointerDown={(e) => {
+                  e.preventDefault();
+                  requestDirection(PACMAN_DIRECTIONS.down);
+                }}
+                type="button"
+              >
+                ▼
+              </button>
+            </div>
+          </div>
+
           <CelebrationBurst burst={burst} />
         </section>
       )}

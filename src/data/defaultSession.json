@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 11,
+  "schemaVersion": 12,
   "phase": "intro",
   "activeGameIndex": 0,
   "activeGroup": "A",
@@ -107,6 +107,15 @@
       "pointsPerWrong": 0,
       "pairCount": 10,
       "previewSeconds": 2
+    },
+    {
+      "id": "pacman",
+      "title": "Pacman Oyunu",
+      "durationSeconds": 90,
+      "pointsPerDot": 1,
+      "pointsPerPowerPellet": 10,
+      "pointsPerVirus": 30,
+      "stepMs": 180
     },
     {
       "id": "puzzle",
