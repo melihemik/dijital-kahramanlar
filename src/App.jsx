@@ -4,8 +4,6 @@ import * as THREE from "three";
 import robotGlb from "./assets/models/robot.glb";
 import islandGlb from "./assets/models/island.glb";
 import stoneGlb from "./assets/models/stone.glb";
-import mugGlb from "./assets/models/coffeeMug.glb";
-import tableGlb from "./assets/models/table.glb";
 import flagGlb from "./assets/models/flag.glb";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import appLogo from "./assets/images/dkahramanlar.png";
@@ -3971,10 +3969,132 @@ function BridgeGame({
   );
 }
 
-function Table3D({ position = [0, -2.1, 0], scale = [0.022, 0.022, 0.022] }) {
-  const { scene } = useGLTF(tableGlb);
-  const cloned = useMemo(() => scene.clone(), [scene]);
-  return <primitive object={cloned} position={position} scale={scale} receiveShadow castShadow />;
+function Table3D() {
+  const topThickness = 0.35;
+  const legPositions = useMemo(
+    () => [
+      [-3.8, -1.8, -1.8],
+      [3.8, -1.8, -1.8],
+      [-3.8, -1.8, 1.8],
+      [3.8, -1.8, 1.8]
+    ],
+    []
+  );
+
+  return (
+    <group>
+      {/* Polished wooden tabletop */}
+      <mesh position={[0, -topThickness / 2, 0]} receiveShadow castShadow>
+        <boxGeometry args={[8.6, topThickness, 4.4]} />
+        <meshStandardMaterial color="#935c34" roughness={0.38} metalness={0.04} />
+      </mesh>
+
+      {/* Table border / apron */}
+      <mesh position={[0, -topThickness - 0.05, 0]} receiveShadow>
+        <boxGeometry args={[8.8, 0.12, 4.5]} />
+        <meshStandardMaterial color="#6e3c1b" roughness={0.45} metalness={0.08} />
+      </mesh>
+
+      {/* 4 table legs */}
+      {legPositions.map(([x, y, z], i) => (
+        <mesh key={i} position={[x, y, z]} castShadow receiveShadow>
+          <cylinderGeometry args={[0.18, 0.14, 3.2, 16]} />
+          <meshStandardMaterial color="#5a2d10" roughness={0.5} />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
+function HollowCupMesh({ color = "#d90429", accentColor = "#ffd166" }) {
+  const h = 1.55;
+  const rTop = 0.60;
+  const rBot = 0.80;
+
+  return (
+    <group>
+      {/* Outer tapered cup body */}
+      <mesh position={[0, h / 2, 0]} castShadow receiveShadow>
+        <cylinderGeometry args={[rTop, rBot, h, 40, 1, true]} />
+        <meshStandardMaterial
+          color={color}
+          roughness={0.28}
+          metalness={0.12}
+          side={THREE.DoubleSide}
+        />
+      </mesh>
+
+      {/* Inner darker body for realistic hollow depth */}
+      <mesh position={[0, h / 2 + 0.02, 0]}>
+        <cylinderGeometry args={[rTop - 0.03, rBot - 0.03, h - 0.04, 40, 1, true]} />
+        <meshStandardMaterial
+          color="#7a0014"
+          roughness={0.5}
+          metalness={0.05}
+          side={THREE.BackSide}
+        />
+      </mesh>
+
+      {/* Top closed cap (base of cup, facing up) */}
+      <mesh position={[0, h + 0.01, 0]} castShadow>
+        <cylinderGeometry args={[rTop, rTop, 0.06, 40]} />
+        <meshStandardMaterial color={color} roughness={0.28} metalness={0.12} />
+      </mesh>
+
+      {/* Top ring bevel */}
+      <mesh position={[0, h + 0.04, 0]} rotation={[Math.PI / 2, 0, 0]} castShadow>
+        <torusGeometry args={[rTop * 0.88, 0.035, 16, 40]} />
+        <meshStandardMaterial color={color} roughness={0.28} metalness={0.12} />
+      </mesh>
+
+      {/* Bottom rolled lip */}
+      <mesh position={[0, 0.04, 0]} rotation={[Math.PI / 2, 0, 0]} castShadow>
+        <torusGeometry args={[rBot, 0.04, 16, 40]} />
+        <meshStandardMaterial color={color} roughness={0.28} metalness={0.12} />
+      </mesh>
+
+      {/* Metallic gold foil accent rings */}
+      <mesh position={[0, 0.75, 0]} castShadow>
+        <cylinderGeometry args={[0.705, 0.715, 0.09, 40, 1, true]} />
+        <meshStandardMaterial color={accentColor} roughness={0.22} metalness={0.65} />
+      </mesh>
+      <mesh position={[0, 1.1, 0]} castShadow>
+        <cylinderGeometry args={[0.648, 0.655, 0.05, 40, 1, true]} />
+        <meshStandardMaterial color={accentColor} roughness={0.22} metalness={0.65} />
+      </mesh>
+    </group>
+  );
+}
+
+function CupToken({ hiddenIconUrl }) {
+  const iconTexture = useMemo(() => {
+    if (!hiddenIconUrl) return null;
+    return new THREE.TextureLoader().load(hiddenIconUrl);
+  }, [hiddenIconUrl]);
+
+  return (
+    <group position={[0, 0, 0]}>
+      {/* Token base */}
+      <mesh position={[0, 0.02, 0]} receiveShadow castShadow>
+        <cylinderGeometry args={[0.48, 0.50, 0.04, 36]} />
+        <meshStandardMaterial color="#ffffff" roughness={0.2} metalness={0.1} />
+      </mesh>
+
+      {/* Token outer ring */}
+      <mesh position={[0, 0.038, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[0.40, 0.48, 36]} />
+        <meshStandardMaterial color="#ffd166" roughness={0.25} metalness={0.6} />
+      </mesh>
+
+      {/* Icon face */}
+      {iconTexture ? (
+        <mesh position={[0, 0.042, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <circleGeometry args={[0.36, 36]} />
+          <meshBasicMaterial map={iconTexture} transparent />
+        </mesh>
+      ) : null}
+    </group>
+  );
 }
 
 function Cup3DItem({
@@ -3985,39 +4105,30 @@ function Cup3DItem({
   onClick,
   canGuess
 }) {
-  const meshRef = useRef();
-  const { scene } = useGLTF(mugGlb);
-  const cloned = useMemo(() => scene.clone(), [scene]);
+  const groupRef = useRef();
+  const cupMeshRef = useRef();
 
-  const slotX = (slot - 1) * 2.5;
-  const targetY = isLifted ? 2.6 : 0.02;
+  const slotX = (slot - 1) * 2.4;
+  const targetY = isLifted ? 1.6 : 0;
 
   useFrame((_, delta) => {
-    if (!meshRef.current) return;
-    meshRef.current.position.x = THREE.MathUtils.lerp(meshRef.current.position.x, slotX, delta * 9);
-    meshRef.current.position.y = THREE.MathUtils.lerp(meshRef.current.position.y, targetY, delta * 8);
-    meshRef.current.position.z = THREE.MathUtils.lerp(meshRef.current.position.z, 0, delta * 9);
+    if (groupRef.current) {
+      groupRef.current.position.x = THREE.MathUtils.lerp(groupRef.current.position.x, slotX, delta * 10);
+    }
+    if (cupMeshRef.current) {
+      cupMeshRef.current.position.y = THREE.MathUtils.lerp(cupMeshRef.current.position.y, targetY, delta * 9);
+    }
   });
 
   return (
-    <group>
-      {isTarget ? (
-        <group position={[slotX, 0.015, 0]}>
-          <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-            <circleGeometry args={[0.55, 32]} />
-            <meshStandardMaterial color="#ffffff" roughness={0.3} />
-          </mesh>
-          <Html position={[0, 0.03, 0]} transform rotation={[-Math.PI / 2, 0, 0]} scale={0.11}>
-            <div style={{ width: 80, height: 80, display: "grid", placeItems: "center", pointerEvents: "none" }}>
-              <img src={hiddenIconUrl} alt="" style={{ width: 60, height: 60, objectFit: "contain" }} />
-            </div>
-          </Html>
-        </group>
-      ) : null}
+    <group ref={groupRef} position={[slotX, 0, 0]}>
+      {/* Target Token rests on the table under this cup */}
+      {isTarget ? <CupToken hiddenIconUrl={hiddenIconUrl} /> : null}
 
+      {/* The 3D Cup lifts up or stays down */}
       <group
-        ref={meshRef}
-        position={[slotX, targetY, 0]}
+        ref={cupMeshRef}
+        position={[0, targetY, 0]}
         onClick={(e) => {
           e.stopPropagation();
           if (canGuess) {
@@ -4031,7 +4142,7 @@ function Cup3DItem({
           document.body.style.cursor = "default";
         }}
       >
-        <primitive object={cloned} scale={[0.26, 0.26, 0.26]} rotation={[Math.PI, 0, 0]} castShadow />
+        <HollowCupMesh />
       </group>
     </group>
   );
@@ -4051,6 +4162,7 @@ function CupGame({
 }) {
   const [cupSlots, setCupSlots] = useState([0, 1, 2]);
   const [targetCupId, setTargetCupId] = useState(0);
+  const [pickedCupId, setPickedCupId] = useState(null);
   const [iconIndex, setIconIndex] = useState(0);
   const [phase, setPhase] = useState("idle");
   const [statusText, setStatusText] = useState("");
@@ -4078,6 +4190,12 @@ function CupGame({
     : -10;
   const playedRounds = activeTurn?.questionIndex ?? 0;
 
+  useEffect(() => {
+    if (phase !== "guess") {
+      document.body.style.cursor = "default";
+    }
+  }, [phase]);
+
   const clearRoundTimers = useCallback(() => {
     timersRef.current.forEach((timerId) => {
       window.clearTimeout(timerId);
@@ -4089,6 +4207,7 @@ function CupGame({
   const startRound = useCallback((roundIndex) => {
     clearRoundTimers();
     busyRef.current = false;
+    setPickedCupId(null);
     const initialCupSlots = [0, 1, 2];
     cupSlotsRef.current = initialCupSlots;
     setCupSlots(initialCupSlots);
@@ -4160,6 +4279,7 @@ function CupGame({
       clearRoundTimers();
       busyRef.current = false;
       roundKeyRef.current = "";
+      setPickedCupId(null);
       setPhase("idle");
       setStatusText("");
       return;
@@ -4209,6 +4329,7 @@ function CupGame({
 
       busyRef.current = true;
       clearRoundTimers();
+      setPickedCupId(cupId);
       setPhase("result");
 
       const expectedNextRound = (activeTurn?.questionIndex ?? 0) + 1;
@@ -4276,22 +4397,28 @@ function CupGame({
           <IconActionButton actionType="reset" className="small-button reset-button" onClick={onReset} />
           
           <div className="cup-3d-canvas-wrap" aria-label="3D Bardak Oyunu">
-            <Canvas camera={{ position: [0, 2.7, 5.8], fov: 46 }} shadows>
-              <ambientLight intensity={0.75} />
-              <directionalLight position={[6, 12, 6]} intensity={1.6} castShadow shadow-mapSize={[1024, 1024]} />
-              <pointLight position={[0, 4, 2]} intensity={0.5} />
+            <Canvas camera={{ position: [0, 2.8, 6.4], fov: 40 }} shadows>
+              <ambientLight color="#fff8ee" intensity={0.9} />
+              <directionalLight
+                position={[4, 9, 5]}
+                intensity={1.6}
+                castShadow
+                shadow-mapSize={[2048, 2048]}
+                shadow-bias={-0.0003}
+              />
+              <directionalLight position={[-5, 4, 3]} intensity={0.45} color="#bad7f2" />
 
-              {/* Gerçekçi 3D Masa */}
-              <Table3D position={[0, -2.1, 0]} scale={[0.022, 0.022, 0.022]} />
+              {/* Gerçekçi 3D Ahşap Masa */}
+              <Table3D />
 
               {/* 3 Adet Gerçekçi 3D Bardak */}
               {[0, 1, 2].map((cupId) => {
                 const slot = slotByCup[cupId];
                 const isTarget = targetCupId === cupId;
-                const isPeekCup =
-                  (phase === "peek-up" || phase === "peek-down" || phase === "result") &&
-                  isTarget;
-                const isLifted = (phase === "peek-up" || phase === "result") && isPeekCup;
+                const isPicked = pickedCupId === cupId;
+                const isLifted =
+                  (phase === "peek-up" && isTarget) ||
+                  (phase === "result" && (isTarget || isPicked));
 
                 return (
                   <Cup3DItem
