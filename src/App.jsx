@@ -4494,11 +4494,11 @@ function CupGameScene({
       }
     }
 
-    // 2. Process vertical lifting
+    // 2. Process vertical lifting - use props directly (always fresh)
     for (let i = 0; i < 3; i++) {
       const isLifted =
-        (s.phase === "peek-up" && i === s.targetCupId) ||
-        (s.phase === "result" && (i === s.targetCupId || i === s.pickedCupId));
+        (phase === "peek-up" && i === targetCupId) ||
+        (phase === "result" && (i === targetCupId || i === pickedCupId));
       const targetY = isLifted ? CUP_LIFT_Y : 0;
       s.cups[i].y = THREE.MathUtils.lerp(s.cups[i].y, targetY, Math.min(1, delta * 8));
     }
