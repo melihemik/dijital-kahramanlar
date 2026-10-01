@@ -3586,29 +3586,87 @@ function FlagModel({ position = [0, 0, 0], scale = [1, 1, 1] }) {
   return <primitive object={cloned} position={position} scale={scale} receiveShadow castShadow />;
 }
 
-function IslandModel({ position, scale = [1.85, 1.35, 1.85], rotation = [0, 0, 0], hasFlag = false }) {
-  const { scene } = useGLTF(islandGlb);
-  const cloned = useMemo(() => scene.clone(), [scene]);
+function BeachIsland({ position, rotation = [0, 0, 0], hasFlag = false }) {
   return (
-    <group position={position} rotation={rotation} scale={scale}>
-      <primitive object={cloned} receiveShadow castShadow />
+    <group position={position} rotation={rotation}>
+      {/* Kum tabanı - geniş yassı silindir */}
+      <mesh position={[0, -0.15, 0]} receiveShadow castShadow>
+        <cylinderGeometry args={[2.8, 3.2, 0.35, 24]} />
+        <meshStandardMaterial color="#e8c97a" roughness={0.95} />
+      </mesh>
+      {/* Kum üst katman */}
+      <mesh position={[0, 0.02, 0]} receiveShadow>
+        <cylinderGeometry args={[2.6, 2.8, 0.12, 24]} />
+        <meshStandardMaterial color="#f0d98a" roughness={0.9} />
+      </mesh>
+      {/* Kum kenar detayları */}
+      <mesh position={[0, -0.28, 0]} receiveShadow>
+        <cylinderGeometry args={[3.0, 3.4, 0.15, 24]} />
+        <meshStandardMaterial color="#c9a84c" roughness={0.95} />
+      </mesh>
+      {/* Küçük kum tepeleri */}
+      <mesh position={[0.8, 0.08, 0.5]} receiveShadow>
+        <sphereGeometry args={[0.35, 8, 6]} />
+        <meshStandardMaterial color="#f0d98a" roughness={0.9} />
+      </mesh>
+      <mesh position={[-0.6, 0.06, -0.4]} receiveShadow>
+        <sphereGeometry args={[0.25, 8, 6]} />
+        <meshStandardMaterial color="#e8c97a" roughness={0.9} />
+      </mesh>
+      {/* Bayrak */}
       {hasFlag ? (
-        <FlagModel position={[0.7, 0.45, 0.5]} scale={[0.85, 0.85, 0.85]} />
+        <group position={[0.8, 0.45, 0.5]}>
+          <mesh castShadow>
+            <cylinderGeometry args={[0.03, 0.03, 0.7, 8]} />
+            <meshStandardMaterial color="#888" metalness={0.6} />
+          </mesh>
+          <mesh position={[0.12, 0.2, 0]} castShadow>
+            <boxGeometry args={[0.25, 0.18, 0.02]} />
+            <meshStandardMaterial color="#e63946" />
+          </mesh>
+        </group>
       ) : null}
     </group>
   );
 }
 
-function Stone3D({ position, scale = [0.85, 0.6, 0.85], isCurrent, isPassed }) {
-  const { scene } = useGLTF(stoneGlb);
-  const cloned = useMemo(() => scene.clone(), [scene]);
+function Rock3D({ position, scale = 1, isCurrent, isPassed }) {
+  const rockShape = useMemo(() => {
+    const geo = new THREE.DodecahedronGeometry(0.55, 1);
+    const pos = geo.attributes.position;
+    for (let i = 0; i < pos.count; i++) {
+      const x = pos.getX(i);
+      const y = pos.getY(i);
+      const z = pos.getZ(i);
+      const noise = 0.85 + Math.random() * 0.3;
+      pos.setXYZ(i, x * noise, y * 0.6 * noise, z * noise);
+    }
+    geo.computeVertexNormals();
+    return geo;
+  }, []);
+
+  const rockColor = isPassed ? "#6b8f71" : isCurrent ? "#8fa87a" : "#7a7a7a";
+
   return (
     <group position={position} scale={scale}>
-      <primitive object={cloned} receiveShadow castShadow />
+      <mesh geometry={rockShape} position={[0, 0.25, 0]} receiveShadow castShadow>
+        <meshStandardMaterial color={rockColor} roughness={0.85} />
+      </mesh>
+      {/* Taş alt kısmı - suya batan kısım */}
+      <mesh position={[0, 0.05, 0]} receiveShadow>
+        <cylinderGeometry args={[0.45, 0.55, 0.15, 12]} />
+        <meshStandardMaterial color="#5a5a5a" roughness={0.9} />
+      </mesh>
+      {/* Yeşil yosun detayı */}
+      <mesh position={[0.1, 0.35, 0.15]}>
+        <sphereGeometry args={[0.12, 6, 6]} />
+        <meshStandardMaterial color="#4a7a3a" roughness={0.9} />
+      </mesh>
+      {/* Mevcut taş vurgu halkası */}
       {isCurrent ? (
-        <mesh position={[0, 0.22, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-          <ringGeometry args={[0.7, 0.88, 32]} />
-          <meshBasicMaterial color="#38a169" transparent opacity={0.85} />
+        <mesh position={[0, 0.02, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <ringGeometry args={[0.65, 0.82, 32]} />
+          <meshBasicMaterial color="#38a169" transparent opacity={0.8} />
         </mesh>
       ) : null}
     </group>
@@ -3912,13 +3970,13 @@ function BridgeGame({
     }, 350);
   }, [isAnswerLocked, isRunning, onAnswer, solvedSteps, targetSteps]);
 
-  // İki ada arasında tam olarak 5 adet adım taşı
+  // İki kumsal arasında 5 kaya - eşit aralıklı
   const stonePositions = useMemo(() => [
-    [-3.4, 0.05, 0.22],
-    [-1.7, 0.05, -0.22],
-    [0.0,  0.05, 0.22],
-    [1.7,  0.05, -0.22],
-    [3.4,  0.05, 0.22]
+    [-3.36, 0.05, 0.3],
+    [-1.68, 0.05, -0.3],
+    [0.0,  0.05, 0.3],
+    [1.68,  0.05, -0.3],
+    [3.36,  0.05, 0.3]
   ], []);
 
   const robotTargetPos = useMemo(() => {
@@ -3929,7 +3987,7 @@ function BridgeGame({
       return [5.2, 0.46, 0];
     }
     const currentStone = stonePositions[Math.min(solvedSteps - 1, 4)];
-    return [currentStone[0], 0.42, currentStone[2]];
+    return [currentStone[0], 0.55, currentStone[2]];
   }, [hasFinishedIsland, solvedSteps, stonePositions]);
 
   return (
@@ -3958,18 +4016,18 @@ function BridgeGame({
               <directionalLight position={[6, 12, 6]} intensity={1.5} castShadow shadow-mapSize={[1024, 1024]} />
               <Water />
 
-              {/* Sol Başlangıç Adası */}
-              <IslandModel position={[-5.6, -0.2, 0]} scale={[1.85, 1.35, 1.85]} />
+              {/* Sol Kumsal Başlangıç */}
+              <BeachIsland position={[-5.6, -0.2, 0]} />
 
-              {/* Sağ Bitiş Adası (Hedef Bayraklı) */}
-              <IslandModel position={[5.6, -0.2, 0]} scale={[1.85, 1.35, 1.85]} rotation={[0, Math.PI, 0]} hasFlag />
+              {/* Sağ Kumsal Bitiş (Bayraklı) */}
+              <BeachIsland position={[5.6, -0.2, 0]} rotation={[0, Math.PI, 0]} hasFlag />
 
-              {/* İki ada arasındaki 5 adet adım taşı */}
+              {/* İki kumsal arasındaki 5 kaya */}
               {stonePositions.map((pos, i) => (
-                <Stone3D
+                <Rock3D
                   key={i}
                   position={pos}
-                  scale={[0.82, 0.58, 0.82]}
+                  scale={1}
                   isCurrent={solvedSteps > 0 && solvedSteps - 1 === i}
                   isPassed={solvedSteps > i + 1}
                 />
