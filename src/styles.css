@@ -2249,6 +2249,89 @@ button {
   animation: button-pulse 1.4s steps(2, end) infinite;
 }
 
+/* Giriş Ekranı Başlat Buton Animasyonu */
+.intro-start-btn {
+  position: relative;
+  cursor: pointer;
+  user-select: none;
+}
+
+.intro-start-btn.animating {
+  animation: none !important;
+  transform: translate(3px, 3px);
+  filter:
+    drop-shadow(6px 6px 0 var(--button-dark))
+    drop-shadow(10px 10px 0 rgba(43, 22, 19, 0.18));
+  transition: transform 0.15s ease, filter 0.15s ease;
+}
+
+.intro-start-inner {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.intro-start-text {
+  display: inline-block;
+  line-height: 1;
+  transform: translateX(0);
+  opacity: 1;
+  transition: transform 0.44s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.32s ease;
+  white-space: nowrap;
+}
+
+.intro-start-btn.animating .intro-start-text {
+  transform: translateX(180px);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.intro-start-play-icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: translate(calc(-50% - 160px), -50%);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.44s cubic-bezier(0.2, 0.9, 0.3, 1), opacity 0.3s ease;
+  color: var(--fg);
+}
+
+.intro-start-btn.animating .intro-start-play-icon {
+  transform: translate(-50%, -50%);
+  opacity: 1;
+}
+
+.intro-start-btn.animating .pixel-play-svg {
+  animation: introPlayPunch 0.35s 0.28s ease-out forwards;
+}
+
+@keyframes introPlayPunch {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.3) translateX(3px);
+  }
+  75% {
+    transform: scale(0.95);
+  }
+  100% {
+    transform: scale(1.12);
+  }
+}
+
+.intro-screen-exiting {
+  pointer-events: none;
+}
+
 .pop-stage .continue-button {
   position: absolute;
   right: 0;

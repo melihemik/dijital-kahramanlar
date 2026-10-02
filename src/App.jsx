@@ -2384,16 +2384,68 @@ function App() {
   );
 }
 
-function IntroScreen({ onStart }) {
+function PixelPlayIcon() {
   return (
-    <main className="app-screen center-screen intro-screen">
+    <svg
+      aria-hidden="true"
+      className="pixel-play-svg"
+      fill="#fff3df"
+      height="38"
+      shapeRendering="crispEdges"
+      viewBox="0 0 16 16"
+      width="38"
+    >
+      <rect x="2" y="1" width="2" height="14" />
+      <rect x="4" y="2" width="2" height="12" />
+      <rect x="6" y="3" width="2" height="10" />
+      <rect x="8" y="4" width="2" height="8" />
+      <rect x="10" y="5" width="2" height="6" />
+      <rect x="12" y="6" width="2" height="4" />
+      <rect x="14" y="7" width="2" height="2" />
+    </svg>
+  );
+}
+
+function IntroScreen({ onStart }) {
+  const [isStarting, setIsStarting] = useState(false);
+
+  const handleClick = useCallback(() => {
+    if (isStarting) return;
+    setIsStarting(true);
+
+    const audioContext = getFeedbackAudioContext();
+    if (audioContext) {
+      const now = audioContext.currentTime;
+      playFeedbackTone(audioContext, 440, now, 0.08, "triangle");
+      playFeedbackTone(audioContext, 660, now + 0.07, 0.08, "triangle");
+      playFeedbackTone(audioContext, 880, now + 0.14, 0.16, "triangle");
+    }
+
+    window.setTimeout(() => {
+      onStart();
+    }, 650);
+  }, [isStarting, onStart]);
+
+  return (
+    <main className={`app-screen center-screen intro-screen ${isStarting ? "intro-screen-exiting" : ""}`}>
       <img
         className="home-logo"
         src={appLogo}
         alt="Dijital Kahramanlar"
       />
-      <button className="pixel-button start-button" onClick={onStart}>
-        Başla
+      <button
+        aria-label="Oyunu Başlat"
+        className={`pixel-button start-button intro-start-btn ${isStarting ? "animating" : ""}`}
+        disabled={isStarting}
+        onClick={handleClick}
+        type="button"
+      >
+        <span className="intro-start-inner">
+          <span className="intro-start-text">Başlat</span>
+          <span className="intro-start-play-icon" aria-hidden="true">
+            <PixelPlayIcon />
+          </span>
+        </span>
       </button>
     </main>
   );
